@@ -162,19 +162,32 @@ function NewCandidate() {
       const id = await ensureSaved({ status: "em_processamento" });
       if (!id) return;
       const out: any = await aiFn({ data: { candidate_id: id, instruction: refineInstr || undefined } });
-      setF((p: any) => ({
-        ...p,
-        headline: out.headline, mini_bio: out.mini_bio, full_bio: out.full_bio,
-        executive_summary: out.executive_summary ?? [], specialties: out.specialties ?? [],
-        main_results: out.main_results ?? [], achievements: out.achievements ?? [],
-        main_case: out.main_case, strengths: out.strengths ?? [], work_style: out.work_style,
-        professional_moment: out.professional_moment, motivators: out.motivators ?? [],
-        trajectory: out.trajectory ?? [], education: out.education ?? [], courses: out.courses ?? [],
-        languages: out.languages ?? [], competencies: out.competencies, inconsistencies: out.inconsistencies ?? [],
-        status: "aguardando_revisao",
-        disc_profile: out.disc?.dominant ? `${out.disc.dominant}${out.disc.secondary ? "/" + out.disc.secondary : ""}` : p.disc_profile,
-        disc_scores: out.disc ?? p.disc_scores,
-      }));
+      // Recarrega o candidato para pegar tanto o perfil estruturado quanto os campos básicos preenchidos pela IA.
+      const fresh: any = await getFn({ data: { id } });
+      if (fresh) {
+        setF((p: any) => ({
+          ...p,
+          ...fresh,
+          salary_expectation: fresh.salary_expectation ?? p.salary_expectation ?? "",
+          executive_summary: fresh.executive_summary ?? [],
+          specialties: fresh.specialties ?? [],
+          main_results: fresh.main_results ?? [],
+          achievements: fresh.achievements ?? [],
+          strengths: fresh.strengths ?? [],
+          motivators: fresh.motivators ?? [],
+          trajectory: fresh.trajectory ?? [],
+          education: fresh.education ?? [],
+          courses: fresh.courses ?? [],
+          languages: fresh.languages ?? [],
+          inconsistencies: fresh.inconsistencies ?? [],
+        }));
+        setDocs(fresh.documents ?? []);
+      } else {
+        setF((p: any) => ({ ...p, ...out, status: "aguardando_revisao" }));
+      }
+      qc.invalidateQueries({ queryKey: ["candidates"] });
+      qc.invalidateQueries({ queryKey: ["candidate", id] });
+
       toast.success("Perfil gerado com IA");
     } catch (e: any) { toast.error(e.message); }
     finally { clearInterval(interval); setAiBusy(false); }
