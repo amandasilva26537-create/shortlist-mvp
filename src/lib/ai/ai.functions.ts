@@ -75,70 +75,38 @@ Retorne JSON com: objective, mission, challenges[], responsibilities[], expected
   });
 
 // ============ Generate candidate profile (independent of a job) ============
-const CandidateProfileSchema = z.object({
-  headline: z.string(),
-  mini_bio: z.string(),
-  full_bio: z.string(),
-  executive_summary: z.array(z.string()),
-  specialties: z.array(z.string()),
-  main_results: z.array(z.string()),
-  achievements: z.array(z.string()),
-  main_case: z.object({
-    context: z.string(),
-    challenge: z.string(),
-    action: z.string(),
-    result: z.string(),
-  }),
-  strengths: z.array(z.object({ title: z.string(), evidence: z.string() })),
-  work_style: z.string(),
-  professional_moment: z.object({
-    reason_for_move: z.string(),
-    looking_for: z.string(),
-    availability: z.string(),
-    expectations: z.string(),
-  }),
-  motivators: z.array(z.string()),
-  trajectory: z.array(z.object({
-    company: z.string(),
-    segment: z.string(),
-    role: z.string(),
-    start: z.string(),
-    end: z.string(),
-    duration: z.string(),
-    location: z.string(),
-    work_model: z.string(),
-    scope: z.string(),
-    responsibilities: z.array(z.string()),
-    deliveries: z.array(z.string()),
-    results: z.array(z.string()),
-    team_size: z.string(),
-    reason_for_leaving: z.string(),
-  })),
-  education: z.array(z.object({ course: z.string(), institution: z.string(), type: z.string(), area: z.string(), start: z.string(), end: z.string(), status: z.string() })),
-  courses: z.array(z.object({ name: z.string(), institution: z.string(), year: z.string(), status: z.string(), workload: z.string() })),
-  languages: z.array(z.object({ language: z.string(), level: z.string(), professional_use: z.string() })),
-  competencies: z.object({
-    hard_skills: z.array(z.string()),
-    soft_skills: z.array(z.string()),
-    leadership: z.array(z.string()),
-    tools: z.array(z.string()),
-    technical: z.array(z.string()),
-  }),
-  disc: z.object({
-    dominant: z.string(),
-    secondary: z.string(),
-    D: z.number(),
-    I: z.number(),
-    S: z.number(),
-    C: z.number(),
-    behavior_summary: z.string(),
-    communication_style: z.string(),
-    strengths: z.array(z.string()),
-    attention_points: z.array(z.string()),
-    ideal_environment: z.string(),
-  }).nullable(),
-  inconsistencies: z.array(z.string()),
-});
+
+function extractJson(text: string): any {
+  // Strip markdown fences and try to parse the largest JSON object.
+  const cleaned = text.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+  const tryParse = (s: string) => { try { return JSON.parse(s); } catch { return null; } };
+  const direct = tryParse(cleaned);
+  if (direct) return direct;
+  const first = cleaned.indexOf("{");
+  const last = cleaned.lastIndexOf("}");
+  if (first !== -1 && last > first) {
+    const slice = cleaned.slice(first, last + 1);
+    const parsed = tryParse(slice);
+    if (parsed) return parsed;
+    // Best-effort: try to close a truncated object.
+    const repaired = tryParse(slice + "}".repeat(5));
+    if (repaired) return repaired;
+  }
+  throw new Error("A IA respondeu em formato inválido. Tente novamente ou envie mais contexto.");
+}
+
+function pathFromPublicUrl(url: string, bucket: string): string | null {
+  const marker = `/object/public/${bucket}/`;
+  const i = url.indexOf(marker);
+  if (i === -1) return null;
+  return decodeURIComponent(url.slice(i + marker.length));
+}
+
+async function fileToBase64(blob: Blob): Promise<string> {
+  const buf = await blob.arrayBuffer();
+  // Buffer is available in the worker/node runtime.
+  return Buffer.from(buf).toString("base64");
+}
 
 export const generateCandidateProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -156,15 +124,37 @@ export const generateCandidateProfile = createServerFn({ method: "POST" })
     const { data: docs } = await context.supabase
       .from("candidate_documents").select("kind,label,url").eq("candidate_id", data.candidate_id);
 
-    const gateway = createLovableAiGateway(requireApiKey());
-    const model = gateway(AI_MODEL);
+    // Download attached documents so the model can actually read them.
+    const fileParts: any[] = [];
+    const attachedList: string[] = [];
+    for (const d of docs ?? []) {
+      const path = pathFromPublicUrl(d.url, "candidate-files");
+      if (!path) continue;
+      const { data: blob, error } = await context.supabase.storage.from("candidate-files").download(path);
+      if (error || !blob) { attachedList.push(`${d.kind}: ${d.label} (erro ao baixar)`); continue; }
+      const mime = blob.type || (path.endsWith(".pdf") ? "application/pdf" : "application/octet-stream");
+      const b64 = await fileToBase64(blob);
+      const isImage = mime.startsWith("image/");
+      if (isImage) {
+        fileParts.push({ type: "image", image: `data:${mime};base64,${b64}`, mediaType: mime });
+      } else {
+        fileParts.push({ type: "file", data: `data:${mime};base64,${b64}`, mediaType: mime, filename: d.label ?? "arquivo" });
+      }
+      attachedList.push(`${d.kind}: ${d.label}`);
+    }
 
-    const prompt = `Você é um analista sênior de talentos. Estruture o perfil executivo do candidato abaixo em JSON.
+    // Also attach the candidate photo when it's a data URL.
+    if (typeof cand.photo_url === "string" && cand.photo_url.startsWith("data:image/")) {
+      const [, mimePart, b64] = cand.photo_url.match(/^data:([^;]+);base64,(.+)$/) || [];
+      if (b64) fileParts.push({ type: "image", image: `data:${mimePart};base64,${b64}`, mediaType: mimePart });
+    }
 
-REGRAS ABSOLUTAS DE CONFIABILIDADE:
-- Use SOMENTE informações presentes no material fornecido.
-- NUNCA invente cargos, empresas, datas, resultados, números, formação, cursos, idiomas, competências, motivos de saída, tamanho de equipe ou ferramentas.
-- Se uma informação não estiver disponível, deixe o campo como string vazia "" ou array vazio [].
+    const promptText = `Você é um analista sênior de talentos. Estruture o perfil executivo do candidato abaixo e responda APENAS com um objeto JSON válido (sem comentários, sem markdown, sem texto antes ou depois).
+
+REGRAS ABSOLUTAS:
+- Use SOMENTE informações presentes no material fornecido (dados manuais, textos colados, arquivos anexados como currículo, DISC, entrevista, parecer).
+- NUNCA invente cargos, empresas, datas, números, formação, cursos, idiomas ou competências.
+- Se um dado não estiver disponível, retorne string vazia "" ou array vazio [].
 - Se dois materiais divergirem, liste em "inconsistencies".
 
 CANDIDATO (dados manuais):
@@ -188,49 +178,75 @@ ${cand.transcript ?? ""}
 Informações adicionais/observações internas:
 ${cand.internal_notes ?? ""}
 
-Documentos anexados: ${(docs ?? []).map((d: any) => `${d.kind}: ${d.label ?? d.url}`).join(" | ") || "nenhum"}
+Arquivos anexados (leia o conteúdo): ${attachedList.join(" | ") || "nenhum"}
 
 ${data.instruction ? `Instrução adicional do recrutador: ${data.instruction}` : ""}
 
-Gere: headline curta e estratégica; mini_bio (<=240 caracteres); full_bio objetiva em blocos curtos; executive_summary (até 5 bullets); specialties (tags); main_results; achievements; main_case (contexto/desafio/ação/resultado); strengths (3 a 5, cada um com evidência curta); work_style (síntese com base na entrevista e no parecer, sem diagnóstico psicológico); professional_moment; motivators; trajectory (ordem cronológica inversa); education; courses; languages; competencies separadas; disc (se houver material) ou null; inconsistencies.`;
+Retorne um objeto JSON com EXATAMENTE estas chaves:
+{
+  "headline": string,
+  "mini_bio": string,
+  "full_bio": string,
+  "executive_summary": string[],
+  "specialties": string[],
+  "main_results": string[],
+  "achievements": string[],
+  "main_case": { "context": string, "challenge": string, "action": string, "result": string },
+  "strengths": [{ "title": string, "evidence": string }],
+  "work_style": string,
+  "professional_moment": { "reason_for_move": string, "looking_for": string, "availability": string, "expectations": string },
+  "motivators": string[],
+  "trajectory": [{ "company": string, "segment": string, "role": string, "start": string, "end": string, "duration": string, "location": string, "work_model": string, "scope": string, "responsibilities": string[], "deliveries": string[], "results": string[], "team_size": string, "reason_for_leaving": string }],
+  "education": [{ "course": string, "institution": string, "type": string, "area": string, "start": string, "end": string, "status": string }],
+  "courses": [{ "name": string, "institution": string, "year": string, "status": string, "workload": string }],
+  "languages": [{ "language": string, "level": string, "professional_use": string }],
+  "competencies": { "hard_skills": string[], "soft_skills": string[], "leadership": string[], "tools": string[], "technical": string[] },
+  "disc": null OR { "dominant": string, "secondary": string, "D": number, "I": number, "S": number, "C": number, "behavior_summary": string, "communication_style": string, "strengths": string[], "attention_points": string[], "ideal_environment": string },
+  "inconsistencies": string[]
+}`;
 
+    const gateway = createLovableAiGateway(requireApiKey());
+    const model = gateway(AI_MODEL);
+
+    let output: any;
     try {
-      const { output } = await generateText({
+      const { text } = await generateText({
         model,
-        output: Output.object({ schema: CandidateProfileSchema }),
-        prompt,
+        messages: [{ role: "user", content: [{ type: "text", text: promptText }, ...fileParts] as any }],
       });
-      await context.supabase.from("candidates").update({
-        headline: output.headline,
-        mini_bio: output.mini_bio,
-        full_bio: output.full_bio,
-        executive_summary: output.executive_summary,
-        specialties: output.specialties,
-        main_results: output.main_results,
-        achievements: output.achievements,
-        main_case: output.main_case,
-        strengths: output.strengths,
-        work_style: output.work_style,
-        professional_moment: output.professional_moment,
-        motivators: output.motivators,
-        trajectory: output.trajectory,
-        education: output.education,
-        courses: output.courses,
-        languages: output.languages,
-        competencies: output.competencies,
-        inconsistencies: output.inconsistencies,
-        ai_profile: output,
-        status: "aguardando_revisao",
-        disc_scores: output.disc ?? cand.disc_scores,
-        disc_profile: output.disc?.dominant ? `${output.disc.dominant}${output.disc.secondary ? "/" + output.disc.secondary : ""}` : cand.disc_profile,
-      }).eq("id", data.candidate_id);
-      return output;
-    } catch (err) {
-      if (NoObjectGeneratedError.isInstance(err)) {
-        throw new Error("A IA não conseguiu gerar o perfil. Envie mais contexto (currículo, parecer, entrevista).");
-      }
-      throw err;
+      output = extractJson(text);
+    } catch (err: any) {
+      throw new Error(err?.message || "Falha ao chamar a IA");
     }
+
+    const normArr = (v: any) => Array.isArray(v) ? v : [];
+    const patch: any = {
+      headline: output.headline ?? null,
+      mini_bio: output.mini_bio ?? null,
+      full_bio: output.full_bio ?? null,
+      executive_summary: normArr(output.executive_summary),
+      specialties: normArr(output.specialties),
+      main_results: normArr(output.main_results),
+      achievements: normArr(output.achievements),
+      main_case: output.main_case ?? null,
+      strengths: normArr(output.strengths),
+      work_style: output.work_style ?? null,
+      professional_moment: output.professional_moment ?? null,
+      motivators: normArr(output.motivators),
+      trajectory: normArr(output.trajectory),
+      education: normArr(output.education),
+      courses: normArr(output.courses),
+      languages: normArr(output.languages),
+      competencies: output.competencies ?? null,
+      inconsistencies: normArr(output.inconsistencies),
+      ai_profile: output,
+      status: "aguardando_revisao",
+      disc_scores: output.disc ?? cand.disc_scores,
+      disc_profile: output.disc?.dominant ? `${output.disc.dominant}${output.disc.secondary ? "/" + output.disc.secondary : ""}` : cand.disc_profile,
+    };
+    const { error: upErr } = await context.supabase.from("candidates").update(patch).eq("id", data.candidate_id);
+    if (upErr) throw new Error(upErr.message);
+    return output;
   });
 
 // ============ Analyze shortlist ============
