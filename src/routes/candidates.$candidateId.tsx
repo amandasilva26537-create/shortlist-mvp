@@ -1,13 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles } from "lucide-react";
-import { getCandidate } from "@/lib/db/candidates.functions";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles, ListPlus, Trash2, Archive } from "lucide-react";
+import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
+import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus } from "@/lib/db/shortlists.functions";
+import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/candidates/$candidateId")({
   head: ({ params }) => ({ meta: [{ title: `Candidato · ${params.candidateId}` }] }),
