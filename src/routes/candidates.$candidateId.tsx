@@ -31,13 +31,17 @@ function CandidatePage() {
   const removeLinkFn = useServerFn(removeCandidateFromShortlist);
   const setStatusFn = useServerFn(updateCandidateShortlistStatus);
 
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(candidateId);
+
   const { data, isLoading } = useQuery({
     queryKey: ["candidate", candidateId],
     queryFn: () => getFn({ data: { id: candidateId } }),
+    enabled: isUuid,
   });
   const { data: shortlistLinks = [] } = useQuery({
     queryKey: ["candidate-shortlists", candidateId],
     queryFn: () => linksFn({ data: { candidate_id: candidateId } }),
+    enabled: isUuid,
   });
   const c: any = data;
   const [addOpen, setAddOpen] = useState(false);
