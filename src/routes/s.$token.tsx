@@ -1,148 +1,116 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { getShortlistByToken, getJob, getClient, getCandidate } from "@/lib/mock-data";
-import { CandidateCard } from "@/components/candidate/CandidateCard";
-import { Sparkles, Check, Circle } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Sparkles, Heart, ThumbsUp, ThumbsDown, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
+import { getPortalShortlist, submitPortalFeedback } from "@/lib/db/portal.functions";
 
 export const Route = createFileRoute("/s/$token")({
-  loader: ({ params }) => {
-    const s = getShortlistByToken(params.token);
-    if (!s) throw notFound();
-    return s;
-  },
-  head: ({ loaderData }) => ({
-    meta: [{ title: loaderData ? "Shortlist · Moove Select" : "Shortlist" }],
-  }),
-  notFoundComponent: () => (
-    <div className="min-h-screen grid place-items-center p-8 text-sm text-muted-foreground">
-      Link inválido ou expirado.
-    </div>
-  ),
-  errorComponent: () => (
-    <div className="min-h-screen grid place-items-center p-8 text-sm text-muted-foreground">
-      Erro ao carregar shortlist.
-    </div>
-  ),
-  component: PortalPage,
+  ssr: false,
+  head: () => ({ meta: [{ title: "Shortlist · Moove Select" }] }),
+  component: Portal,
 });
 
-const timeline = [
-  { label: "Briefing", done: true },
-  { label: "Mapeamento", done: true },
-  { label: "Entrevistas", done: true },
-  { label: "Shortlist", done: true, current: true },
-  { label: "Decisão", done: false },
-];
+function Portal() {
+  const { token } = Route.useParams();
+  const getFn = useServerFn(getPortalShortlist);
+  const sendFn = useServerFn(submitPortalFeedback);
+  const { data, refetch } = useQuery({ queryKey: ["portal", token], queryFn: () => getFn({ data: { token } }) });
 
-function PortalPage() {
-  const s = Route.useLoaderData();
-  const job = getJob(s.jobId);
-  const client = getClient(s.clientId);
-  const candidates = s.candidateIds.map((id: string) => getCandidate(id)!).filter(Boolean);
+  const [name, setName] = useState("");
+  const [openFor, setOpenFor] = useState<string | null>(null);
+  const [comment, setComment] = useState("");
+
+  if (!data) return <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">Carregando…</div>;
+
+  const send = async (candidate_id: string, decision: "approved" | "rejected" | "second_interview" | null, favorite?: boolean, commentText?: string) => {
+    if (!name) { toast.error("Informe seu nome para registrar"); return; }
+    await sendFn({ data: { token, candidate_id, client_identifier: name, decision, favorite, comment: commentText ?? null } });
+    toast.success("Registrado. Obrigado!");
+    setComment(""); setOpenFor(null);
+    refetch();
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Portal header */}
       <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4 md:px-8">
-          <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold tracking-tight">Moove Select</span>
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-              Portal do cliente
-            </span>
-          </div>
+        <div className="mx-auto max-w-4xl px-5 py-6">
+          <div className="text-[11px] uppercase tracking-widest text-primary">{data.shortlist.clients?.name}</div>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{data.shortlist.title || data.shortlist.jobs?.title}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{data.shortlist.jobs?.title} · {data.candidates.length} candidatos apresentados</p>
+          {data.shortlist.message && <p className="mt-3 rounded-lg bg-primary-soft p-3 text-sm">{data.shortlist.message}</p>}
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 md:px-8">
-        <div className="card-elevated overflow-hidden">
-          <div className="bg-gradient-to-br from-primary-soft to-transparent p-6 md:p-8">
-            <div className="text-[11px] font-medium uppercase tracking-widest text-primary">
-              {client?.name}
-            </div>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
-              {job?.title}
-            </h1>
-            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
-              <div>
-                <span className="font-medium text-foreground">Versão {s.version}</span> da shortlist
-              </div>
-              <div>
-                <span className="font-medium text-foreground">{candidates.length}</span> candidatos apresentados
-              </div>
-              <div>
-                <span className="font-medium text-foreground">{s.finalists}</span> finalistas
-              </div>
-            </div>
-          </div>
+      <div className="mx-auto max-w-4xl p-5">
+        <div className="card-soft p-4 mb-6">
+          <div className="text-sm font-medium mb-2">Seu nome (para registrar comentários)</div>
+          <Input placeholder="Ex: João Silva — Diretor de Operações" value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
 
-          {/* Timeline */}
-          <div className="border-t border-border bg-card px-6 py-5 md:px-8">
-            <ol className="flex flex-wrap items-center gap-y-3">
-              {timeline.map((step, i) => (
-                <li key={step.label} className="flex items-center gap-2">
-                  <div
-                    className={
-                      "grid h-7 w-7 place-items-center rounded-full text-[11px] font-semibold " +
-                      (step.done
-                        ? step.current
-                          ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
-                          : "bg-[color:var(--success)]/15 text-[color:var(--success)]"
-                        : "bg-secondary text-muted-foreground")
-                    }
-                  >
-                    {step.done ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-3 w-3" />}
+        <div className="space-y-4">
+          {data.candidates.map((cl: any) => {
+            const c = cl.candidates;
+            const ev = data.evaluations.find((e: any) => e.candidate_id === c.id);
+            const docs = data.documents.filter((d: any) => d.candidate_id === c.id);
+            return (
+              <div key={c.id} className="card-elevated p-5">
+                <div className="flex items-start gap-4">
+                  {c.photo_url ? <img src={c.photo_url} className="h-16 w-16 rounded-full object-cover" alt="" /> :
+                    <div className="grid h-16 w-16 place-items-center rounded-full bg-primary-soft text-primary font-semibold">{c.full_name.slice(0, 2).toUpperCase()}</div>}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-lg font-semibold">{c.full_name}</div>
+                    <div className="text-sm text-muted-foreground">{c.current_position || "—"} · {c.city || "—"}</div>
+                    {ev?.overall_match != null && (
+                      <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-medium text-primary">
+                        <Sparkles className="h-3 w-3" /> Aderência {ev.overall_match}%
+                      </div>
+                    )}
                   </div>
-                  <span
-                    className={
-                      "text-xs " +
-                      (step.current
-                        ? "font-semibold text-foreground"
-                        : step.done
-                          ? "text-foreground"
-                          : "text-muted-foreground")
-                    }
-                  >
-                    {step.label}
-                  </span>
-                  {i < timeline.length - 1 && (
-                    <div className="mx-2 h-px w-8 bg-border md:w-14" />
-                  )}
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
+                </div>
 
-        <section className="mt-8">
-          <h2 className="text-lg font-semibold tracking-tight">Candidatos</h2>
-          <p className="text-sm text-muted-foreground">
-            Toque em um card para explorar o perfil executivo.
-          </p>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {candidates.map((c: typeof candidates[number]) => (
-              <CandidateCard
-                key={c.id}
-                candidate={c}
-                to="/s/$token/c/$candidateId"
-                params={{ token: s.shareToken, candidateId: c.id }}
-              />
-            ))}
-          </div>
-        </section>
+                {ev?.ai_generated && (
+                  <div className="mt-4 space-y-3 text-sm">
+                    <div className="font-medium">{ev.ai_generated.headline}</div>
+                    <div className="text-muted-foreground">{ev.ai_generated.mini_bio}</div>
+                    {ev.ai_generated.strengths?.length > 0 && (
+                      <div>
+                        <div className="text-xs font-medium uppercase text-muted-foreground">Pontos fortes</div>
+                        <ul className="mt-1 list-disc list-inside">{ev.ai_generated.strengths.map((s: string, i: number) => <li key={i}>{s}</li>)}</ul>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-        <footer className="mt-10 text-center text-xs text-muted-foreground">
-          Apresentado por <span className="font-semibold text-foreground">Moove Select</span> ·
-          Consultorias entregam currículos. Nós entregamos inteligência.
-        </footer>
-        <div className="mt-2 text-center">
-          <Link to="/" className="text-[11px] text-muted-foreground hover:underline">
-            Área interna
-          </Link>
+                {docs.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {docs.map((d: any) => <a key={d.id} href={d.url} target="_blank" className="text-xs rounded-full bg-secondary px-3 py-1 hover:bg-secondary/70">{d.label || d.kind}</a>)}
+                    {c.linkedin_url && <a href={c.linkedin_url} target="_blank" className="text-xs rounded-full bg-secondary px-3 py-1 hover:bg-secondary/70">LinkedIn</a>}
+                  </div>
+                )}
+
+                <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
+                  <Button size="sm" variant="outline" onClick={() => send(c.id, "approved")}><ThumbsUp className="mr-1.5 h-3.5 w-3.5" /> Aprovar</Button>
+                  <Button size="sm" variant="outline" onClick={() => send(c.id, "second_interview")}>2ª entrevista</Button>
+                  <Button size="sm" variant="outline" onClick={() => send(c.id, "rejected")}><ThumbsDown className="mr-1.5 h-3.5 w-3.5" /> Reprovar</Button>
+                  <Button size="sm" variant="outline" onClick={() => send(c.id, null, true)}><Heart className="mr-1.5 h-3.5 w-3.5" /> Favoritar</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setOpenFor(openFor === c.id ? null : c.id)}><MessageCircle className="mr-1.5 h-3.5 w-3.5" /> Comentar</Button>
+                </div>
+                {openFor === c.id && (
+                  <div className="mt-3 space-y-2">
+                    <Textarea rows={3} placeholder="Sua observação sobre este candidato…" value={comment} onChange={(e) => setComment(e.target.value)} />
+                    <Button size="sm" onClick={() => send(c.id, null, false, comment)}>Enviar comentário</Button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      </main>
+      </div>
     </div>
   );
 }
