@@ -162,19 +162,32 @@ function NewCandidate() {
       const id = await ensureSaved({ status: "em_processamento" });
       if (!id) return;
       const out: any = await aiFn({ data: { candidate_id: id, instruction: refineInstr || undefined } });
-      setF((p: any) => ({
-        ...p,
-        headline: out.headline, mini_bio: out.mini_bio, full_bio: out.full_bio,
-        executive_summary: out.executive_summary ?? [], specialties: out.specialties ?? [],
-        main_results: out.main_results ?? [], achievements: out.achievements ?? [],
-        main_case: out.main_case, strengths: out.strengths ?? [], work_style: out.work_style,
-        professional_moment: out.professional_moment, motivators: out.motivators ?? [],
-        trajectory: out.trajectory ?? [], education: out.education ?? [], courses: out.courses ?? [],
-        languages: out.languages ?? [], competencies: out.competencies, inconsistencies: out.inconsistencies ?? [],
-        status: "aguardando_revisao",
-        disc_profile: out.disc?.dominant ? `${out.disc.dominant}${out.disc.secondary ? "/" + out.disc.secondary : ""}` : p.disc_profile,
-        disc_scores: out.disc ?? p.disc_scores,
-      }));
+      // Recarrega o candidato para pegar tanto o perfil estruturado quanto os campos básicos preenchidos pela IA.
+      const fresh: any = await getFn({ data: { id } });
+      if (fresh) {
+        setF((p: any) => ({
+          ...p,
+          ...fresh,
+          salary_expectation: fresh.salary_expectation ?? p.salary_expectation ?? "",
+          executive_summary: fresh.executive_summary ?? [],
+          specialties: fresh.specialties ?? [],
+          main_results: fresh.main_results ?? [],
+          achievements: fresh.achievements ?? [],
+          strengths: fresh.strengths ?? [],
+          motivators: fresh.motivators ?? [],
+          trajectory: fresh.trajectory ?? [],
+          education: fresh.education ?? [],
+          courses: fresh.courses ?? [],
+          languages: fresh.languages ?? [],
+          inconsistencies: fresh.inconsistencies ?? [],
+        }));
+        setDocs(fresh.documents ?? []);
+      } else {
+        setF((p: any) => ({ ...p, ...out, status: "aguardando_revisao" }));
+      }
+      qc.invalidateQueries({ queryKey: ["candidates"] });
+      qc.invalidateQueries({ queryKey: ["candidate", id] });
+
       toast.success("Perfil gerado com IA");
     } catch (e: any) { toast.error(e.message); }
     finally { clearInterval(interval); setAiBusy(false); }
@@ -229,23 +242,11 @@ function NewCandidate() {
           <aside className="space-y-4">
             <div className="card-elevated p-5 space-y-3">
               <div className="text-xs font-semibold uppercase text-muted-foreground">Dados básicos</div>
+              <div className="text-[11px] text-muted-foreground">Preencha o que já souber. A IA tentará completar o restante a partir dos arquivos anexados.</div>
               <div><Label>Nome completo *</Label><Input value={f.full_name} onChange={set("full_name")} /></div>
               <div><Label>Cargo atual</Label><Input value={f.current_position} onChange={set("current_position")} /></div>
-              <div><Label>Empresa atual</Label><Input value={f.current_company} onChange={set("current_company")} /></div>
               <div><Label>Área profissional</Label><Input value={f.area} onChange={set("area")} /></div>
-              <div><Label>Senioridade</Label>
-                <Select value={f.seniority || ""} onValueChange={set("seniority")}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                  <SelectContent>
-                    {["Estágio","Júnior","Pleno","Sênior","Especialista","Coordenação","Gerência","Diretoria","C-Level"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div><Label>Cidade</Label><Input value={f.city} onChange={set("city")} /></div>
-                <div><Label>UF</Label><Input value={f.state} onChange={set("state")} /></div>
-                <div><Label>País</Label><Input value={f.country} onChange={set("country")} /></div>
-              </div>
+              <div><Label>Cidade</Label><Input value={f.city} onChange={set("city")} /></div>
               <div><Label>Modelo de trabalho</Label>
                 <Select value={f.work_model} onValueChange={set("work_model")}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -257,6 +258,7 @@ function NewCandidate() {
               <div><Label>Pretensão salarial (R$)</Label><Input type="number" value={f.salary_expectation} onChange={set("salary_expectation")} /></div>
               <div><Label>LinkedIn</Label><Input value={f.linkedin_url} onChange={set("linkedin_url")} placeholder="https://linkedin.com/in/…" /></div>
             </div>
+
 
             <div className="card-elevated p-5 space-y-3 border-l-4 border-amber-500">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase text-amber-700"><Lock className="h-3.5 w-3.5" />Informação interna</div>
@@ -339,10 +341,13 @@ function NewCandidate() {
               </div>
             </div>
 
-            {/* Editable structured sections */}
+            {/* Editable structured sections — só aparecem após a IA gerar o perfil ou ao editar um candidato existente */}
+            {(!!editId || !!f.headline || !!f.mini_bio || !!f.full_bio || (f.trajectory?.length ?? 0) > 0) ? (
+              <>
             <Section title="Headline" onRefine={(instr) => refineSection("headline", instr)} refining={refiningKey === "headline"}>
               <Input value={f.headline || ""} onChange={set("headline")} placeholder="Headline profissional" />
             </Section>
+
 
             <Section title="Mini bio (até 240 caracteres)" onRefine={(instr) => refineSection("mini_bio", instr)} refining={refiningKey === "mini_bio"}>
               <Textarea rows={2} maxLength={240} value={f.mini_bio || ""} onChange={set("mini_bio")} />
@@ -448,6 +453,12 @@ function NewCandidate() {
                 </ul>
               </div>
             )}
+              </>
+            ) : (
+              <div className="card-elevated p-6 text-center text-sm text-muted-foreground">
+                Envie os materiais e clique em <b>Gerar perfil com IA</b>. As seções detalhadas do perfil aparecerão aqui para revisão.
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
               <Button variant="ghost" onClick={() => navigate({ to: "/candidates" })}>Cancelar</Button>
@@ -455,6 +466,7 @@ function NewCandidate() {
               <Button variant="outline" onClick={() => ensureSaved().then((id) => id && toast.success("Salvo"))}>Salvar e continuar</Button>
               <Button onClick={() => save("ativo")}>Salvar candidato</Button>
             </div>
+
           </main>
         </div>
       </div>

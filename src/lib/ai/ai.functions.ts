@@ -183,6 +183,7 @@ ${data.instruction ? `Instrução adicional do recrutador: ${data.instruction}` 
 
 Retorne um objeto JSON com EXATAMENTE estas chaves:
 {
+  "basic_info": { "full_name": string, "current_position": string, "current_company": string, "area": string, "city": string, "state": string, "country": string, "work_model": string, "salary_expectation": number|null, "linkedin_url": string, "email": string, "phone": string },
   "headline": string,
   "mini_bio": string,
   "full_bio": string,
@@ -202,7 +203,13 @@ Retorne um objeto JSON com EXATAMENTE estas chaves:
   "competencies": { "hard_skills": string[], "soft_skills": string[], "leadership": string[], "tools": string[], "technical": string[] },
   "disc": null OR { "dominant": string, "secondary": string, "D": number, "I": number, "S": number, "C": number, "behavior_summary": string, "communication_style": string, "strengths": string[], "attention_points": string[], "ideal_environment": string },
   "inconsistencies": string[]
-}`;
+}
+
+Regras para basic_info:
+- Preencha somente com informações encontradas nos materiais. Não invente.
+- Use "" (string vazia) ou null (para salary_expectation) quando não encontrar.
+- work_model deve ser um de: "Remoto", "Híbrido", "Presencial", "Flexível" ou "" se não souber.`;
+
 
     const gateway = createLovableAiGateway(requireApiKey());
     const model = gateway(AI_MODEL);
@@ -219,7 +226,28 @@ Retorne um objeto JSON com EXATAMENTE estas chaves:
     }
 
     const normArr = (v: any) => Array.isArray(v) ? v : [];
+    const emptyStr = (v: any) => v === null || v === undefined || String(v).trim() === "";
+    const bi = output.basic_info ?? {};
+    // Só preenche campos básicos quando o registro atual estiver vazio, para não sobrescrever entrada manual.
+    const basicPatch: any = {};
+    const maybeSet = (k: string, v: any) => { if (emptyStr((cand as any)[k]) && !emptyStr(v)) basicPatch[k] = typeof v === "string" ? v.trim() : v; };
+    maybeSet("full_name", bi.full_name);
+    maybeSet("current_position", bi.current_position);
+    maybeSet("current_company", bi.current_company);
+    maybeSet("area", bi.area);
+    maybeSet("city", bi.city);
+    maybeSet("state", bi.state);
+    maybeSet("country", bi.country);
+    maybeSet("work_model", bi.work_model);
+    maybeSet("linkedin_url", bi.linkedin_url);
+    maybeSet("email", bi.email);
+    maybeSet("phone", bi.phone);
+    if (emptyStr(cand.salary_expectation) && typeof bi.salary_expectation === "number" && !isNaN(bi.salary_expectation)) {
+      basicPatch.salary_expectation = bi.salary_expectation;
+    }
+
     const patch: any = {
+      ...basicPatch,
       headline: output.headline ?? null,
       mini_bio: output.mini_bio ?? null,
       full_bio: output.full_bio ?? null,
@@ -243,6 +271,7 @@ Retorne um objeto JSON com EXATAMENTE estas chaves:
       disc_scores: output.disc ?? cand.disc_scores,
       disc_profile: output.disc?.dominant ? `${output.disc.dominant}${output.disc.secondary ? "/" + output.disc.secondary : ""}` : cand.disc_profile,
     };
+
     const { error: upErr } = await context.supabase.from("candidates").update(patch).eq("id", data.candidate_id);
     if (upErr) throw new Error(upErr.message);
     return output;
