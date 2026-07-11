@@ -147,61 +147,151 @@ export type Database = {
       }
       candidates: {
         Row: {
+          achievements: Json | null
+          additional_info: Json | null
+          ai_profile: Json | null
+          archived_at: string | null
+          area: string | null
           city: string | null
+          competencies: Json | null
+          country: string | null
+          courses: Json | null
           created_at: string
           created_by: string
+          current_company: string | null
           current_position: string | null
           disc_profile: string | null
           disc_raw: string | null
           disc_scores: Json | null
+          education: Json | null
+          email: string | null
+          executive_summary: Json | null
+          full_bio: string | null
           full_name: string
+          headline: string | null
           id: string
+          inconsistencies: Json | null
+          internal_notes: string | null
+          languages: Json | null
           linkedin_url: string | null
+          main_case: Json | null
+          main_results: Json | null
+          mini_bio: string | null
+          motivators: Json | null
+          phone: string | null
           photo_url: string | null
+          professional_moment: Json | null
           recruiter_note: string | null
           resume_url: string | null
           salary_expectation: number | null
+          seniority: string | null
+          specialties: Json | null
+          state: string | null
+          status: string
+          strengths: Json | null
+          trajectory: Json | null
           transcript: string | null
           updated_at: string
           work_model: string | null
+          work_style: string | null
         }
         Insert: {
+          achievements?: Json | null
+          additional_info?: Json | null
+          ai_profile?: Json | null
+          archived_at?: string | null
+          area?: string | null
           city?: string | null
+          competencies?: Json | null
+          country?: string | null
+          courses?: Json | null
           created_at?: string
           created_by: string
+          current_company?: string | null
           current_position?: string | null
           disc_profile?: string | null
           disc_raw?: string | null
           disc_scores?: Json | null
+          education?: Json | null
+          email?: string | null
+          executive_summary?: Json | null
+          full_bio?: string | null
           full_name: string
+          headline?: string | null
           id?: string
+          inconsistencies?: Json | null
+          internal_notes?: string | null
+          languages?: Json | null
           linkedin_url?: string | null
+          main_case?: Json | null
+          main_results?: Json | null
+          mini_bio?: string | null
+          motivators?: Json | null
+          phone?: string | null
           photo_url?: string | null
+          professional_moment?: Json | null
           recruiter_note?: string | null
           resume_url?: string | null
           salary_expectation?: number | null
+          seniority?: string | null
+          specialties?: Json | null
+          state?: string | null
+          status?: string
+          strengths?: Json | null
+          trajectory?: Json | null
           transcript?: string | null
           updated_at?: string
           work_model?: string | null
+          work_style?: string | null
         }
         Update: {
+          achievements?: Json | null
+          additional_info?: Json | null
+          ai_profile?: Json | null
+          archived_at?: string | null
+          area?: string | null
           city?: string | null
+          competencies?: Json | null
+          country?: string | null
+          courses?: Json | null
           created_at?: string
           created_by?: string
+          current_company?: string | null
           current_position?: string | null
           disc_profile?: string | null
           disc_raw?: string | null
           disc_scores?: Json | null
+          education?: Json | null
+          email?: string | null
+          executive_summary?: Json | null
+          full_bio?: string | null
           full_name?: string
+          headline?: string | null
           id?: string
+          inconsistencies?: Json | null
+          internal_notes?: string | null
+          languages?: Json | null
           linkedin_url?: string | null
+          main_case?: Json | null
+          main_results?: Json | null
+          mini_bio?: string | null
+          motivators?: Json | null
+          phone?: string | null
           photo_url?: string | null
+          professional_moment?: Json | null
           recruiter_note?: string | null
           resume_url?: string | null
           salary_expectation?: number | null
+          seniority?: string | null
+          specialties?: Json | null
+          state?: string | null
+          status?: string
+          strengths?: Json | null
+          trajectory?: Json | null
           transcript?: string | null
           updated_at?: string
           work_model?: string | null
+          work_style?: string | null
         }
         Relationships: []
       }
