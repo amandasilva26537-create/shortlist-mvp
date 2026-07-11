@@ -8,14 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Search, Archive, Pencil, Eye, FileText, Linkedin, Image as ImageIcon } from "lucide-react";
-import { listCandidates, archiveCandidate } from "@/lib/db/candidates.functions";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Plus, Search, Archive, Pencil, Eye, FileText, Linkedin, Image as ImageIcon, Trash2, ListPlus } from "lucide-react";
+import { listCandidates, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
+import { listCandidateShortlistLinks } from "@/lib/db/shortlists.functions";
+import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/candidates/")({
   head: () => ({ meta: [{ title: "Candidatos · Moove Select" }] }),
   component: CandidatesList,
 });
+
 
 function CandidatesList() {
   const nav = useNavigate();
