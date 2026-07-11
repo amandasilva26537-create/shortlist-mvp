@@ -13,6 +13,8 @@ const ClientInput = z.object({
   country: z.string().nullable().optional(),
   contact_name: z.string().nullable().optional(),
   contact_role: z.string().nullable().optional(),
+  contact: z.string().nullable().optional(),
+  instagram: z.string().nullable().optional(),
   internal_notes: z.string().nullable().optional(),
 });
 
