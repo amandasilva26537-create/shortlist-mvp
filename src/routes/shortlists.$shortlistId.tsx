@@ -30,7 +30,7 @@ function ShortlistDetail() {
   const s = Route.useLoaderData();
   const job = getJob(s.jobId);
   const client = getClient(s.clientId);
-  const candidates = s.candidateIds.map((id) => getCandidate(id)!).filter(Boolean);
+  const candidates = s.candidateIds.map((id: string) => getCandidate(id)!).filter(Boolean);
 
   const shareUrl =
     typeof window !== "undefined" ? `${window.location.origin}/s/${s.shareToken}` : `/s/${s.shareToken}`;

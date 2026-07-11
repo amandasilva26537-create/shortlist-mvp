@@ -26,7 +26,7 @@ function ComparePage() {
   const { ids } = Route.useSearch();
   const navigate = useNavigate({ from: "/compare" });
   const selectedIds = (ids ?? "").split(",").filter(Boolean).slice(0, 4);
-  const selected = selectedIds.map((id) => getCandidate(id)).filter(Boolean) as ReturnType<
+  const selected = selectedIds.map((id: string) => getCandidate(id)).filter(Boolean) as ReturnType<
     typeof getCandidate
   >[];
 
@@ -34,7 +34,7 @@ function ComparePage() {
     navigate({ search: { ids: next.join(",") || undefined } });
   };
 
-  const remove = (id: string) => setIds(selectedIds.filter((x) => x !== id));
+  const remove = (id: string) => setIds(selectedIds.filter((x: string) => x !== id));
   const add = (id: string) => {
     if (selectedIds.includes(id) || selectedIds.length >= 4) return;
     setIds([...selectedIds, id]);

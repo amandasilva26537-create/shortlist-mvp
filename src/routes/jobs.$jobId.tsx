@@ -70,7 +70,7 @@ function JobDetail() {
               Critérios eliminatórios
             </div>
             <ul className="space-y-2">
-              {job.mustHave.map((c) => (
+              {job.mustHave.map((c: string) => (
                 <li key={c} className="flex items-start gap-2 text-sm">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                   {c}
@@ -84,7 +84,7 @@ function JobDetail() {
               Critérios desejáveis
             </div>
             <ul className="space-y-2">
-              {job.niceToHave.map((c) => (
+              {job.niceToHave.map((c: string) => (
                 <li key={c} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground" />
                   {c}
