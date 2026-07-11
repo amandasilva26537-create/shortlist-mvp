@@ -158,6 +158,7 @@ function CandidatePage() {
             <TabsTrigger value="disc">DISC</TabsTrigger>
             <TabsTrigger value="documents">Documentos</TabsTrigger>
             <TabsTrigger value="additional">Adicionais</TabsTrigger>
+            <TabsTrigger value="shortlists">Vagas e shortlists{shortlistLinks.length > 0 && <Badge variant="secondary" className="ml-1.5 h-4 px-1.5 text-[10px]">{shortlistLinks.length}</Badge>}</TabsTrigger>
             <TabsTrigger value="internal"><Lock className="h-3 w-3 mr-1" />Interno</TabsTrigger>
           </TabsList>
 
