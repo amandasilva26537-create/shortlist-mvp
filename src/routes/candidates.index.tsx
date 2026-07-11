@@ -12,7 +12,7 @@ import { Plus, Search, Archive, Pencil, Eye, FileText, Linkedin, Image as ImageI
 import { listCandidates, archiveCandidate } from "@/lib/db/candidates.functions";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/candidates")({
+export const Route = createFileRoute("/candidates/")({
   head: () => ({ meta: [{ title: "Candidatos · Moove Select" }] }),
   component: CandidatesList,
 });
