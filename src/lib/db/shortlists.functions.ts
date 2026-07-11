@@ -120,3 +120,99 @@ export const deleteShortlist = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ============ Per-candidate shortlist linkage ============
+
+export const listShortlistsByJob = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => z.object({ job_id: z.string().uuid() }).parse(v))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("shortlists")
+      .select("*, shortlist_candidates(candidate_id)")
+      .eq("job_id", data.job_id)
+      .order("number", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (rows ?? []).map((r: any) => ({ ...r, candidate_count: r.shortlist_candidates?.length ?? 0 }));
+  });
+
+export const addCandidateToShortlist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z.object({
+      shortlist_id: z.string().uuid(),
+      candidate_id: z.string().uuid(),
+      status: z.string().optional(),
+    }).parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: existing } = await context.supabase
+      .from("shortlist_candidates")
+      .select("candidate_id")
+      .eq("shortlist_id", data.shortlist_id)
+      .eq("candidate_id", data.candidate_id)
+      .maybeSingle();
+    if (existing) return { ok: true, duplicate: true };
+    const { data: pos } = await context.supabase
+      .from("shortlist_candidates")
+      .select("position")
+      .eq("shortlist_id", data.shortlist_id)
+      .order("position", { ascending: false })
+      .limit(1);
+    const nextPos = (pos?.[0]?.position ?? -1) + 1;
+    const { error } = await context.supabase.from("shortlist_candidates").insert({
+      shortlist_id: data.shortlist_id,
+      candidate_id: data.candidate_id,
+      position: nextPos,
+      status: data.status ?? "adicionado",
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true, duplicate: false };
+  });
+
+export const removeCandidateFromShortlist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z.object({ shortlist_id: z.string().uuid(), candidate_id: z.string().uuid() }).parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("shortlist_candidates")
+      .delete()
+      .eq("shortlist_id", data.shortlist_id)
+      .eq("candidate_id", data.candidate_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const updateCandidateShortlistStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z.object({
+      shortlist_id: z.string().uuid(),
+      candidate_id: z.string().uuid(),
+      status: z.string(),
+    }).parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("shortlist_candidates")
+      .update({ status: data.status })
+      .eq("shortlist_id", data.shortlist_id)
+      .eq("candidate_id", data.candidate_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const listCandidateShortlistLinks = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => z.object({ candidate_id: z.string().uuid() }).parse(v))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("shortlist_candidates")
+      .select("status, added_at, shortlist_id, shortlists(id, number, title, status, job_id, client_id, jobs(id, title), clients(id, name))")
+      .eq("candidate_id", data.candidate_id)
+      .order("added_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
