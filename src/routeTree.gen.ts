@@ -13,6 +13,7 @@ import { Route as ShortlistsRouteImport } from './routes/shortlists'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ClientsRouteImport } from './routes/clients'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShortlistsNewRouteImport } from './routes/shortlists.new'
 import { Route as ShortlistsShortlistIdRouteImport } from './routes/shortlists.$shortlistId'
@@ -41,6 +42,11 @@ const CompareRoute = CompareRouteImport.update({
 const ClientsRoute = ClientsRouteImport.update({
   id: '/clients',
   path: '/clients',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -91,6 +97,7 @@ const STokenCCandidateIdRoute = STokenCCandidateIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/clients': typeof ClientsRouteWithChildren
   '/compare': typeof CompareRoute
   '/jobs': typeof JobsRouteWithChildren
@@ -106,6 +113,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/clients': typeof ClientsRouteWithChildren
   '/compare': typeof CompareRoute
   '/jobs': typeof JobsRouteWithChildren
@@ -122,6 +130,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/clients': typeof ClientsRouteWithChildren
   '/compare': typeof CompareRoute
   '/jobs': typeof JobsRouteWithChildren
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/clients'
     | '/compare'
     | '/jobs'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/clients'
     | '/compare'
     | '/jobs'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/auth'
     | '/clients'
     | '/compare'
     | '/jobs'
@@ -185,6 +197,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   ClientsRoute: typeof ClientsRouteWithChildren
   CompareRoute: typeof CompareRoute
   JobsRoute: typeof JobsRouteWithChildren
@@ -222,6 +235,13 @@ declare module '@tanstack/react-router' {
       path: '/clients'
       fullPath: '/clients'
       preLoaderRoute: typeof ClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -338,6 +358,7 @@ const STokenRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   ClientsRoute: ClientsRouteWithChildren,
   CompareRoute: CompareRoute,
   JobsRoute: JobsRouteWithChildren,
