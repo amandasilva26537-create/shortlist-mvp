@@ -102,10 +102,9 @@ function pathFromPublicUrl(url: string, bucket: string): string | null {
   return decodeURIComponent(url.slice(i + marker.length));
 }
 
-async function fileToBase64(blob: Blob): Promise<string> {
+async function fileToBytes(blob: Blob): Promise<Uint8Array> {
   const buf = await blob.arrayBuffer();
-  // Buffer is available in the worker/node runtime.
-  return Buffer.from(buf).toString("base64");
+  return new Uint8Array(buf);
 }
 
 export const generateCandidateProfile = createServerFn({ method: "POST" })
