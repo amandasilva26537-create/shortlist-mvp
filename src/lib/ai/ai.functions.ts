@@ -208,7 +208,7 @@ Retorne um objeto JSON com EXATAMENTE estas chaves:
 Regras para basic_info:
 - Preencha somente com informações encontradas nos materiais. Não invente.
 - Use "" (string vazia) ou null (para salary_expectation) quando não encontrar.
-- work_model deve ser um de: "Remoto", "Híbrido", "Presencial", "Flexível" ou "" se não souber.`);
+- work_model deve ser um de: "Remoto", "Híbrido", "Presencial", "Flexível" ou "" se não souber.`;
 
 
     const gateway = createLovableAiGateway(requireApiKey());
