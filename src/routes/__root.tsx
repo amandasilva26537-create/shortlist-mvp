@@ -72,20 +72,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Moove Select — Inteligência para decisões de contratação" },
+      { title: "Dashboard · Moove Select" },
       {
         name: "description",
         content:
           "A Moove Select transforma shortlists em experiências premium de decisão. Consultorias entregam currículos, nós entregamos inteligência.",
       },
-      { property: "og:title", content: "Moove Select" },
+      { property: "og:title", content: "Dashboard · Moove Select" },
       {
         property: "og:description",
         content:
-          "Apresentação inteligente de candidatos para decisões de contratação mais rápidas.",
+          "A Moove Select transforma shortlists em experiências premium de decisão. Consultorias entregam currículos, nós entregamos inteligência.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Dashboard · Moove Select" },
+      { name: "twitter:description", content: "A Moove Select transforma shortlists em experiências premium de decisão. Consultorias entregam currículos, nós entregamos inteligência." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b2c3856c-8c84-4d82-a737-d0bc2265e672/id-preview-661eac3e--88066f3b-55d3-44f4-bc10-f763647102a8.lovable.app-1783805422053.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b2c3856c-8c84-4d82-a737-d0bc2265e672/id-preview-661eac3e--88066f3b-55d3-44f4-bc10-f763647102a8.lovable.app-1783805422053.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
