@@ -308,11 +308,58 @@ function CandidatePage() {
             {c.internal_notes && <Card title="Observações internas"><div className="whitespace-pre-wrap text-sm">{c.internal_notes}</div></Card>}
             {c.inconsistencies?.length > 0 && <Card title="Inconsistências detectadas"><Bullets items={c.inconsistencies} /></Card>}
           </TabsContent>
+
+          <TabsContent value="shortlists" className="mt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">{shortlistLinks.length} vínculo(s)</div>
+              <Button size="sm" onClick={() => setAddOpen(true)}><ListPlus className="mr-1.5 h-3.5 w-3.5" />Adicionar à shortlist</Button>
+            </div>
+            {shortlistLinks.length === 0 ? (
+              <div className="card-elevated p-6 text-center text-sm text-muted-foreground">Este candidato ainda não está em nenhuma shortlist.</div>
+            ) : shortlistLinks.map((l: any) => (
+              <div key={l.shortlist_id} className="card-elevated p-4">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <div className="text-xs text-muted-foreground">{l.shortlists?.clients?.name}</div>
+                    <div className="font-medium">{l.shortlists?.jobs?.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {l.shortlists?.title || `Shortlist ${String(l.shortlists?.number).padStart(2, "0")}`} · adicionado em {new Date(l.added_at).toLocaleDateString("pt-BR")}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select value={l.status} onValueChange={(v) => setStatus.mutate({ shortlist_id: l.shortlist_id, status: v })}>
+                      <SelectTrigger className="h-8 w-48"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{statusLabels[s]}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {l.shortlists?.jobs?.id && (
+                      <Link to="/jobs/$jobId" params={{ jobId: l.shortlists.jobs.id }}>
+                        <Button variant="ghost" size="sm">Ver vaga</Button>
+                      </Link>
+                    )}
+                    <Link to="/shortlists/$shortlistId" params={{ shortlistId: l.shortlist_id }}>
+                      <Button variant="outline" size="sm">Ver shortlist</Button>
+                    </Link>
+                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => removeLink.mutate(l.shortlist_id)}>Remover</Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </TabsContent>
         </Tabs>
       </div>
+
+      <AddToShortlistDialog
+        candidateId={candidateId}
+        candidateName={c.full_name}
+        open={addOpen}
+        onOpenChange={setAddOpen}
+      />
     </AppShell>
   );
 }
+
 
 function Card({ title, children }: { title: string; children: any }) {
   return <div className="card-elevated p-5"><div className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{title}</div><div className="text-sm">{children}</div></div>;
