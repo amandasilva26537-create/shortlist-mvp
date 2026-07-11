@@ -18,10 +18,11 @@ function CandidatePage() {
   const { candidateId } = Route.useParams();
   const navigate = useNavigate();
   const getFn = useServerFn(getCandidate);
-  const { data: c, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["candidate", candidateId],
     queryFn: () => getFn({ data: { id: candidateId } }),
   });
+  const c: any = data;
 
   if (isLoading) return <AppShell><div className="text-sm text-muted-foreground">Carregando…</div></AppShell>;
   if (!c) return <AppShell><div className="text-sm text-muted-foreground">Candidato não encontrado.</div></AppShell>;
