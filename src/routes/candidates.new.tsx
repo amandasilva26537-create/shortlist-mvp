@@ -453,6 +453,12 @@ function NewCandidate() {
                 </ul>
               </div>
             )}
+              </>
+            ) : (
+              <div className="card-elevated p-6 text-center text-sm text-muted-foreground">
+                Envie os materiais e clique em <b>Gerar perfil com IA</b>. As seções detalhadas do perfil aparecerão aqui para revisão.
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
               <Button variant="ghost" onClick={() => navigate({ to: "/candidates" })}>Cancelar</Button>
@@ -460,6 +466,7 @@ function NewCandidate() {
               <Button variant="outline" onClick={() => ensureSaved().then((id) => id && toast.success("Salvo"))}>Salvar e continuar</Button>
               <Button onClick={() => save("ativo")}>Salvar candidato</Button>
             </div>
+
           </main>
         </div>
       </div>
