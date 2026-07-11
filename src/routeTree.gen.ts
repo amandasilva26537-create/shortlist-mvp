@@ -9,38 +9,221 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ShortlistsRouteImport } from './routes/shortlists'
+import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as CompareRouteImport } from './routes/compare'
+import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ShortlistsNewRouteImport } from './routes/shortlists.new'
+import { Route as ShortlistsShortlistIdRouteImport } from './routes/shortlists.$shortlistId'
+import { Route as STokenRouteImport } from './routes/s.$token'
+import { Route as PdfCandidateIdRouteImport } from './routes/pdf.$candidateId'
+import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
+import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
+import { Route as CandidatesCandidateIdRouteImport } from './routes/candidates.$candidateId'
+import { Route as STokenCCandidateIdRouteImport } from './routes/s.$token.c.$candidateId'
 
+const ShortlistsRoute = ShortlistsRouteImport.update({
+  id: '/shortlists',
+  path: '/shortlists',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsRoute = JobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientsRoute = ClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShortlistsNewRoute = ShortlistsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => ShortlistsRoute,
+} as any)
+const ShortlistsShortlistIdRoute = ShortlistsShortlistIdRouteImport.update({
+  id: '/$shortlistId',
+  path: '/$shortlistId',
+  getParentRoute: () => ShortlistsRoute,
+} as any)
+const STokenRoute = STokenRouteImport.update({
+  id: '/s/$token',
+  path: '/s/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PdfCandidateIdRoute = PdfCandidateIdRouteImport.update({
+  id: '/pdf/$candidateId',
+  path: '/pdf/$candidateId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsJobIdRoute = JobsJobIdRouteImport.update({
+  id: '/$jobId',
+  path: '/$jobId',
+  getParentRoute: () => JobsRoute,
+} as any)
+const ClientsClientIdRoute = ClientsClientIdRouteImport.update({
+  id: '/$clientId',
+  path: '/$clientId',
+  getParentRoute: () => ClientsRoute,
+} as any)
+const CandidatesCandidateIdRoute = CandidatesCandidateIdRouteImport.update({
+  id: '/candidates/$candidateId',
+  path: '/candidates/$candidateId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const STokenCCandidateIdRoute = STokenCCandidateIdRouteImport.update({
+  id: '/c/$candidateId',
+  path: '/c/$candidateId',
+  getParentRoute: () => STokenRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/clients': typeof ClientsRouteWithChildren
+  '/compare': typeof CompareRoute
+  '/jobs': typeof JobsRouteWithChildren
+  '/shortlists': typeof ShortlistsRouteWithChildren
+  '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
+  '/clients/$clientId': typeof ClientsClientIdRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
+  '/pdf/$candidateId': typeof PdfCandidateIdRoute
+  '/s/$token': typeof STokenRouteWithChildren
+  '/shortlists/$shortlistId': typeof ShortlistsShortlistIdRoute
+  '/shortlists/new': typeof ShortlistsNewRoute
+  '/s/$token/c/$candidateId': typeof STokenCCandidateIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/clients': typeof ClientsRouteWithChildren
+  '/compare': typeof CompareRoute
+  '/jobs': typeof JobsRouteWithChildren
+  '/shortlists': typeof ShortlistsRouteWithChildren
+  '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
+  '/clients/$clientId': typeof ClientsClientIdRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
+  '/pdf/$candidateId': typeof PdfCandidateIdRoute
+  '/s/$token': typeof STokenRouteWithChildren
+  '/shortlists/$shortlistId': typeof ShortlistsShortlistIdRoute
+  '/shortlists/new': typeof ShortlistsNewRoute
+  '/s/$token/c/$candidateId': typeof STokenCCandidateIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/clients': typeof ClientsRouteWithChildren
+  '/compare': typeof CompareRoute
+  '/jobs': typeof JobsRouteWithChildren
+  '/shortlists': typeof ShortlistsRouteWithChildren
+  '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
+  '/clients/$clientId': typeof ClientsClientIdRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
+  '/pdf/$candidateId': typeof PdfCandidateIdRoute
+  '/s/$token': typeof STokenRouteWithChildren
+  '/shortlists/$shortlistId': typeof ShortlistsShortlistIdRoute
+  '/shortlists/new': typeof ShortlistsNewRoute
+  '/s/$token/c/$candidateId': typeof STokenCCandidateIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/clients'
+    | '/compare'
+    | '/jobs'
+    | '/shortlists'
+    | '/candidates/$candidateId'
+    | '/clients/$clientId'
+    | '/jobs/$jobId'
+    | '/pdf/$candidateId'
+    | '/s/$token'
+    | '/shortlists/$shortlistId'
+    | '/shortlists/new'
+    | '/s/$token/c/$candidateId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/clients'
+    | '/compare'
+    | '/jobs'
+    | '/shortlists'
+    | '/candidates/$candidateId'
+    | '/clients/$clientId'
+    | '/jobs/$jobId'
+    | '/pdf/$candidateId'
+    | '/s/$token'
+    | '/shortlists/$shortlistId'
+    | '/shortlists/new'
+    | '/s/$token/c/$candidateId'
+  id:
+    | '__root__'
+    | '/'
+    | '/clients'
+    | '/compare'
+    | '/jobs'
+    | '/shortlists'
+    | '/candidates/$candidateId'
+    | '/clients/$clientId'
+    | '/jobs/$jobId'
+    | '/pdf/$candidateId'
+    | '/s/$token'
+    | '/shortlists/$shortlistId'
+    | '/shortlists/new'
+    | '/s/$token/c/$candidateId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ClientsRoute: typeof ClientsRouteWithChildren
+  CompareRoute: typeof CompareRoute
+  JobsRoute: typeof JobsRouteWithChildren
+  ShortlistsRoute: typeof ShortlistsRouteWithChildren
+  CandidatesCandidateIdRoute: typeof CandidatesCandidateIdRoute
+  PdfCandidateIdRoute: typeof PdfCandidateIdRoute
+  STokenRoute: typeof STokenRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/shortlists': {
+      id: '/shortlists'
+      path: '/shortlists'
+      fullPath: '/shortlists'
+      preLoaderRoute: typeof ShortlistsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs': {
+      id: '/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients': {
+      id: '/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof ClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +231,121 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shortlists/new': {
+      id: '/shortlists/new'
+      path: '/new'
+      fullPath: '/shortlists/new'
+      preLoaderRoute: typeof ShortlistsNewRouteImport
+      parentRoute: typeof ShortlistsRoute
+    }
+    '/shortlists/$shortlistId': {
+      id: '/shortlists/$shortlistId'
+      path: '/$shortlistId'
+      fullPath: '/shortlists/$shortlistId'
+      preLoaderRoute: typeof ShortlistsShortlistIdRouteImport
+      parentRoute: typeof ShortlistsRoute
+    }
+    '/s/$token': {
+      id: '/s/$token'
+      path: '/s/$token'
+      fullPath: '/s/$token'
+      preLoaderRoute: typeof STokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pdf/$candidateId': {
+      id: '/pdf/$candidateId'
+      path: '/pdf/$candidateId'
+      fullPath: '/pdf/$candidateId'
+      preLoaderRoute: typeof PdfCandidateIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs/$jobId': {
+      id: '/jobs/$jobId'
+      path: '/$jobId'
+      fullPath: '/jobs/$jobId'
+      preLoaderRoute: typeof JobsJobIdRouteImport
+      parentRoute: typeof JobsRoute
+    }
+    '/clients/$clientId': {
+      id: '/clients/$clientId'
+      path: '/$clientId'
+      fullPath: '/clients/$clientId'
+      preLoaderRoute: typeof ClientsClientIdRouteImport
+      parentRoute: typeof ClientsRoute
+    }
+    '/candidates/$candidateId': {
+      id: '/candidates/$candidateId'
+      path: '/candidates/$candidateId'
+      fullPath: '/candidates/$candidateId'
+      preLoaderRoute: typeof CandidatesCandidateIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/s/$token/c/$candidateId': {
+      id: '/s/$token/c/$candidateId'
+      path: '/c/$candidateId'
+      fullPath: '/s/$token/c/$candidateId'
+      preLoaderRoute: typeof STokenCCandidateIdRouteImport
+      parentRoute: typeof STokenRoute
+    }
   }
 }
 
+interface ClientsRouteChildren {
+  ClientsClientIdRoute: typeof ClientsClientIdRoute
+}
+
+const ClientsRouteChildren: ClientsRouteChildren = {
+  ClientsClientIdRoute: ClientsClientIdRoute,
+}
+
+const ClientsRouteWithChildren =
+  ClientsRoute._addFileChildren(ClientsRouteChildren)
+
+interface JobsRouteChildren {
+  JobsJobIdRoute: typeof JobsJobIdRoute
+}
+
+const JobsRouteChildren: JobsRouteChildren = {
+  JobsJobIdRoute: JobsJobIdRoute,
+}
+
+const JobsRouteWithChildren = JobsRoute._addFileChildren(JobsRouteChildren)
+
+interface ShortlistsRouteChildren {
+  ShortlistsShortlistIdRoute: typeof ShortlistsShortlistIdRoute
+  ShortlistsNewRoute: typeof ShortlistsNewRoute
+}
+
+const ShortlistsRouteChildren: ShortlistsRouteChildren = {
+  ShortlistsShortlistIdRoute: ShortlistsShortlistIdRoute,
+  ShortlistsNewRoute: ShortlistsNewRoute,
+}
+
+const ShortlistsRouteWithChildren = ShortlistsRoute._addFileChildren(
+  ShortlistsRouteChildren,
+)
+
+interface STokenRouteChildren {
+  STokenCCandidateIdRoute: typeof STokenCCandidateIdRoute
+}
+
+const STokenRouteChildren: STokenRouteChildren = {
+  STokenCCandidateIdRoute: STokenCCandidateIdRoute,
+}
+
+const STokenRouteWithChildren =
+  STokenRoute._addFileChildren(STokenRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ClientsRoute: ClientsRouteWithChildren,
+  CompareRoute: CompareRoute,
+  JobsRoute: JobsRouteWithChildren,
+  ShortlistsRoute: ShortlistsRouteWithChildren,
+  CandidatesCandidateIdRoute: CandidatesCandidateIdRoute,
+  PdfCandidateIdRoute: PdfCandidateIdRoute,
+  STokenRoute: STokenRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
