@@ -132,12 +132,12 @@ export const generateCandidateProfile = createServerFn({ method: "POST" })
       const { data: blob, error } = await context.supabase.storage.from("candidate-files").download(path);
       if (error || !blob) { attachedList.push(`${d.kind}: ${d.label} (erro ao baixar)`); continue; }
       const mime = blob.type || (path.endsWith(".pdf") ? "application/pdf" : "application/octet-stream");
-      const b64 = await fileToBase64(blob);
+      const bytes = await fileToBytes(blob);
       const isImage = mime.startsWith("image/");
       if (isImage) {
-        fileParts.push({ type: "image", image: `data:${mime};base64,${b64}`, mediaType: mime });
+        fileParts.push({ type: "image", image: bytes, mediaType: mime });
       } else {
-        fileParts.push({ type: "file", data: `data:${mime};base64,${b64}`, mediaType: mime, filename: d.label ?? "arquivo" });
+        fileParts.push({ type: "file", data: bytes, mediaType: mime, filename: d.label ?? "arquivo" });
       }
       attachedList.push(`${d.kind}: ${d.label}`);
     }
