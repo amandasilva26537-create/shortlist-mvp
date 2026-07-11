@@ -344,9 +344,10 @@ function NewCandidate() {
             {/* Editable structured sections — só aparecem após a IA gerar o perfil ou ao editar um candidato existente */}
             {(!!editId || !!f.headline || !!f.mini_bio || !!f.full_bio || (f.trajectory?.length ?? 0) > 0) ? (
               <>
-
+            <Section title="Headline" onRefine={(instr) => refineSection("headline", instr)} refining={refiningKey === "headline"}>
               <Input value={f.headline || ""} onChange={set("headline")} placeholder="Headline profissional" />
             </Section>
+
 
             <Section title="Mini bio (até 240 caracteres)" onRefine={(instr) => refineSection("mini_bio", instr)} refining={refiningKey === "mini_bio"}>
               <Textarea rows={2} maxLength={240} value={f.mini_bio || ""} onChange={set("mini_bio")} />
