@@ -58,7 +58,8 @@ export const submitPortalFeedback = createServerFn({ method: "POST" })
       .eq("status", "sent")
       .maybeSingle();
     if (!sl) throw new Error("Shortlist não encontrada");
-    const { error } = await supabase.from("manager_feedback").insert({
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("manager_feedback").insert({
       shortlist_id: sl.id,
       candidate_id: data.candidate_id,
       client_identifier: data.client_identifier,
