@@ -18,6 +18,8 @@ const JobInput = z.object({
   briefing_url: z.string().nullable().optional(),
   recruiter_notes: z.string().nullable().optional(),
   meeting_transcript: z.string().nullable().optional(),
+  pasted_text: z.string().nullable().optional(),
+  documents: z.array(z.any()).optional(),
   ai_structure: z.any().nullable().optional(),
   must_have: z.array(z.string()).optional(),
   nice_to_have: z.array(z.string()).optional(),
