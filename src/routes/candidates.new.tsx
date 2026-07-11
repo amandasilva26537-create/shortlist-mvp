@@ -544,4 +544,4 @@ function UploadCard({ label, accept, onUpload }: { label: string; accept?: strin
   );
 }
 
-function saveDraft() {} // shadow to keep TS happy at inner ref; overridden by component scope
+
