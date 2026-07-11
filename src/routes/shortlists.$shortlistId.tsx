@@ -89,7 +89,7 @@ function ShortlistDetail() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {candidates.map((c) => (
+          {candidates.map((c: typeof candidates[number]) => (
             <CandidateCard key={c.id} candidate={c} />
           ))}
         </div>

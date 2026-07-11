@@ -122,7 +122,7 @@ function PortalPage() {
             Toque em um card para explorar o perfil executivo.
           </p>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {candidates.map((c) => (
+            {candidates.map((c: typeof candidates[number]) => (
               <CandidateCard
                 key={c.id}
                 candidate={c}

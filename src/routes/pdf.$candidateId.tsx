@@ -97,7 +97,7 @@ function PdfPage() {
         <div className="pdf-block">
           <h2>Resumo Executivo</h2>
           <ul className="space-y-1">
-            {c.summary.slice(0, 4).map((s, i) => (
+            {c.summary.slice(0, 4).map((s: string, i: number) => (
               <li key={i} className="flex gap-1.5">
                 <span className="font-semibold text-primary">{i + 1}.</span>
                 <span>{s}</span>
@@ -117,7 +117,7 @@ function PdfPage() {
         <div className="pdf-block">
           <h2>Checklist Eliminatório</h2>
           <ul className="space-y-1.5">
-            {c.checklist.map((it) => {
+            {c.checklist.map((it: { requirement: string; status: ChecklistStatus }) => {
               const Icon = statusIcon[it.status];
               return (
                 <li key={it.requirement} className="flex items-start gap-2">
@@ -131,7 +131,7 @@ function PdfPage() {
         <div className="pdf-block">
           <h2>Conquistas</h2>
           <ul className="grid grid-cols-2 gap-2">
-            {c.achievements.map((a) => (
+            {c.achievements.map((a: { label: string; value: string }) => (
               <li key={a.label}>
                 <div className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {a.label}
@@ -144,7 +144,7 @@ function PdfPage() {
         <div className="pdf-block">
           <h2>Pontos Fortes</h2>
           <ul className="space-y-1">
-            {c.strengths.slice(0, 4).map((s) => (
+            {c.strengths.slice(0, 4).map((s: string) => (
               <li key={s}>• {s}</li>
             ))}
           </ul>
@@ -152,7 +152,7 @@ function PdfPage() {
         <div className="pdf-block">
           <h2>Pontos de Atenção</h2>
           <ul className="space-y-1">
-            {c.attentionPoints.slice(0, 4).map((s) => (
+            {c.attentionPoints.slice(0, 4).map((s: string) => (
               <li key={s}>• {s}</li>
             ))}
           </ul>
