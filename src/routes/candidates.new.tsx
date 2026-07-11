@@ -229,23 +229,11 @@ function NewCandidate() {
           <aside className="space-y-4">
             <div className="card-elevated p-5 space-y-3">
               <div className="text-xs font-semibold uppercase text-muted-foreground">Dados básicos</div>
+              <div className="text-[11px] text-muted-foreground">Preencha o que já souber. A IA tentará completar o restante a partir dos arquivos anexados.</div>
               <div><Label>Nome completo *</Label><Input value={f.full_name} onChange={set("full_name")} /></div>
               <div><Label>Cargo atual</Label><Input value={f.current_position} onChange={set("current_position")} /></div>
-              <div><Label>Empresa atual</Label><Input value={f.current_company} onChange={set("current_company")} /></div>
               <div><Label>Área profissional</Label><Input value={f.area} onChange={set("area")} /></div>
-              <div><Label>Senioridade</Label>
-                <Select value={f.seniority || ""} onValueChange={set("seniority")}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                  <SelectContent>
-                    {["Estágio","Júnior","Pleno","Sênior","Especialista","Coordenação","Gerência","Diretoria","C-Level"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div><Label>Cidade</Label><Input value={f.city} onChange={set("city")} /></div>
-                <div><Label>UF</Label><Input value={f.state} onChange={set("state")} /></div>
-                <div><Label>País</Label><Input value={f.country} onChange={set("country")} /></div>
-              </div>
+              <div><Label>Cidade</Label><Input value={f.city} onChange={set("city")} /></div>
               <div><Label>Modelo de trabalho</Label>
                 <Select value={f.work_model} onValueChange={set("work_model")}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -257,6 +245,7 @@ function NewCandidate() {
               <div><Label>Pretensão salarial (R$)</Label><Input type="number" value={f.salary_expectation} onChange={set("salary_expectation")} /></div>
               <div><Label>LinkedIn</Label><Input value={f.linkedin_url} onChange={set("linkedin_url")} placeholder="https://linkedin.com/in/…" /></div>
             </div>
+
 
             <div className="card-elevated p-5 space-y-3 border-l-4 border-amber-500">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase text-amber-700"><Lock className="h-3.5 w-3.5" />Informação interna</div>
