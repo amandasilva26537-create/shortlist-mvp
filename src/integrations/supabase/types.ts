@@ -545,24 +545,30 @@ export type Database = {
       }
       shortlist_candidates: {
         Row: {
+          added_at: string
           candidate_id: string
           position: number
           reviewed: boolean
           shortlist_id: string
+          status: string
           visible_documents: string[] | null
         }
         Insert: {
+          added_at?: string
           candidate_id: string
           position?: number
           reviewed?: boolean
           shortlist_id: string
+          status?: string
           visible_documents?: string[] | null
         }
         Update: {
+          added_at?: string
           candidate_id?: string
           position?: number
           reviewed?: boolean
           shortlist_id?: string
+          status?: string
           visible_documents?: string[] | null
         }
         Relationships: [
