@@ -226,7 +226,28 @@ Regras para basic_info:
     }
 
     const normArr = (v: any) => Array.isArray(v) ? v : [];
+    const emptyStr = (v: any) => v === null || v === undefined || String(v).trim() === "";
+    const bi = output.basic_info ?? {};
+    // Só preenche campos básicos quando o registro atual estiver vazio, para não sobrescrever entrada manual.
+    const basicPatch: any = {};
+    const maybeSet = (k: string, v: any) => { if (emptyStr((cand as any)[k]) && !emptyStr(v)) basicPatch[k] = typeof v === "string" ? v.trim() : v; };
+    maybeSet("full_name", bi.full_name);
+    maybeSet("current_position", bi.current_position);
+    maybeSet("current_company", bi.current_company);
+    maybeSet("area", bi.area);
+    maybeSet("city", bi.city);
+    maybeSet("state", bi.state);
+    maybeSet("country", bi.country);
+    maybeSet("work_model", bi.work_model);
+    maybeSet("linkedin_url", bi.linkedin_url);
+    maybeSet("email", bi.email);
+    maybeSet("phone", bi.phone);
+    if (emptyStr(cand.salary_expectation) && typeof bi.salary_expectation === "number" && !isNaN(bi.salary_expectation)) {
+      basicPatch.salary_expectation = bi.salary_expectation;
+    }
+
     const patch: any = {
+      ...basicPatch,
       headline: output.headline ?? null,
       mini_bio: output.mini_bio ?? null,
       full_bio: output.full_bio ?? null,
@@ -250,6 +271,7 @@ Regras para basic_info:
       disc_scores: output.disc ?? cand.disc_scores,
       disc_profile: output.disc?.dominant ? `${output.disc.dominant}${output.disc.secondary ? "/" + output.disc.secondary : ""}` : cand.disc_profile,
     };
+
     const { error: upErr } = await context.supabase.from("candidates").update(patch).eq("id", data.candidate_id);
     if (upErr) throw new Error(upErr.message);
     return output;
