@@ -24,6 +24,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 const navItems: { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/clients", label: "Clientes", icon: Users },
+  { to: "/candidates", label: "Candidatos", icon: UserPlus },
   { to: "/jobs", label: "Vagas", icon: Briefcase },
   { to: "/shortlists", label: "Shortlists", icon: ListChecks },
   { to: "/compare", label: "Comparar", icon: GitCompare },

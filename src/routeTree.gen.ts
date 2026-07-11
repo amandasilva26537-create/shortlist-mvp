@@ -13,6 +13,7 @@ import { Route as ShortlistsRouteImport } from './routes/shortlists'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ClientsRouteImport } from './routes/clients'
+import { Route as CandidatesRouteImport } from './routes/candidates'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShortlistsNewRouteImport } from './routes/shortlists.new'
@@ -45,6 +46,11 @@ const CompareRoute = CompareRouteImport.update({
 const ClientsRoute = ClientsRouteImport.update({
   id: '/clients',
   path: '/clients',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CandidatesRoute = CandidatesRouteImport.update({
+  id: '/candidates',
+  path: '/candidates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -98,14 +104,14 @@ const ClientsClientIdRoute = ClientsClientIdRouteImport.update({
   getParentRoute: () => ClientsRoute,
 } as any)
 const CandidatesNewRoute = CandidatesNewRouteImport.update({
-  id: '/candidates/new',
-  path: '/candidates/new',
-  getParentRoute: () => rootRouteImport,
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => CandidatesRoute,
 } as any)
 const CandidatesCandidateIdRoute = CandidatesCandidateIdRouteImport.update({
-  id: '/candidates/$candidateId',
-  path: '/candidates/$candidateId',
-  getParentRoute: () => rootRouteImport,
+  id: '/$candidateId',
+  path: '/$candidateId',
+  getParentRoute: () => CandidatesRoute,
 } as any)
 const STokenCCandidateIdRoute = STokenCCandidateIdRouteImport.update({
   id: '/c/$candidateId',
@@ -116,6 +122,7 @@ const STokenCCandidateIdRoute = STokenCCandidateIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/candidates': typeof CandidatesRouteWithChildren
   '/clients': typeof ClientsRouteWithChildren
   '/compare': typeof CompareRoute
   '/jobs': typeof JobsRouteWithChildren
@@ -135,6 +142,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/candidates': typeof CandidatesRouteWithChildren
   '/clients': typeof ClientsRouteWithChildren
   '/compare': typeof CompareRoute
   '/jobs': typeof JobsRouteWithChildren
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/candidates': typeof CandidatesRouteWithChildren
   '/clients': typeof ClientsRouteWithChildren
   '/compare': typeof CompareRoute
   '/jobs': typeof JobsRouteWithChildren
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/candidates'
     | '/clients'
     | '/compare'
     | '/jobs'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/candidates'
     | '/clients'
     | '/compare'
     | '/jobs'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth'
+    | '/candidates'
     | '/clients'
     | '/compare'
     | '/jobs'
@@ -234,12 +246,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  CandidatesRoute: typeof CandidatesRouteWithChildren
   ClientsRoute: typeof ClientsRouteWithChildren
   CompareRoute: typeof CompareRoute
   JobsRoute: typeof JobsRouteWithChildren
   ShortlistsRoute: typeof ShortlistsRouteWithChildren
-  CandidatesCandidateIdRoute: typeof CandidatesCandidateIdRoute
-  CandidatesNewRoute: typeof CandidatesNewRoute
   PdfCandidateIdRoute: typeof PdfCandidateIdRoute
   STokenRoute: typeof STokenRouteWithChildren
 }
@@ -272,6 +283,13 @@ declare module '@tanstack/react-router' {
       path: '/clients'
       fullPath: '/clients'
       preLoaderRoute: typeof ClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/candidates': {
+      id: '/candidates'
+      path: '/candidates'
+      fullPath: '/candidates'
+      preLoaderRoute: typeof CandidatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -346,17 +364,17 @@ declare module '@tanstack/react-router' {
     }
     '/candidates/new': {
       id: '/candidates/new'
-      path: '/candidates/new'
+      path: '/new'
       fullPath: '/candidates/new'
       preLoaderRoute: typeof CandidatesNewRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof CandidatesRoute
     }
     '/candidates/$candidateId': {
       id: '/candidates/$candidateId'
-      path: '/candidates/$candidateId'
+      path: '/$candidateId'
       fullPath: '/candidates/$candidateId'
       preLoaderRoute: typeof CandidatesCandidateIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof CandidatesRoute
     }
     '/s/$token/c/$candidateId': {
       id: '/s/$token/c/$candidateId'
@@ -367,6 +385,20 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface CandidatesRouteChildren {
+  CandidatesCandidateIdRoute: typeof CandidatesCandidateIdRoute
+  CandidatesNewRoute: typeof CandidatesNewRoute
+}
+
+const CandidatesRouteChildren: CandidatesRouteChildren = {
+  CandidatesCandidateIdRoute: CandidatesCandidateIdRoute,
+  CandidatesNewRoute: CandidatesNewRoute,
+}
+
+const CandidatesRouteWithChildren = CandidatesRoute._addFileChildren(
+  CandidatesRouteChildren,
+)
 
 interface ClientsRouteChildren {
   ClientsClientIdRoute: typeof ClientsClientIdRoute
@@ -421,12 +453,11 @@ const STokenRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  CandidatesRoute: CandidatesRouteWithChildren,
   ClientsRoute: ClientsRouteWithChildren,
   CompareRoute: CompareRoute,
   JobsRoute: JobsRouteWithChildren,
   ShortlistsRoute: ShortlistsRouteWithChildren,
-  CandidatesCandidateIdRoute: CandidatesCandidateIdRoute,
-  CandidatesNewRoute: CandidatesNewRoute,
   PdfCandidateIdRoute: PdfCandidateIdRoute,
   STokenRoute: STokenRouteWithChildren,
 }

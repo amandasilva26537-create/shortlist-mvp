@@ -74,25 +74,70 @@ Retorne JSON com: objective, mission, challenges[], responsibilities[], expected
     }
   });
 
-// ============ Generate candidate profile for a job ============
+// ============ Generate candidate profile (independent of a job) ============
 const CandidateProfileSchema = z.object({
   headline: z.string(),
   mini_bio: z.string(),
   full_bio: z.string(),
-  trajectory: z.array(z.object({ company: z.string(), role: z.string(), period: z.string(), highlights: z.array(z.string()) })),
+  executive_summary: z.array(z.string()),
+  specialties: z.array(z.string()),
   main_results: z.array(z.string()),
   achievements: z.array(z.string()),
-  main_case: z.string(),
-  hard_skills: z.array(z.object({ name: z.string(), level: z.number() })),
-  soft_skills: z.array(z.object({ name: z.string(), level: z.number() })),
-  disc_interpretation: z.string(),
-  strengths: z.array(z.string()),
-  attention_points: z.array(z.string()),
-  interview_questions: z.array(z.string()),
+  main_case: z.object({
+    context: z.string(),
+    challenge: z.string(),
+    action: z.string(),
+    result: z.string(),
+  }),
+  strengths: z.array(z.object({ title: z.string(), evidence: z.string() })),
+  work_style: z.string(),
+  professional_moment: z.object({
+    reason_for_move: z.string(),
+    looking_for: z.string(),
+    availability: z.string(),
+    expectations: z.string(),
+  }),
+  motivators: z.array(z.string()),
+  trajectory: z.array(z.object({
+    company: z.string(),
+    segment: z.string(),
+    role: z.string(),
+    start: z.string(),
+    end: z.string(),
+    duration: z.string(),
+    location: z.string(),
+    work_model: z.string(),
+    scope: z.string(),
+    responsibilities: z.array(z.string()),
+    deliveries: z.array(z.string()),
+    results: z.array(z.string()),
+    team_size: z.string(),
+    reason_for_leaving: z.string(),
+  })),
+  education: z.array(z.object({ course: z.string(), institution: z.string(), type: z.string(), area: z.string(), start: z.string(), end: z.string(), status: z.string() })),
+  courses: z.array(z.object({ name: z.string(), institution: z.string(), year: z.string(), status: z.string(), workload: z.string() })),
+  languages: z.array(z.object({ language: z.string(), level: z.string(), professional_use: z.string() })),
+  competencies: z.object({
+    hard_skills: z.array(z.string()),
+    soft_skills: z.array(z.string()),
+    leadership: z.array(z.string()),
+    tools: z.array(z.string()),
+    technical: z.array(z.string()),
+  }),
+  disc: z.object({
+    dominant: z.string(),
+    secondary: z.string(),
+    D: z.number(),
+    I: z.number(),
+    S: z.number(),
+    C: z.number(),
+    behavior_summary: z.string(),
+    communication_style: z.string(),
+    strengths: z.array(z.string()),
+    attention_points: z.array(z.string()),
+    ideal_environment: z.string(),
+  }).nullable(),
   inconsistencies: z.array(z.string()),
-  overall_match: z.number(),
-  checklist: z.array(z.object({ requirement: z.string(), status: z.string() })),
-  radar: z.array(z.object({ competency: z.string(), value: z.number() })),
 });
 
 export const generateCandidateProfile = createServerFn({ method: "POST" })
@@ -100,45 +145,54 @@ export const generateCandidateProfile = createServerFn({ method: "POST" })
   .inputValidator((v: unknown) =>
     z.object({
       candidate_id: z.string().uuid(),
-      job_id: z.string().uuid().optional(),
       instruction: z.string().optional(),
     }).parse(v),
   )
   .handler(async ({ data, context }) => {
-    const [{ data: cand, error: e1 }, jobRes] = await Promise.all([
-      context.supabase.from("candidates").select("*").eq("id", data.candidate_id).single(),
-      data.job_id
-        ? context.supabase.from("jobs").select("*").eq("id", data.job_id).single()
-        : Promise.resolve({ data: null, error: null } as any),
-    ]);
+    const { data: cand, error: e1 } = await context.supabase
+      .from("candidates").select("*").eq("id", data.candidate_id).single();
     if (e1) throw new Error(e1.message);
-    const job = jobRes.data;
+
+    const { data: docs } = await context.supabase
+      .from("candidate_documents").select("kind,label,url").eq("candidate_id", data.candidate_id);
 
     const gateway = createLovableAiGateway(requireApiKey());
     const model = gateway(AI_MODEL);
 
-    const prompt = `Você é um analista sênior de talentos. Crie o perfil executivo de um candidato para apresentação a um gestor cliente.
+    const prompt = `Você é um analista sênior de talentos. Estruture o perfil executivo do candidato abaixo em JSON.
 
-CANDIDATO:
+REGRAS ABSOLUTAS DE CONFIABILIDADE:
+- Use SOMENTE informações presentes no material fornecido.
+- NUNCA invente cargos, empresas, datas, resultados, números, formação, cursos, idiomas, competências, motivos de saída, tamanho de equipe ou ferramentas.
+- Se uma informação não estiver disponível, deixe o campo como string vazia "" ou array vazio [].
+- Se dois materiais divergirem, liste em "inconsistencies".
+
+CANDIDATO (dados manuais):
 Nome: ${cand.full_name}
-Cargo atual: ${cand.current_position ?? "—"}
-Cidade: ${cand.city ?? "—"}
-Modelo: ${cand.work_model ?? "—"}
-Pretensão: ${cand.salary_expectation ?? "—"}
-DISC (bruto): ${cand.disc_raw ?? "—"} — Perfil: ${cand.disc_profile ?? "—"}
-Parecer do recrutador: ${cand.recruiter_note ?? "—"}
-Transcrição/resumo entrevista: ${cand.transcript ?? "—"}
-Currículo (URL): ${cand.resume_url ?? "—"}
+Cargo atual: ${cand.current_position ?? ""}
+Empresa atual: ${cand.current_company ?? ""}
+Área: ${cand.area ?? ""}
+Senioridade: ${cand.seniority ?? ""}
+Cidade/UF/País: ${cand.city ?? ""} / ${cand.state ?? ""} / ${cand.country ?? ""}
+Modelo: ${cand.work_model ?? ""}
+Pretensão: ${cand.salary_expectation ?? ""}
+LinkedIn: ${cand.linkedin_url ?? ""}
+DISC: ${cand.disc_profile ?? ""} | Bruto: ${cand.disc_raw ?? ""}
 
-${job ? `VAGA-ALVO:
-Título: ${job.title}
-Must-have: ${(job.must_have ?? []).join(", ")}
-Nice-to-have: ${(job.nice_to_have ?? []).join(", ")}
-Estrutura: ${JSON.stringify(job.ai_structure ?? {})}` : ""}
+Parecer do recrutador:
+${cand.recruiter_note ?? ""}
 
-${data.instruction ? `Instrução adicional: ${data.instruction}` : ""}
+Resumo/transcrição da entrevista:
+${cand.transcript ?? ""}
 
-Retorne JSON completo do perfil. Aderência (overall_match) de 0 a 100. Checklist status: "yes" | "partial" | "no". Radar: 6 a 8 competências com valor 0-100. Nível das skills 0-100.`;
+Informações adicionais/observações internas:
+${cand.internal_notes ?? ""}
+
+Documentos anexados: ${(docs ?? []).map((d: any) => `${d.kind}: ${d.label ?? d.url}`).join(" | ") || "nenhum"}
+
+${data.instruction ? `Instrução adicional do recrutador: ${data.instruction}` : ""}
+
+Gere: headline curta e estratégica; mini_bio (<=240 caracteres); full_bio objetiva em blocos curtos; executive_summary (até 5 bullets); specialties (tags); main_results; achievements; main_case (contexto/desafio/ação/resultado); strengths (3 a 5, cada um com evidência curta); work_style (síntese com base na entrevista e no parecer, sem diagnóstico psicológico); professional_moment; motivators; trajectory (ordem cronológica inversa); education; courses; languages; competencies separadas; disc (se houver material) ou null; inconsistencies.`;
 
     try {
       const { output } = await generateText({
@@ -146,20 +200,30 @@ Retorne JSON completo do perfil. Aderência (overall_match) de 0 a 100. Checklis
         output: Output.object({ schema: CandidateProfileSchema }),
         prompt,
       });
-      if (data.job_id) {
-        await context.supabase.from("candidate_job_evaluations").upsert({
-          candidate_id: data.candidate_id,
-          job_id: data.job_id,
-          overall_match: output.overall_match,
-          ai_generated: output,
-          strengths: output.strengths,
-          risks: output.attention_points,
-          interview_questions: output.interview_questions,
-          inconsistencies: output.inconsistencies,
-          checklist: output.checklist,
-          radar: output.radar,
-        }, { onConflict: "candidate_id,job_id" });
-      }
+      await context.supabase.from("candidates").update({
+        headline: output.headline,
+        mini_bio: output.mini_bio,
+        full_bio: output.full_bio,
+        executive_summary: output.executive_summary,
+        specialties: output.specialties,
+        main_results: output.main_results,
+        achievements: output.achievements,
+        main_case: output.main_case,
+        strengths: output.strengths,
+        work_style: output.work_style,
+        professional_moment: output.professional_moment,
+        motivators: output.motivators,
+        trajectory: output.trajectory,
+        education: output.education,
+        courses: output.courses,
+        languages: output.languages,
+        competencies: output.competencies,
+        inconsistencies: output.inconsistencies,
+        ai_profile: output,
+        status: "aguardando_revisao",
+        disc_scores: output.disc ?? cand.disc_scores,
+        disc_profile: output.disc?.dominant ? `${output.disc.dominant}${output.disc.secondary ? "/" + output.disc.secondary : ""}` : cand.disc_profile,
+      }).eq("id", data.candidate_id);
       return output;
     } catch (err) {
       if (NoObjectGeneratedError.isInstance(err)) {
