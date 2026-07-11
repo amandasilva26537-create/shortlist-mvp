@@ -183,6 +183,7 @@ ${data.instruction ? `Instrução adicional do recrutador: ${data.instruction}` 
 
 Retorne um objeto JSON com EXATAMENTE estas chaves:
 {
+  "basic_info": { "full_name": string, "current_position": string, "current_company": string, "area": string, "city": string, "state": string, "country": string, "work_model": string, "salary_expectation": number|null, "linkedin_url": string, "email": string, "phone": string },
   "headline": string,
   "mini_bio": string,
   "full_bio": string,
@@ -202,7 +203,13 @@ Retorne um objeto JSON com EXATAMENTE estas chaves:
   "competencies": { "hard_skills": string[], "soft_skills": string[], "leadership": string[], "tools": string[], "technical": string[] },
   "disc": null OR { "dominant": string, "secondary": string, "D": number, "I": number, "S": number, "C": number, "behavior_summary": string, "communication_style": string, "strengths": string[], "attention_points": string[], "ideal_environment": string },
   "inconsistencies": string[]
-}`;
+}
+
+Regras para basic_info:
+- Preencha somente com informações encontradas nos materiais. Não invente.
+- Use "" (string vazia) ou null (para salary_expectation) quando não encontrar.
+- work_model deve ser um de: "Remoto", "Híbrido", "Presencial", "Flexível" ou "" se não souber.`);
+
 
     const gateway = createLovableAiGateway(requireApiKey());
     const model = gateway(AI_MODEL);
