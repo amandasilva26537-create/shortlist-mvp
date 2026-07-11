@@ -1,26 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateText, NoObjectGeneratedError, Output } from "ai";
+import { generateText } from "ai";
 import { z } from "zod";
 import { AI_MODEL, createLovableAiGateway, requireApiKey } from "./gateway.server";
-
-// ============ Structure a job with AI ============
-const JobStructureSchema = z.object({
-  objective: z.string(),
-  mission: z.string(),
-  challenges: z.array(z.string()),
-  responsibilities: z.array(z.string()),
-  expected_results: z.array(z.string()),
-  must_have: z.array(z.string()),
-  nice_to_have: z.array(z.string()),
-  hard_skills: z.array(z.string()),
-  soft_skills: z.array(z.string()),
-  evaluation_competencies: z.array(z.object({ name: z.string(), weight: z.number() })),
-  company_context: z.string(),
-  area_context: z.string(),
-  ideal_profile: z.string(),
-  points_to_validate: z.array(z.string()),
-});
 
 export const structureJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -31,48 +13,143 @@ export const structureJob = createServerFn({ method: "POST" })
     const { data: job, error } = await context.supabase.from("jobs").select("*").eq("id", data.job_id).single();
     if (error) throw new Error(error.message);
 
+    // Download attached documents.
+    const fileParts: any[] = [];
+    const attachedList: string[] = [];
+    const docs = Array.isArray((job as any).documents) ? (job as any).documents : [];
+    for (const d of docs) {
+      const path = pathFromPublicUrl(d.url, "job-briefings");
+      if (!path) continue;
+      const { data: blob, error: dErr } = await context.supabase.storage.from("job-briefings").download(path);
+      if (dErr || !blob) { attachedList.push(`${d.label} (erro ao baixar)`); continue; }
+      const mime = blob.type || (path.endsWith(".pdf") ? "application/pdf" : "application/octet-stream");
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      if (mime.startsWith("image/")) {
+        fileParts.push({ type: "image", image: bytes, mediaType: mime });
+      } else {
+        fileParts.push({ type: "file", data: bytes, mediaType: mime, filename: d.label ?? "arquivo" });
+      }
+      attachedList.push(d.label ?? "arquivo");
+    }
+
+    const promptText = `Você é um consultor sênior de recrutamento executivo. Analise TODO o material fornecido (dados básicos + textos colados + arquivos anexados como PDFs de descrição, briefing, transcrição de reunião) e estruture a vaga.
+
+Responda APENAS com um objeto JSON válido, sem markdown ou comentários. Use somente informações presentes no material — se algo não estiver disponível, use "" ou [].
+
+DADOS BÁSICOS DA VAGA:
+Cliente: ${job.client_id}
+Título: ${job.title}
+Área: ${job.area ?? ""}
+Cidade/Localização: ${job.location ?? ""}
+Modelo: ${job.work_model ?? ""}
+Contratação: ${job.contract_type ?? ""}
+Faixa salarial: ${job.salary_min ?? ""} - ${job.salary_max ?? ""}
+Gestor: ${job.manager_name ?? ""}
+
+TEXTO COLADO PELO RECRUTADOR:
+${job.pasted_text ?? ""}
+
+NOTAS DO RECRUTADOR:
+${job.recruiter_notes ?? ""}
+
+TRANSCRIÇÃO DO ALINHAMENTO:
+${job.meeting_transcript ?? ""}
+
+Arquivos anexados: ${attachedList.join(" | ") || "nenhum"}
+
+${data.instruction ? `Instrução adicional do recrutador: ${data.instruction}` : ""}
+
+Retorne um objeto JSON com EXATAMENTE estas chaves:
+{
+  "summary": string,
+  "mission": string,
+  "hiring_context": string,
+  "responsibilities": string[],
+  "expected_results": string[],
+  "must_have": [{ "name": string, "description": string, "weight": number, "evidence": string }],
+  "nice_to_have": [{ "name": string, "description": string, "weight": number }],
+  "hard_skills": string[],
+  "soft_skills": string[],
+  "evaluation_competencies": [{ "name": string, "weight": number }],
+  "tools": string[],
+  "education": [{ "level": string, "area": string, "required": boolean }],
+  "languages": [{ "language": string, "level": string, "required": boolean }],
+  "differentials": string[],
+  "ideal_profile": string,
+  "less_fit_profile": string
+}
+
+Regras:
+- weight de 1 a 10 (inteiros).
+- evaluation_competencies: entre 5 e 10 itens (liderança, comunicação, estratégia, execução, etc.).
+- must_have: apenas critérios REALMENTE obrigatórios/eliminatórios.
+- nice_to_have: diferenciais que aumentam aderência mas não eliminam.`;
+
     const gateway = createLovableAiGateway(requireApiKey());
     const model = gateway(AI_MODEL);
 
-    const prompt = `Você é um consultor sênior de recrutamento executivo. Analise o briefing abaixo e estruture a vaga.
-
-Vaga: ${job.title}
-Área: ${job.area ?? "—"}
-Senioridade: ${job.seniority ?? "—"}
-Modelo: ${job.work_model ?? "—"}
-Localização: ${job.location ?? "—"}
-Faixa salarial: ${job.salary_min ?? "?"} - ${job.salary_max ?? "?"}
-Descrição: ${job.description ?? "—"}
-Notas do recrutador: ${job.recruiter_notes ?? "—"}
-Transcrição de alinhamento: ${job.meeting_transcript ?? "—"}
-
-${data.instruction ? `Instrução adicional: ${data.instruction}` : ""}
-
-Retorne JSON com: objective, mission, challenges[], responsibilities[], expected_results[], must_have[], nice_to_have[], hard_skills[], soft_skills[], evaluation_competencies[{name,weight}] (5 a 8 competências, weight 1-10), company_context, area_context, ideal_profile, points_to_validate[].`;
-
+    let output: any;
     try {
-      const { output } = await generateText({
+      const { text } = await generateText({
         model,
-        output: Output.object({ schema: JobStructureSchema }),
-        prompt,
+        messages: [{ role: "user", content: [{ type: "text", text: promptText }, ...fileParts] as any }],
       });
-      const update = {
-        ai_structure: output,
-        must_have: output.must_have,
-        nice_to_have: output.nice_to_have,
-        hard_skills: output.hard_skills,
-        soft_skills: output.soft_skills,
-        radar_competencies: output.evaluation_competencies,
-      };
-      await context.supabase.from("jobs").update(update).eq("id", data.job_id);
-      return output;
-    } catch (err) {
-      if (NoObjectGeneratedError.isInstance(err)) {
-        throw new Error("A IA não conseguiu estruturar a vaga. Tente novamente com mais contexto.");
-      }
-      throw err;
+      output = extractJson(text);
+    } catch (err: any) {
+      throw new Error(err?.message || "Falha ao chamar a IA");
     }
+
+    const normArr = (v: any) => (Array.isArray(v) ? v : []);
+    const mustArr = normArr(output.must_have);
+    const niceArr = normArr(output.nice_to_have);
+    const update = {
+      ai_structure: output,
+      must_have: mustArr.map((c: any) => (typeof c === "string" ? c : c?.name)).filter(Boolean),
+      nice_to_have: niceArr.map((c: any) => (typeof c === "string" ? c : c?.name)).filter(Boolean),
+      hard_skills: normArr(output.hard_skills),
+      soft_skills: normArr(output.soft_skills),
+      radar_competencies: normArr(output.evaluation_competencies),
+    };
+    await context.supabase.from("jobs").update(update).eq("id", data.job_id);
+    return output;
   });
+
+// ============ Refine a single job section with AI ============
+export const refineJobSection = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z.object({
+      section: z.string(),
+      current_value: z.any(),
+      instruction: z.string().min(3),
+      job_context: z.string().optional(),
+    }).parse(v),
+  )
+  .handler(async ({ data }) => {
+    const gateway = createLovableAiGateway(requireApiKey());
+    const model = gateway(AI_MODEL);
+    const isArray = Array.isArray(data.current_value);
+    const shape = isArray
+      ? `um array JSON no MESMO formato do valor atual`
+      : `uma string de texto`;
+    const { text } = await generateText({
+      model,
+      prompt: `Você é um consultor sênior de recrutamento. Ajuste APENAS a seção "${data.section}" de uma vaga.
+
+Contexto da vaga: ${data.job_context ?? "—"}
+
+Valor atual:
+${JSON.stringify(data.current_value, null, 2)}
+
+Instrução do recrutador: ${data.instruction}
+
+Retorne APENAS ${shape}, sem markdown, sem comentários, sem texto ao redor.`,
+    });
+    if (isArray) return { value: extractJson(text) };
+    const cleaned = text.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim().replace(/^"|"$/g, "");
+    return { value: cleaned };
+  });
+
 
 // ============ Generate candidate profile (independent of a job) ============
 
