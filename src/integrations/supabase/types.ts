@@ -298,11 +298,13 @@ export type Database = {
       clients: {
         Row: {
           city: string | null
+          contact: string | null
           contact_name: string | null
           contact_role: string | null
           country: string | null
           created_at: string
           id: string
+          instagram: string | null
           internal_notes: string | null
           logo_url: string | null
           name: string
@@ -314,11 +316,13 @@ export type Database = {
         }
         Insert: {
           city?: string | null
+          contact?: string | null
           contact_name?: string | null
           contact_role?: string | null
           country?: string | null
           created_at?: string
           id?: string
+          instagram?: string | null
           internal_notes?: string | null
           logo_url?: string | null
           name: string
@@ -330,11 +334,13 @@ export type Database = {
         }
         Update: {
           city?: string | null
+          contact?: string | null
           contact_name?: string | null
           contact_role?: string | null
           country?: string | null
           created_at?: string
           id?: string
+          instagram?: string | null
           internal_notes?: string | null
           logo_url?: string | null
           name?: string

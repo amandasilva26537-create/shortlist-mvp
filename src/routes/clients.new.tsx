@@ -6,10 +6,8 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { upsertClient } from "@/lib/db/clients.functions";
 import { toast } from "sonner";
-import { z } from "zod";
 
 export const Route = createFileRoute("/clients/new")({
   head: () => ({ meta: [{ title: "Novo cliente · Moove Select" }] }),
@@ -23,12 +21,18 @@ function NewClient() {
   const qc = useQueryClient();
   const upsert = useServerFn(upsertClient);
   const [form, setForm] = useState({
-    name: "", logo_url: "", segment: "", website: "",
-    city: "", state: "", country: "Brasil",
-    contact_name: "", contact_role: "", internal_notes: "",
+    name: "",
+    contact_name: "",
+    segment: "",
+    contact_role: "",
+    contact: "",
+    website: "",
+    instagram: "",
   });
 
-  const [next, setNext] = useState<"" | "job" | "shortlist">("");
+  const [next, setNext] = useState<"" | "job" | "shortlist">(
+    (search?.next as "job" | "shortlist" | undefined) ?? "",
+  );
 
   const mut = useMutation({
     mutationFn: async (data: any) => upsert({ data }),
@@ -45,7 +49,9 @@ function NewClient() {
 
   const submit = (target?: "job" | "shortlist") => (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) { toast.error("Nome do cliente é obrigatório"); return; }
+    if (!form.name.trim()) { toast.error("Nome da empresa é obrigatório"); return; }
+    if (!form.contact_name.trim()) { toast.error("Nome do responsável é obrigatório"); return; }
+    if (!form.segment.trim()) { toast.error("Setor é obrigatório"); return; }
     setNext(target ?? "");
     mut.mutate(form);
   };
@@ -58,22 +64,38 @@ function NewClient() {
         <div className="mb-6">
           <div className="text-[11px] font-medium uppercase tracking-widest text-primary">Cadastro</div>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Novo cliente</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Preencha as informações essenciais do cliente.</p>
         </div>
         <form onSubmit={submit()} className="card-elevated p-6 space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2"><Label>Nome da empresa *</Label><Input value={form.name} onChange={set("name")} required /></div>
-            <div><Label>Segmento</Label><Input value={form.segment} onChange={set("segment")} /></div>
-            <div><Label>Site</Label><Input value={form.website} onChange={set("website")} placeholder="https://" /></div>
-            <div><Label>Cidade</Label><Input value={form.city} onChange={set("city")} /></div>
-            <div><Label>Estado</Label><Input value={form.state} onChange={set("state")} /></div>
-            <div><Label>País</Label><Input value={form.country} onChange={set("country")} /></div>
-            <div><Label>Logo (URL)</Label><Input value={form.logo_url} onChange={set("logo_url")} /></div>
-            <div><Label>Nome do responsável</Label><Input value={form.contact_name} onChange={set("contact_name")} /></div>
-            <div><Label>Cargo do responsável</Label><Input value={form.contact_role} onChange={set("contact_role")} /></div>
-          </div>
-          <div>
-            <Label>Observações internas</Label>
-            <Textarea rows={4} value={form.internal_notes} onChange={set("internal_notes")} />
+            <div className="sm:col-span-2">
+              <Label>Nome da empresa *</Label>
+              <Input value={form.name} onChange={set("name")} required />
+            </div>
+            <div>
+              <Label>Nome do responsável *</Label>
+              <Input value={form.contact_name} onChange={set("contact_name")} required />
+            </div>
+            <div>
+              <Label>Setor *</Label>
+              <Input value={form.segment} onChange={set("segment")} required />
+            </div>
+            <div>
+              <Label>Cargo do responsável</Label>
+              <Input value={form.contact_role} onChange={set("contact_role")} />
+            </div>
+            <div>
+              <Label>Contato</Label>
+              <Input value={form.contact} onChange={set("contact")} placeholder="E-mail ou telefone" />
+            </div>
+            <div>
+              <Label>Site da empresa</Label>
+              <Input value={form.website} onChange={set("website")} placeholder="https://" />
+            </div>
+            <div>
+              <Label>Instagram</Label>
+              <Input value={form.instagram} onChange={set("instagram")} placeholder="@empresa" />
+            </div>
           </div>
           <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
             <Button type="submit" disabled={mut.isPending}>Salvar cliente</Button>
