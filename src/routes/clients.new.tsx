@@ -28,23 +28,26 @@ function NewClient() {
     contact_name: "", contact_role: "", internal_notes: "",
   });
 
+  const [next, setNext] = useState<"" | "job" | "shortlist">("");
+
   const mut = useMutation({
     mutationFn: async (data: any) => upsert({ data }),
-    onSuccess: (row: any, _v, ctx: any) => {
+    onSuccess: (row: any) => {
       qc.invalidateQueries({ queryKey: ["clients"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Cliente cadastrado");
-      if (ctx?.next === "job") navigate({ to: "/jobs/new", search: { client: row.id } });
-      else if (ctx?.next === "shortlist") navigate({ to: "/shortlists/new", search: { client: row.id } });
+      if (next === "job") navigate({ to: "/jobs/new", search: { client: row.id } });
+      else if (next === "shortlist") navigate({ to: "/shortlists/new", search: { client: row.id } });
       else navigate({ to: "/clients" });
     },
     onError: (e: any) => toast.error(e.message ?? "Erro ao salvar"),
   });
 
-  const submit = (next?: "job" | "shortlist") => (e: React.FormEvent) => {
+  const submit = (target?: "job" | "shortlist") => (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) { toast.error("Nome do cliente é obrigatório"); return; }
-    mut.mutate(form, { onSuccess: (r) => mut.options.onSuccess?.(r as any, form as any, { next } as any) } as any);
+    setNext(target ?? "");
+    mut.mutate(form);
   };
 
   const set = (k: string) => (e: any) => setForm((f) => ({ ...f, [k]: e.target.value }));
