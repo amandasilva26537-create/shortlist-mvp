@@ -1,13 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles } from "lucide-react";
-import { getCandidate } from "@/lib/db/candidates.functions";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles, ListPlus, Trash2, Archive } from "lucide-react";
+import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
+import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus } from "@/lib/db/shortlists.functions";
+import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/candidates/$candidateId")({
   head: ({ params }) => ({ meta: [{ title: `Candidato · ${params.candidateId}` }] }),
@@ -17,29 +23,106 @@ export const Route = createFileRoute("/candidates/$candidateId")({
 function CandidatePage() {
   const { candidateId } = Route.useParams();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const getFn = useServerFn(getCandidate);
+  const linksFn = useServerFn(listCandidateShortlistLinks);
+  const archFn = useServerFn(archiveCandidate);
+  const delFn = useServerFn(deleteCandidate);
+  const removeLinkFn = useServerFn(removeCandidateFromShortlist);
+  const setStatusFn = useServerFn(updateCandidateShortlistStatus);
+
   const { data, isLoading } = useQuery({
     queryKey: ["candidate", candidateId],
     queryFn: () => getFn({ data: { id: candidateId } }),
   });
+  const { data: shortlistLinks = [] } = useQuery({
+    queryKey: ["candidate-shortlists", candidateId],
+    queryFn: () => linksFn({ data: { candidate_id: candidateId } }),
+  });
   const c: any = data;
+  const [addOpen, setAddOpen] = useState(false);
+  const [delOpen, setDelOpen] = useState(false);
+
+  const removeLink = useMutation({
+    mutationFn: (shortlist_id: string) => removeLinkFn({ data: { shortlist_id, candidate_id: candidateId } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["candidate-shortlists", candidateId] }); toast.success("Removido da shortlist"); },
+  });
+  const setStatus = useMutation({
+    mutationFn: (v: { shortlist_id: string; status: string }) => setStatusFn({ data: { ...v, candidate_id: candidateId } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["candidate-shortlists", candidateId] }); toast.success("Status atualizado"); },
+  });
+  const archiveM = useMutation({
+    mutationFn: (archive: boolean) => archFn({ data: { id: candidateId, archive } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["candidate", candidateId] }); qc.invalidateQueries({ queryKey: ["candidates"] }); toast.success("Atualizado"); },
+  });
+  const removeM = useMutation({
+    mutationFn: () => delFn({ data: { id: candidateId } }),
+    onSuccess: () => { toast.success("Candidato excluído"); qc.invalidateQueries({ queryKey: ["candidates"] }); navigate({ to: "/candidates" }); },
+    onError: (e: any) => toast.error(e.message ?? "Falha ao excluir"),
+  });
 
   if (isLoading) return <AppShell><div className="text-sm text-muted-foreground">Carregando…</div></AppShell>;
   if (!c) return <AppShell><div className="text-sm text-muted-foreground">Candidato não encontrado.</div></AppShell>;
 
   const initials = (c.full_name ?? "").split(" ").slice(0,2).map((s: string) => s[0]).join("").toUpperCase();
 
+  const STATUS_OPTIONS = ["adicionado","em_analise","apresentado","entrevista_solicitada","entrevista_agendada","finalista","aprovado","reprovado","contratado","desistiu"];
+  const statusLabels: Record<string,string> = {
+    adicionado: "Adicionado", em_analise: "Em análise", apresentado: "Apresentado",
+    entrevista_solicitada: "Entrevista solicitada", entrevista_agendada: "Entrevista agendada",
+    finalista: "Finalista", aprovado: "Aprovado", reprovado: "Reprovado",
+    contratado: "Contratado", desistiu: "Desistiu",
+  };
+
   return (
     <AppShell>
       <div className="mx-auto max-w-6xl">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
           <Link to="/candidates" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-3.5 w-3.5" /> Voltar
           </Link>
-          <Button onClick={() => navigate({ to: "/candidates/new", search: { id: candidateId } as any })}>
-            <Pencil className="mr-1.5 h-4 w-4" /> Editar
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" onClick={() => setAddOpen(true)}>
+              <ListPlus className="mr-1.5 h-4 w-4" /> Adicionar à shortlist
+            </Button>
+            <Button onClick={() => navigate({ to: "/candidates/new", search: { id: candidateId } as any })}>
+              <Pencil className="mr-1.5 h-4 w-4" /> Editar
+            </Button>
+            <Button variant="ghost" onClick={() => archiveM.mutate(c.status !== "arquivado")}>
+              <Archive className="mr-1.5 h-4 w-4" /> {c.status === "arquivado" ? "Desarquivar" : "Arquivar"}
+            </Button>
+            <AlertDialog open={delOpen} onOpenChange={setDelOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" className="text-destructive hover:text-destructive"><Trash2 className="mr-1.5 h-4 w-4" />Excluir</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir candidato?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza de que deseja excluir <b>{c.full_name}</b>? Esta ação removerá o candidato do banco de candidatos.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                {shortlistLinks.length > 0 && (
+                  <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+                    Este candidato está vinculado a {shortlistLinks.length} shortlist(s). Ao excluir, ele também será removido dessas shortlists:
+                    <ul className="list-disc pl-5 mt-1">
+                      {shortlistLinks.map((l: any) => (
+                        <li key={l.shortlist_id}>{l.shortlists?.title || `Shortlist ${l.shortlists?.number}`} · {l.shortlists?.jobs?.title} · {l.shortlists?.clients?.name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => removeM.mutate()} disabled={removeM.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    {removeM.isPending ? "Excluindo…" : "Excluir candidato"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
+
 
         <div className="card-elevated p-6 mb-4">
           <div className="flex items-start gap-4">
@@ -75,6 +158,7 @@ function CandidatePage() {
             <TabsTrigger value="disc">DISC</TabsTrigger>
             <TabsTrigger value="documents">Documentos</TabsTrigger>
             <TabsTrigger value="additional">Adicionais</TabsTrigger>
+            <TabsTrigger value="shortlists">Vagas e shortlists{shortlistLinks.length > 0 && <Badge variant="secondary" className="ml-1.5 h-4 px-1.5 text-[10px]">{shortlistLinks.length}</Badge>}</TabsTrigger>
             <TabsTrigger value="internal"><Lock className="h-3 w-3 mr-1" />Interno</TabsTrigger>
           </TabsList>
 
@@ -224,11 +308,58 @@ function CandidatePage() {
             {c.internal_notes && <Card title="Observações internas"><div className="whitespace-pre-wrap text-sm">{c.internal_notes}</div></Card>}
             {c.inconsistencies?.length > 0 && <Card title="Inconsistências detectadas"><Bullets items={c.inconsistencies} /></Card>}
           </TabsContent>
+
+          <TabsContent value="shortlists" className="mt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">{shortlistLinks.length} vínculo(s)</div>
+              <Button size="sm" onClick={() => setAddOpen(true)}><ListPlus className="mr-1.5 h-3.5 w-3.5" />Adicionar à shortlist</Button>
+            </div>
+            {shortlistLinks.length === 0 ? (
+              <div className="card-elevated p-6 text-center text-sm text-muted-foreground">Este candidato ainda não está em nenhuma shortlist.</div>
+            ) : shortlistLinks.map((l: any) => (
+              <div key={l.shortlist_id} className="card-elevated p-4">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <div className="text-xs text-muted-foreground">{l.shortlists?.clients?.name}</div>
+                    <div className="font-medium">{l.shortlists?.jobs?.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {l.shortlists?.title || `Shortlist ${String(l.shortlists?.number).padStart(2, "0")}`} · adicionado em {new Date(l.added_at).toLocaleDateString("pt-BR")}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select value={l.status} onValueChange={(v) => setStatus.mutate({ shortlist_id: l.shortlist_id, status: v })}>
+                      <SelectTrigger className="h-8 w-48"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{statusLabels[s]}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {l.shortlists?.jobs?.id && (
+                      <Link to="/jobs/$jobId" params={{ jobId: l.shortlists.jobs.id }}>
+                        <Button variant="ghost" size="sm">Ver vaga</Button>
+                      </Link>
+                    )}
+                    <Link to="/shortlists/$shortlistId" params={{ shortlistId: l.shortlist_id }}>
+                      <Button variant="outline" size="sm">Ver shortlist</Button>
+                    </Link>
+                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => removeLink.mutate(l.shortlist_id)}>Remover</Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </TabsContent>
         </Tabs>
       </div>
+
+      <AddToShortlistDialog
+        candidateId={candidateId}
+        candidateName={c.full_name}
+        open={addOpen}
+        onOpenChange={setAddOpen}
+      />
     </AppShell>
   );
 }
+
 
 function Card({ title, children }: { title: string; children: any }) {
   return <div className="card-elevated p-5"><div className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{title}</div><div className="text-sm">{children}</div></div>;

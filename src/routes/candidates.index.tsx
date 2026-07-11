@@ -8,25 +8,39 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Search, Archive, Pencil, Eye, FileText, Linkedin, Image as ImageIcon } from "lucide-react";
-import { listCandidates, archiveCandidate } from "@/lib/db/candidates.functions";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Plus, Search, Archive, Pencil, Eye, FileText, Linkedin, Image as ImageIcon, Trash2, ListPlus } from "lucide-react";
+import { listCandidates, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
+import { listCandidateShortlistLinks } from "@/lib/db/shortlists.functions";
+import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/candidates")({
+export const Route = createFileRoute("/candidates/")({
   head: () => ({ meta: [{ title: "Candidatos · Moove Select" }] }),
   component: CandidatesList,
 });
+
 
 function CandidatesList() {
   const nav = useNavigate();
   const qc = useQueryClient();
   const listFn = useServerFn(listCandidates);
   const archFn = useServerFn(archiveCandidate);
+  const delFn = useServerFn(deleteCandidate);
   const { data: candidates = [], isLoading } = useQuery({ queryKey: ["candidates"], queryFn: () => listFn() });
   const archive = useMutation({
     mutationFn: (v: { id: string; archive: boolean }) => archFn({ data: v }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["candidates"] }); toast.success("Atualizado"); },
   });
+  const remove = useMutation({
+    mutationFn: (id: string) => delFn({ data: { id } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["candidates"] }); toast.success("Candidato excluído"); setToDelete(null); },
+    onError: (e: any) => toast.error(e.message ?? "Falha ao excluir"),
+  });
+
+  const [toDelete, setToDelete] = useState<any>(null);
+  const [addToSl, setAddToSl] = useState<any>(null);
+
 
   const [q, setQ] = useState("");
   const [area, setArea] = useState<string>("all");
@@ -124,15 +138,21 @@ function CandidatesList() {
                   {c.salary_expectation && <span>R$ {Number(c.salary_expectation).toLocaleString("pt-BR")}</span>}
                   <span className="ml-auto">{new Date(c.created_at).toLocaleDateString("pt-BR")}</span>
                 </div>
-                <div className="flex gap-2 pt-1 border-t border-border">
-                  <Link to="/candidates/$candidateId" params={{ candidateId: c.id }} className="flex-1">
+                <div className="flex flex-wrap gap-2 pt-1 border-t border-border">
+                  <Link to="/candidates/$candidateId" params={{ candidateId: c.id }} className="flex-1 min-w-[120px]">
                     <Button variant="outline" size="sm" className="w-full"><Eye className="mr-1 h-3.5 w-3.5" />Ver perfil</Button>
                   </Link>
+                  <Button variant="ghost" size="sm" onClick={() => setAddToSl(c)} title="Adicionar à shortlist">
+                    <ListPlus className="h-3.5 w-3.5" />
+                  </Button>
                   <Link to="/candidates/new" search={{ id: c.id } as any}>
-                    <Button variant="ghost" size="sm"><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button variant="ghost" size="sm" title="Editar"><Pencil className="h-3.5 w-3.5" /></Button>
                   </Link>
-                  <Button variant="ghost" size="sm" onClick={() => archive.mutate({ id: c.id, archive: c.status !== "arquivado" })}>
+                  <Button variant="ghost" size="sm" onClick={() => archive.mutate({ id: c.id, archive: c.status !== "arquivado" })} title={c.status === "arquivado" ? "Desarquivar" : "Arquivar"}>
                     <Archive className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setToDelete(c)} title="Excluir" className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
@@ -140,9 +160,63 @@ function CandidatesList() {
           </div>
         )}
       </div>
+
+      <DeleteCandidateDialog
+        candidate={toDelete}
+        onClose={() => setToDelete(null)}
+        onConfirm={(id) => remove.mutate(id)}
+        pending={remove.isPending}
+      />
+
+      {addToSl && (
+        <AddToShortlistDialog
+          candidateId={addToSl.id}
+          candidateName={addToSl.full_name}
+          open={!!addToSl}
+          onOpenChange={(v) => !v && setAddToSl(null)}
+        />
+      )}
     </AppShell>
   );
 }
+
+function DeleteCandidateDialog({ candidate, onClose, onConfirm, pending }: { candidate: any; onClose: () => void; onConfirm: (id: string) => void; pending: boolean }) {
+  const linksFn = useServerFn(listCandidateShortlistLinks);
+  const { data: links = [] } = useQuery({
+    queryKey: ["candidate-shortlists", candidate?.id],
+    queryFn: () => linksFn({ data: { candidate_id: candidate.id } }),
+    enabled: !!candidate,
+  });
+  return (
+    <AlertDialog open={!!candidate} onOpenChange={(v) => !v && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir candidato?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Tem certeza de que deseja excluir <b>{candidate?.full_name}</b>? Esta ação removerá o candidato do banco de candidatos.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        {links.length > 0 && (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+            Este candidato está vinculado a {links.length} shortlist(s). Ao excluir, ele também será removido dessas shortlists:
+            <ul className="list-disc pl-5 mt-1">
+              {links.map((l: any) => (
+                <li key={l.shortlist_id}>{l.shortlists?.title || `Shortlist ${l.shortlists?.number}`} · {l.shortlists?.jobs?.title} · {l.shortlists?.clients?.name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction disabled={pending} onClick={() => candidate && onConfirm(candidate.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            {pending ? "Excluindo…" : "Excluir candidato"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 
 function FilterSelect({ label, value, setValue, options, labels }: { label: string; value: string; setValue: (v: string) => void; options: string[]; labels?: Record<string,string> }) {
   return (
