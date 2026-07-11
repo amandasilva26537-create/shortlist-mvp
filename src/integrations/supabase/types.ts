@@ -386,6 +386,7 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
+          documents: Json
           hard_skills: string[] | null
           id: string
           location: string | null
@@ -393,6 +394,7 @@ export type Database = {
           meeting_transcript: string | null
           must_have: string[] | null
           nice_to_have: string[] | null
+          pasted_text: string | null
           radar_competencies: Json | null
           recruiter_notes: string | null
           salary_max: number | null
@@ -413,6 +415,7 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
+          documents?: Json
           hard_skills?: string[] | null
           id?: string
           location?: string | null
@@ -420,6 +423,7 @@ export type Database = {
           meeting_transcript?: string | null
           must_have?: string[] | null
           nice_to_have?: string[] | null
+          pasted_text?: string | null
           radar_competencies?: Json | null
           recruiter_notes?: string | null
           salary_max?: number | null
@@ -440,6 +444,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
+          documents?: Json
           hard_skills?: string[] | null
           id?: string
           location?: string | null
@@ -447,6 +452,7 @@ export type Database = {
           meeting_transcript?: string | null
           must_have?: string[] | null
           nice_to_have?: string[] | null
+          pasted_text?: string | null
           radar_competencies?: Json | null
           recruiter_notes?: string | null
           salary_max?: number | null
