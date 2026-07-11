@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Briefcase } from "lucide-react";
 import { listJobs } from "@/lib/db/jobs.functions";
 
-export const Route = createFileRoute("/jobs")({
+export const Route = createFileRoute("/jobs/")({
   head: () => ({ meta: [{ title: "Vagas · Moove Select" }] }),
   component: JobsPage,
 });
