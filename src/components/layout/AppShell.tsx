@@ -14,13 +14,13 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-const navItems = [
+const navItems: { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/clients", label: "Clientes", icon: Users },
   { to: "/jobs", label: "Vagas", icon: Briefcase },
   { to: "/shortlists", label: "Shortlists", icon: ListChecks },
   { to: "/compare", label: "Comparar", icon: GitCompare },
-] as const;
+];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
