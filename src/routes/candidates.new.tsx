@@ -115,13 +115,36 @@ function NewCandidate() {
   const uploadTo = async (kind: string, file: File, visible: boolean) => {
     const id = candId ?? await ensureSaved();
     if (!id) return null;
+
+    // Photos: convert to base64 data URL so they display everywhere without a public bucket.
+    if (kind === "photo") {
+      if (file.size > 3 * 1024 * 1024) {
+        toast.error("Foto muito grande. Envie uma imagem de até 3MB.");
+        return null;
+      }
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+      setF((p: any) => ({ ...p, photo_url: dataUrl }));
+      try {
+        const row: any = await saveFn({ data: { ...buildPayload(), photo_url: dataUrl } });
+        setCandId(row.id);
+        qc.invalidateQueries({ queryKey: ["candidates"] });
+        qc.invalidateQueries({ queryKey: ["candidate", row.id] });
+      } catch (e: any) { toast.error(e.message); return null; }
+      toast.success("Foto salva");
+      return dataUrl;
+    }
+
     const path = `${id}/${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from("candidate-files").upload(path, file);
     if (error) { toast.error(error.message); return null; }
     const { data } = supabase.storage.from("candidate-files").getPublicUrl(path);
     const doc: any = await docFn({ data: { candidate_id: id, kind, label: file.name, url: data.publicUrl, visible_to_client: visible } });
     setDocs((p) => [doc, ...p]);
-    if (kind === "photo") setF((p: any) => ({ ...p, photo_url: data.publicUrl }));
     if (kind === "resume") setF((p: any) => ({ ...p, resume_url: data.publicUrl }));
     toast.success("Arquivo enviado");
     return data.publicUrl;
