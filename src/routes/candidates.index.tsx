@@ -26,11 +26,21 @@ function CandidatesList() {
   const qc = useQueryClient();
   const listFn = useServerFn(listCandidates);
   const archFn = useServerFn(archiveCandidate);
+  const delFn = useServerFn(deleteCandidate);
   const { data: candidates = [], isLoading } = useQuery({ queryKey: ["candidates"], queryFn: () => listFn() });
   const archive = useMutation({
     mutationFn: (v: { id: string; archive: boolean }) => archFn({ data: v }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["candidates"] }); toast.success("Atualizado"); },
   });
+  const remove = useMutation({
+    mutationFn: (id: string) => delFn({ data: { id } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["candidates"] }); toast.success("Candidato excluído"); setToDelete(null); },
+    onError: (e: any) => toast.error(e.message ?? "Falha ao excluir"),
+  });
+
+  const [toDelete, setToDelete] = useState<any>(null);
+  const [addToSl, setAddToSl] = useState<any>(null);
+
 
   const [q, setQ] = useState("");
   const [area, setArea] = useState<string>("all");
