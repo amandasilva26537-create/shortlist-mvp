@@ -62,7 +62,7 @@ export const upsertShortlist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => ShortlistInput.parse(v))
   .handler(async ({ data, context }) => {
-    const payload: Record<string, unknown> = { ...data, owner_id: context.userId };
+    const payload = { ...data, owner_id: context.userId } as any;
     const query = data.id
       ? context.supabase.from("shortlists").update(payload).eq("id", data.id).select("*").single()
       : context.supabase.from("shortlists").insert(payload).select("*").single();
