@@ -341,8 +341,10 @@ function NewCandidate() {
               </div>
             </div>
 
-            {/* Editable structured sections */}
-            <Section title="Headline" onRefine={(instr) => refineSection("headline", instr)} refining={refiningKey === "headline"}>
+            {/* Editable structured sections — só aparecem após a IA gerar o perfil ou ao editar um candidato existente */}
+            {(!!editId || !!f.headline || !!f.mini_bio || !!f.full_bio || (f.trajectory?.length ?? 0) > 0) ? (
+              <>
+
               <Input value={f.headline || ""} onChange={set("headline")} placeholder="Headline profissional" />
             </Section>
 
