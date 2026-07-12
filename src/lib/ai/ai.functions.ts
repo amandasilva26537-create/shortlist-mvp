@@ -517,22 +517,22 @@ Nome: ${cAny.full_name}
 Cargo atual: ${cAny.current_position ?? ""} · ${cAny.current_company ?? ""}
 Cidade/Modelo: ${cAny.city ?? ""} / ${cAny.work_model ?? ""}
 Pretensão: ${cAny.salary_expectation ?? ""}
-DISC: ${cAny.disc_profile ?? ""} — ${JSON.stringify(cand.disc_scores ?? {})}
+DISC: ${cAny.disc_profile ?? ""} — ${JSON.stringify(cAny.disc_scores ?? {})}
 Headline: ${cAny.headline ?? ""}
 Mini bio: ${cAny.mini_bio ?? ""}
 Bio completa: ${cAny.full_bio ?? ""}
-Resumo executivo: ${JSON.stringify(cand.executive_summary ?? [])}
-Especialidades: ${JSON.stringify(cand.specialties ?? [])}
-Resultados: ${JSON.stringify(cand.main_results ?? [])}
-Conquistas: ${JSON.stringify(cand.achievements ?? [])}
-Trajetória: ${JSON.stringify(cand.trajectory ?? [])}
-Competências: ${JSON.stringify(cand.competencies ?? {})}
-Formação: ${JSON.stringify(cand.education ?? [])}
-Idiomas: ${JSON.stringify(cand.languages ?? [])}
-Momento profissional: ${JSON.stringify(cand.professional_moment ?? {})}
-Motivadores: ${JSON.stringify(cand.motivators ?? [])}
-Pontos fortes: ${JSON.stringify(cand.strengths ?? [])}
-Case principal (currículo): ${JSON.stringify(cand.main_case ?? {})}
+Resumo executivo: ${JSON.stringify(cAny.executive_summary ?? [])}
+Especialidades: ${JSON.stringify(cAny.specialties ?? [])}
+Resultados: ${JSON.stringify(cAny.main_results ?? [])}
+Conquistas: ${JSON.stringify(cAny.achievements ?? [])}
+Trajetória: ${JSON.stringify(cAny.trajectory ?? [])}
+Competências: ${JSON.stringify(cAny.competencies ?? {})}
+Formação: ${JSON.stringify(cAny.education ?? [])}
+Idiomas: ${JSON.stringify(cAny.languages ?? [])}
+Momento profissional: ${JSON.stringify(cAny.professional_moment ?? {})}
+Motivadores: ${JSON.stringify(cAny.motivators ?? [])}
+Pontos fortes: ${JSON.stringify(cAny.strengths ?? [])}
+Case principal (currículo): ${JSON.stringify(cAny.main_case ?? {})}
 Parecer do recrutador (bruto): ${cAny.recruiter_note ?? ""}
 Entrevista/Transcrição: ${cAny.transcript ?? ""}
 Notas internas: ${cAny.internal_notes ?? ""}
