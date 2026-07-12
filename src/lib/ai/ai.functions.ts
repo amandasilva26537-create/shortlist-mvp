@@ -4,6 +4,49 @@ import { generateText } from "ai";
 import { z } from "zod";
 import { AI_MODEL, createLovableAiGateway, requireApiKey } from "./gateway.server";
 
+const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+async function extractDocxText(bytes: Uint8Array): Promise<string> {
+  const mammoth = await import("mammoth");
+  const buf = Buffer.from(bytes);
+  const result = await mammoth.extractRawText({ buffer: buf });
+  return result.value || "";
+}
+
+function isTextualMime(mime: string): boolean {
+  return mime.startsWith("text/") || mime === "application/json" || mime === "application/xml" || mime === "text/csv";
+}
+
+async function toModelPart(
+  bytes: Uint8Array,
+  mime: string,
+  label: string,
+): Promise<{ part?: any; text?: string; note: string }> {
+  if (mime.startsWith("image/")) {
+    return { part: { type: "image", image: bytes, mediaType: mime }, note: label };
+  }
+  if (mime === "application/pdf") {
+    return { part: { type: "file", data: bytes, mediaType: mime, filename: label }, note: label };
+  }
+  if (mime === DOCX_MIME || label.toLowerCase().endsWith(".docx")) {
+    try {
+      const txt = await extractDocxText(bytes);
+      return { text: `\n\n--- Conteúdo de ${label} (DOCX) ---\n${txt}`, note: label };
+    } catch (e: any) {
+      return { note: `${label} (falha ao extrair DOCX: ${e?.message ?? "erro"})` };
+    }
+  }
+  if (isTextualMime(mime)) {
+    try {
+      const txt = new TextDecoder().decode(bytes);
+      return { text: `\n\n--- Conteúdo de ${label} ---\n${txt}`, note: label };
+    } catch {
+      return { note: `${label} (texto ilegível)` };
+    }
+  }
+  return { note: `${label} (formato ${mime} não suportado pela IA)` };
+}
+
 export const structureJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) =>
@@ -16,20 +59,20 @@ export const structureJob = createServerFn({ method: "POST" })
     // Download attached documents.
     const fileParts: any[] = [];
     const attachedList: string[] = [];
+    const extraTexts: string[] = [];
     const docs = Array.isArray((job as any).documents) ? (job as any).documents : [];
     for (const d of docs) {
       const path = pathFromPublicUrl(d.url, "job-briefings");
       if (!path) continue;
       const { data: blob, error: dErr } = await context.supabase.storage.from("job-briefings").download(path);
       if (dErr || !blob) { attachedList.push(`${d.label} (erro ao baixar)`); continue; }
-      const mime = blob.type || (path.endsWith(".pdf") ? "application/pdf" : "application/octet-stream");
+      const label = d.label ?? "arquivo";
+      const mime = blob.type || (path.endsWith(".pdf") ? "application/pdf" : path.endsWith(".docx") ? DOCX_MIME : "application/octet-stream");
       const bytes = new Uint8Array(await blob.arrayBuffer());
-      if (mime.startsWith("image/")) {
-        fileParts.push({ type: "image", image: bytes, mediaType: mime });
-      } else {
-        fileParts.push({ type: "file", data: bytes, mediaType: mime, filename: d.label ?? "arquivo" });
-      }
-      attachedList.push(d.label ?? "arquivo");
+      const r = await toModelPart(bytes, mime, label);
+      if (r.part) fileParts.push(r.part);
+      if (r.text) extraTexts.push(r.text);
+      attachedList.push(r.note);
     }
 
     const promptText = `Você é um consultor sênior de recrutamento executivo. Analise TODO o material fornecido (dados básicos + textos colados + arquivos anexados como PDFs de descrição, briefing, transcrição de reunião) e estruture a vaga.
@@ -92,7 +135,7 @@ Regras:
     try {
       const { text } = await generateText({
         model,
-        messages: [{ role: "user", content: [{ type: "text", text: promptText }, ...fileParts] as any }],
+        messages: [{ role: "user", content: [{ type: "text", text: promptText + (extraTexts.length ? "\n\nCONTEÚDO EXTRAÍDO DOS ARQUIVOS:\n" + extraTexts.join("\n") : "") }, ...fileParts] as any }],
       });
       output = extractJson(text);
     } catch (err: any) {
@@ -203,20 +246,19 @@ export const generateCandidateProfile = createServerFn({ method: "POST" })
     // Download attached documents so the model can actually read them.
     const fileParts: any[] = [];
     const attachedList: string[] = [];
+    const extraTexts: string[] = [];
     for (const d of docs ?? []) {
       const path = pathFromPublicUrl(d.url, "candidate-files");
       if (!path) continue;
       const { data: blob, error } = await context.supabase.storage.from("candidate-files").download(path);
       if (error || !blob) { attachedList.push(`${d.kind}: ${d.label} (erro ao baixar)`); continue; }
-      const mime = blob.type || (path.endsWith(".pdf") ? "application/pdf" : "application/octet-stream");
+      const label = `${d.kind}: ${d.label}`;
+      const mime = blob.type || (path.endsWith(".pdf") ? "application/pdf" : path.endsWith(".docx") ? DOCX_MIME : "application/octet-stream");
       const bytes = await fileToBytes(blob);
-      const isImage = mime.startsWith("image/");
-      if (isImage) {
-        fileParts.push({ type: "image", image: bytes, mediaType: mime });
-      } else {
-        fileParts.push({ type: "file", data: bytes, mediaType: mime, filename: d.label ?? "arquivo" });
-      }
-      attachedList.push(`${d.kind}: ${d.label}`);
+      const r = await toModelPart(bytes, mime, label);
+      if (r.part) fileParts.push(r.part);
+      if (r.text) extraTexts.push(r.text);
+      attachedList.push(r.note);
     }
 
     // Also attach the candidate photo when it's a data URL.
@@ -295,7 +337,7 @@ Regras para basic_info:
     try {
       const { text } = await generateText({
         model,
-        messages: [{ role: "user", content: [{ type: "text", text: promptText }, ...fileParts] as any }],
+        messages: [{ role: "user", content: [{ type: "text", text: promptText + (extraTexts.length ? "\n\nCONTEÚDO EXTRAÍDO DOS ARQUIVOS:\n" + extraTexts.join("\n") : "") }, ...fileParts] as any }],
       });
       output = extractJson(text);
     } catch (err: any) {
