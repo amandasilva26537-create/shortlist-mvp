@@ -94,12 +94,12 @@ export function CandidateFlashcard({ candidate, evaluation, onOpenAnalysis, onOp
         </div>
 
         {/* Ações */}
-        <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-4">
-          <Button onClick={onOpenAnalysis} className="flex-1 min-w-[160px]">
+        <div className="relative z-20 mt-6 flex flex-wrap gap-2 border-t border-border bg-card pt-4">
+          <Button onClick={onOpenAnalysis} className="relative z-20 flex-1 min-w-[160px]">
             <FileText className="mr-2 h-4 w-4" /> Ver análise
             <ChevronRight className="ml-auto h-4 w-4" />
           </Button>
-          <Button variant="outline" onClick={onOpenProfile} className="flex-1 min-w-[160px]">
+          <Button variant="outline" onClick={onOpenProfile} className="relative z-20 flex-1 min-w-[160px]">
             <User className="mr-2 h-4 w-4" /> Ver perfil completo
           </Button>
         </div>
