@@ -246,20 +246,19 @@ export const generateCandidateProfile = createServerFn({ method: "POST" })
     // Download attached documents so the model can actually read them.
     const fileParts: any[] = [];
     const attachedList: string[] = [];
+    const extraTexts: string[] = [];
     for (const d of docs ?? []) {
       const path = pathFromPublicUrl(d.url, "candidate-files");
       if (!path) continue;
       const { data: blob, error } = await context.supabase.storage.from("candidate-files").download(path);
       if (error || !blob) { attachedList.push(`${d.kind}: ${d.label} (erro ao baixar)`); continue; }
-      const mime = blob.type || (path.endsWith(".pdf") ? "application/pdf" : "application/octet-stream");
+      const label = `${d.kind}: ${d.label}`;
+      const mime = blob.type || (path.endsWith(".pdf") ? "application/pdf" : path.endsWith(".docx") ? DOCX_MIME : "application/octet-stream");
       const bytes = await fileToBytes(blob);
-      const isImage = mime.startsWith("image/");
-      if (isImage) {
-        fileParts.push({ type: "image", image: bytes, mediaType: mime });
-      } else {
-        fileParts.push({ type: "file", data: bytes, mediaType: mime, filename: d.label ?? "arquivo" });
-      }
-      attachedList.push(`${d.kind}: ${d.label}`);
+      const r = await toModelPart(bytes, mime, label);
+      if (r.part) fileParts.push(r.part);
+      if (r.text) extraTexts.push(r.text);
+      attachedList.push(r.note);
     }
 
     // Also attach the candidate photo when it's a data URL.
