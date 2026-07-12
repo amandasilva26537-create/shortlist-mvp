@@ -1,5 +1,4 @@
 import { MatchRing } from "@/components/candidate/MatchRing";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, MapPin, Building2, DollarSign, Clock, Sparkles, User, ChevronRight } from "lucide-react";
