@@ -59,20 +59,20 @@ export const structureJob = createServerFn({ method: "POST" })
     // Download attached documents.
     const fileParts: any[] = [];
     const attachedList: string[] = [];
+    const extraTexts: string[] = [];
     const docs = Array.isArray((job as any).documents) ? (job as any).documents : [];
     for (const d of docs) {
       const path = pathFromPublicUrl(d.url, "job-briefings");
       if (!path) continue;
       const { data: blob, error: dErr } = await context.supabase.storage.from("job-briefings").download(path);
       if (dErr || !blob) { attachedList.push(`${d.label} (erro ao baixar)`); continue; }
-      const mime = blob.type || (path.endsWith(".pdf") ? "application/pdf" : "application/octet-stream");
+      const label = d.label ?? "arquivo";
+      const mime = blob.type || (path.endsWith(".pdf") ? "application/pdf" : path.endsWith(".docx") ? DOCX_MIME : "application/octet-stream");
       const bytes = new Uint8Array(await blob.arrayBuffer());
-      if (mime.startsWith("image/")) {
-        fileParts.push({ type: "image", image: bytes, mediaType: mime });
-      } else {
-        fileParts.push({ type: "file", data: bytes, mediaType: mime, filename: d.label ?? "arquivo" });
-      }
-      attachedList.push(d.label ?? "arquivo");
+      const r = await toModelPart(bytes, mime, label);
+      if (r.part) fileParts.push(r.part);
+      if (r.text) extraTexts.push(r.text);
+      attachedList.push(r.note);
     }
 
     const promptText = `Você é um consultor sênior de recrutamento executivo. Analise TODO o material fornecido (dados básicos + textos colados + arquivos anexados como PDFs de descrição, briefing, transcrição de reunião) e estruture a vaga.
