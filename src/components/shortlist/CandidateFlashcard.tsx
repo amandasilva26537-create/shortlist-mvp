@@ -1,7 +1,7 @@
 import { MatchRing } from "@/components/candidate/MatchRing";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, MapPin, Building2, DollarSign, Clock, Sparkles, User, ChevronRight } from "lucide-react";
+import { Briefcase, MapPin, Building2, DollarSign, Clock, Star, User, ChevronRight, FileText } from "lucide-react";
 
 interface Props {
   candidate: any;
@@ -80,14 +80,14 @@ export function CandidateFlashcard({ candidate, evaluation, onOpenAnalysis, onOp
             {ev?.key_differentiator && (
               <div className="mt-5 rounded-xl border border-primary/30 bg-primary-soft/50 p-4">
                 <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary">
-                  <Sparkles className="h-3 w-3" /> Principal diferencial para a vaga
+                  <Star className="h-3 w-3" /> Principal diferencial para a vaga
                 </div>
                 <div className="text-sm text-foreground">{ev.key_differentiator}</div>
               </div>
             )}
             {!ev && (
               <div className="mt-5 rounded-xl border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
-                Análise para esta vaga ainda não gerada. Use "Gerar análise com IA" para calcular a compatibilidade.
+                Análise para esta vaga ainda não disponível.
               </div>
             )}
           </div>
@@ -96,7 +96,7 @@ export function CandidateFlashcard({ candidate, evaluation, onOpenAnalysis, onOp
         {/* Ações */}
         <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-4">
           <Button onClick={onOpenAnalysis} className="flex-1 min-w-[160px]">
-            <Sparkles className="mr-2 h-4 w-4" /> Ver análise
+            <FileText className="mr-2 h-4 w-4" /> Ver análise
             <ChevronRight className="ml-auto h-4 w-4" />
           </Button>
           <Button variant="outline" onClick={onOpenProfile} className="flex-1 min-w-[160px]">

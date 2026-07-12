@@ -3,23 +3,28 @@ import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from "lucide-react";
 import { CandidateFlashcard } from "./CandidateFlashcard";
-import { AnalysisPanel } from "./AnalysisPanel";
 import { useNavigate } from "@tanstack/react-router";
 
 interface Props {
   shortlistId: string;
   jobId: string;
-  links: any[]; // shortlist_candidates joined with candidates
+  links: any[];
   evaluations: any[];
   initialCandidateId?: string;
   readOnly?: boolean;
   onReorder?: (orderedIds: string[]) => void;
+  analysisBasePath?: string; // e.g. "/shortlists/{id}/analysis" or "/s/{token}/analysis"
+  profileBasePath?: string;  // e.g. "/candidates" or "/s/{token}/c"
+  returnTo?: string;
+  actionsSlot?: (candidate: any, evaluation: any) => React.ReactNode;
 }
 
-export function FlashcardDeck({ shortlistId, jobId, links, evaluations, initialCandidateId, readOnly, onReorder }: Props) {
+export function FlashcardDeck({
+  shortlistId, jobId, links, evaluations, initialCandidateId, readOnly, onReorder,
+  analysisBasePath, profileBasePath, returnTo, actionsSlot,
+}: Props) {
   const navigate = useNavigate();
 
-  // Ordenação: por overall_match desc, empatando pela position original
   const ordered = useMemo(() => {
     const byId = new Map(evaluations.map((e) => [e.candidate_id, e]));
     return [...links].sort((a, b) => {
@@ -31,7 +36,6 @@ export function FlashcardDeck({ shortlistId, jobId, links, evaluations, initialC
   }, [links, evaluations]);
 
   const [idx, setIdx] = useState(0);
-  const [analysisOpen, setAnalysisOpen] = useState(false);
 
   useEffect(() => {
     if (!initialCandidateId) return;
@@ -41,7 +45,6 @@ export function FlashcardDeck({ shortlistId, jobId, links, evaluations, initialC
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (analysisOpen) return;
       if (e.key === "ArrowRight") next();
       if (e.key === "ArrowLeft") prev();
     };
@@ -85,9 +88,25 @@ export function FlashcardDeck({ shortlistId, jobId, links, evaluations, initialC
     setIdx(safeIdx + 1);
   };
 
+  const openAnalysis = () => {
+    const base = analysisBasePath ?? `/shortlists/${shortlistId}/analysis`;
+    navigate({ to: `${base}/${candidate.id}` as any });
+  };
+
+  const openProfile = () => {
+    if (profileBasePath) {
+      navigate({ to: `${profileBasePath}/${candidate.id}` as any });
+    } else {
+      navigate({
+        to: "/candidates/$candidateId",
+        params: { candidateId: candidate.id },
+        search: { returnTo: returnTo ?? `/shortlists/${shortlistId}`, cursor: candidate.id } as any,
+      });
+    }
+  };
+
   return (
     <div>
-      {/* Header do deck */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="text-sm text-muted-foreground">
           Candidato <b className="text-foreground">{safeIdx + 1}</b> de <b className="text-foreground">{ordered.length}</b>
@@ -95,7 +114,7 @@ export function FlashcardDeck({ shortlistId, jobId, links, evaluations, initialC
         <div className="flex items-center gap-1">
           {!readOnly && onReorder && (
             <>
-              <Button variant="ghost" size="sm" onClick={moveUp} disabled={safeIdx === 0} title="Mover para cima na ordem">
+              <Button variant="ghost" size="sm" onClick={moveUp} disabled={safeIdx === 0} title="Mover para cima">
                 <ArrowUp className="h-4 w-4" />
               </Button>
               <Button variant="ghost" size="sm" onClick={moveDown} disabled={safeIdx === ordered.length - 1} title="Mover para baixo">
@@ -113,22 +132,15 @@ export function FlashcardDeck({ shortlistId, jobId, links, evaluations, initialC
         </div>
       </div>
 
-      {/* Deck com setas laterais */}
       <div className="relative">
-        <button
-          onClick={prev}
-          disabled={safeIdx === 0}
+        <button onClick={prev} disabled={safeIdx === 0}
           className="hidden lg:grid absolute -left-14 top-1/2 -translate-y-1/2 h-12 w-12 place-items-center rounded-full border border-border bg-card shadow-sm transition hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-          aria-label="Anterior"
-        >
+          aria-label="Anterior">
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <button
-          onClick={next}
-          disabled={safeIdx === ordered.length - 1}
+        <button onClick={next} disabled={safeIdx === ordered.length - 1}
           className="hidden lg:grid absolute -right-14 top-1/2 -translate-y-1/2 h-12 w-12 place-items-center rounded-full border border-border bg-card shadow-sm transition hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-          aria-label="Próximo"
-        >
+          aria-label="Próximo">
           <ChevronRight className="h-5 w-5" />
         </button>
 
@@ -147,18 +159,16 @@ export function FlashcardDeck({ shortlistId, jobId, links, evaluations, initialC
             <CandidateFlashcard
               candidate={candidate}
               evaluation={evaluation}
-              onOpenAnalysis={() => setAnalysisOpen(true)}
-              onOpenProfile={() => navigate({
-                to: "/candidates/$candidateId",
-                params: { candidateId: candidate.id },
-                search: { returnTo: `/shortlists/${shortlistId}`, cursor: candidate.id } as any,
-              })}
+              onOpenAnalysis={openAnalysis}
+              onOpenProfile={openProfile}
               readOnly={readOnly}
             />
+            {actionsSlot && (
+              <div className="mt-4">{actionsSlot(candidate, evaluation)}</div>
+            )}
           </motion.div>
         </AnimatePresence>
 
-        {/* Indicador de posição */}
         <div className="mt-4 flex items-center justify-center gap-1.5">
           {ordered.map((o, i) => (
             <button
@@ -170,16 +180,6 @@ export function FlashcardDeck({ shortlistId, jobId, links, evaluations, initialC
           ))}
         </div>
       </div>
-
-      <AnalysisPanel
-        open={analysisOpen}
-        onOpenChange={setAnalysisOpen}
-        candidate={candidate}
-        jobId={jobId}
-        shortlistId={shortlistId}
-        evaluation={evaluation}
-        readOnly={readOnly}
-      />
     </div>
   );
 }
