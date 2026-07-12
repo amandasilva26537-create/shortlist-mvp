@@ -88,14 +88,25 @@ export type Database = {
           candidate_id: string
           checklist: Json | null
           created_at: string
+          dimension_scores: Json | null
+          eliminatory_checklist: Json | null
           id: string
           inconsistencies: string[] | null
           interview_questions: string[] | null
           job_id: string
+          job_specific_summary: string | null
+          key_differentiator: string | null
+          main_case: Json | null
+          motivational_factor: string | null
           overall_match: number | null
           radar: Json | null
+          radar_scores: Json | null
+          recruiter_opinion: string | null
+          risk_items: Json | null
           risks: string[] | null
+          shortlist_id: string | null
           strengths: string[] | null
+          top_strengths: Json | null
           updated_at: string
         }
         Insert: {
@@ -103,14 +114,25 @@ export type Database = {
           candidate_id: string
           checklist?: Json | null
           created_at?: string
+          dimension_scores?: Json | null
+          eliminatory_checklist?: Json | null
           id?: string
           inconsistencies?: string[] | null
           interview_questions?: string[] | null
           job_id: string
+          job_specific_summary?: string | null
+          key_differentiator?: string | null
+          main_case?: Json | null
+          motivational_factor?: string | null
           overall_match?: number | null
           radar?: Json | null
+          radar_scores?: Json | null
+          recruiter_opinion?: string | null
+          risk_items?: Json | null
           risks?: string[] | null
+          shortlist_id?: string | null
           strengths?: string[] | null
+          top_strengths?: Json | null
           updated_at?: string
         }
         Update: {
@@ -118,14 +140,25 @@ export type Database = {
           candidate_id?: string
           checklist?: Json | null
           created_at?: string
+          dimension_scores?: Json | null
+          eliminatory_checklist?: Json | null
           id?: string
           inconsistencies?: string[] | null
           interview_questions?: string[] | null
           job_id?: string
+          job_specific_summary?: string | null
+          key_differentiator?: string | null
+          main_case?: Json | null
+          motivational_factor?: string | null
           overall_match?: number | null
           radar?: Json | null
+          radar_scores?: Json | null
+          recruiter_opinion?: string | null
+          risk_items?: Json | null
           risks?: string[] | null
+          shortlist_id?: string | null
           strengths?: string[] | null
+          top_strengths?: Json | null
           updated_at?: string
         }
         Relationships: [
@@ -141,6 +174,13 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_job_evaluations_shortlist_id_fkey"
+            columns: ["shortlist_id"]
+            isOneToOne: false
+            referencedRelation: "shortlists"
             referencedColumns: ["id"]
           },
         ]
