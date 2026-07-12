@@ -4,6 +4,49 @@ import { generateText } from "ai";
 import { z } from "zod";
 import { AI_MODEL, createLovableAiGateway, requireApiKey } from "./gateway.server";
 
+const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+async function extractDocxText(bytes: Uint8Array): Promise<string> {
+  const mammoth = await import("mammoth");
+  const buf = Buffer.from(bytes);
+  const result = await mammoth.extractRawText({ buffer: buf });
+  return result.value || "";
+}
+
+function isTextualMime(mime: string): boolean {
+  return mime.startsWith("text/") || mime === "application/json" || mime === "application/xml" || mime === "text/csv";
+}
+
+async function toModelPart(
+  bytes: Uint8Array,
+  mime: string,
+  label: string,
+): Promise<{ part?: any; text?: string; note: string }> {
+  if (mime.startsWith("image/")) {
+    return { part: { type: "image", image: bytes, mediaType: mime }, note: label };
+  }
+  if (mime === "application/pdf") {
+    return { part: { type: "file", data: bytes, mediaType: mime, filename: label }, note: label };
+  }
+  if (mime === DOCX_MIME || label.toLowerCase().endsWith(".docx")) {
+    try {
+      const txt = await extractDocxText(bytes);
+      return { text: `\n\n--- Conteúdo de ${label} (DOCX) ---\n${txt}`, note: label };
+    } catch (e: any) {
+      return { note: `${label} (falha ao extrair DOCX: ${e?.message ?? "erro"})` };
+    }
+  }
+  if (isTextualMime(mime)) {
+    try {
+      const txt = new TextDecoder().decode(bytes);
+      return { text: `\n\n--- Conteúdo de ${label} ---\n${txt}`, note: label };
+    } catch {
+      return { note: `${label} (texto ilegível)` };
+    }
+  }
+  return { note: `${label} (formato ${mime} não suportado pela IA)` };
+}
+
 export const structureJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) =>
