@@ -135,7 +135,7 @@ Regras:
     try {
       const { text } = await generateText({
         model,
-        messages: [{ role: "user", content: [{ type: "text", text: promptText }, ...fileParts] as any }],
+        messages: [{ role: "user", content: [{ type: "text", text: promptText + (extraTexts.length ? "\n\nCONTEÚDO EXTRAÍDO DOS ARQUIVOS:\n" + extraTexts.join("\n") : "") }, ...fileParts] as any }],
       });
       output = extractJson(text);
     } catch (err: any) {
