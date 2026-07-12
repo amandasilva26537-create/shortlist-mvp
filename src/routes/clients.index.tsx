@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus } from "lucide-react";
 import { initials } from "@/lib/format";
 
-export const Route = createFileRoute("/clients")({
+export const Route = createFileRoute("/clients/")({
   head: () => ({ meta: [{ title: "Clientes · Moove Select" }] }),
   component: ClientsPage,
 });
