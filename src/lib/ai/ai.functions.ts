@@ -490,24 +490,27 @@ export const evaluateCandidateForJob = createServerFn({ method: "POST" })
     if (e1) throw new Error(e1.message);
     if (e2) throw new Error(e2.message);
 
+    const jobAny: any = job;
+    const cAny: any = cand;
+    const ais: any = jobAny.ai_structure ?? {};
     const promptText = `Você é um consultor sênior de recrutamento executivo. Avalie a aderência DESTE candidato a ESTA vaga específica. Seja HONESTO — não infle percentuais. Nunca aplique nota mínima obrigatória.
 
 Use SOMENTE informações realmente presentes no material fornecido. Se algo não estiver disponível, retorne "" ou [] ou marque status "unknown".
 
 ===== VAGA =====
-Título: ${job.title}
-Área: ${job.area ?? ""}
-Cidade/Modelo: ${job.location ?? ""} / ${job.work_model ?? ""}
-Resumo: ${job.summary ?? job.ai_structure?.summary ?? ""}
-Missão: ${job.ai_structure?.mission ?? ""}
-Contexto de contratação: ${job.ai_structure?.hiring_context ?? ""}
-Responsabilidades: ${JSON.stringify(job.ai_structure?.responsibilities ?? [])}
-Resultados esperados: ${JSON.stringify(job.ai_structure?.expected_results ?? [])}
-Must-have (eliminatórios): ${JSON.stringify(job.ai_structure?.must_have ?? job.must_have ?? [])}
-Nice-to-have (desejáveis): ${JSON.stringify(job.ai_structure?.nice_to_have ?? job.nice_to_have ?? [])}
-Hard skills: ${JSON.stringify(job.hard_skills ?? [])}
-Soft skills: ${JSON.stringify(job.soft_skills ?? [])}
-Competências avaliadas (com peso): ${JSON.stringify(job.radar_competencies ?? job.ai_structure?.evaluation_competencies ?? [])}
+Título: ${jobAny.title}
+Área: ${jobAny.area ?? ""}
+Cidade/Modelo: ${jobAny.location ?? ""} / ${jobAny.work_model ?? ""}
+Resumo: ${jobAny.summary ?? ais.summary ?? ""}
+Missão: ${ais.mission ?? ""}
+Contexto de contratação: ${ais.hiring_context ?? ""}
+Responsabilidades: ${JSON.stringify(ais.responsibilities ?? [])}
+Resultados esperados: ${JSON.stringify(ais.expected_results ?? [])}
+Must-have (eliminatórios): ${JSON.stringify(ais.must_have ?? jobAny.must_have ?? [])}
+Nice-to-have (desejáveis): ${JSON.stringify(ais.nice_to_have ?? jobAny.nice_to_have ?? [])}
+Hard skills: ${JSON.stringify(jobAny.hard_skills ?? [])}
+Soft skills: ${JSON.stringify(jobAny.soft_skills ?? [])}
+Competências avaliadas (com peso): ${JSON.stringify(jobAny.radar_competencies ?? ais.evaluation_competencies ?? [])}
 
 ===== CANDIDATO =====
 Nome: ${cand.full_name}
