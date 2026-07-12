@@ -82,9 +82,25 @@ function CandidatePage() {
     <AppShell>
       <div className="mx-auto max-w-6xl">
         <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
-          <Link to="/candidates" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-3.5 w-3.5" /> Voltar
-          </Link>
+          {(() => {
+            const sp = (Route.useSearch() as any) ?? {};
+            const returnTo: string | undefined = sp.returnTo;
+            const cursor: string | undefined = sp.cursor;
+            const isShortlist = typeof returnTo === "string" && returnTo.startsWith("/shortlists/");
+            if (isShortlist) {
+              const url = cursor ? `${returnTo}?cursor=${cursor}` : returnTo;
+              return (
+                <a href={url} className="inline-flex items-center gap-1 text-sm text-primary font-medium hover:underline">
+                  <ArrowLeft className="h-3.5 w-3.5" /> Voltar para a shortlist
+                </a>
+              );
+            }
+            return (
+              <Link to="/candidates" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="h-3.5 w-3.5" /> Voltar
+              </Link>
+            );
+          })()}
           <div className="flex items-center gap-2 flex-wrap">
             <Button variant="outline" onClick={() => setAddOpen(true)}>
               <ListPlus className="mr-1.5 h-4 w-4" /> Adicionar à shortlist
