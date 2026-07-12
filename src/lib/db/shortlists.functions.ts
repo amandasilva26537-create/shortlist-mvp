@@ -216,3 +216,97 @@ export const listCandidateShortlistLinks = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
+
+// ============ Ordem manual dos candidatos na shortlist ============
+export const updateShortlistOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z.object({
+      shortlist_id: z.string().uuid(),
+      ordered_candidate_ids: z.array(z.string().uuid()),
+    }).parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    for (let i = 0; i < data.ordered_candidate_ids.length; i++) {
+      await context.supabase
+        .from("shortlist_candidates")
+        .update({ position: i })
+        .eq("shortlist_id", data.shortlist_id)
+        .eq("candidate_id", data.ordered_candidate_ids[i]);
+    }
+    return { ok: true };
+  });
+
+// ============ Avaliação candidato × vaga (leitura + escrita manual) ============
+const EvaluationPatch = z.object({
+  candidate_id: z.string().uuid(),
+  job_id: z.string().uuid(),
+  shortlist_id: z.string().uuid().optional(),
+  job_specific_summary: z.string().nullable().optional(),
+  recruiter_opinion: z.string().nullable().optional(),
+  motivational_factor: z.string().nullable().optional(),
+  key_differentiator: z.string().nullable().optional(),
+  main_case: z.any().optional(),
+  risk_items: z.any().optional(),
+  eliminatory_checklist: z.any().optional(),
+  top_strengths: z.any().optional(),
+  dimension_scores: z.any().optional(),
+  radar_scores: z.any().optional(),
+  overall_match: z.number().nullable().optional(),
+});
+
+export const upsertEvaluation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => EvaluationPatch.parse(v))
+  .handler(async ({ data, context }) => {
+    const { candidate_id, job_id, ...rest } = data;
+    const { data: existing } = await context.supabase
+      .from("candidate_job_evaluations")
+      .select("id")
+      .eq("candidate_id", candidate_id)
+      .eq("job_id", job_id)
+      .maybeSingle();
+    if (existing) {
+      const { data: row, error } = await context.supabase
+        .from("candidate_job_evaluations")
+        .update(rest)
+        .eq("id", existing.id)
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message);
+      return row;
+    } else {
+      const { data: row, error } = await context.supabase
+        .from("candidate_job_evaluations")
+        .insert({ candidate_id, job_id, ...rest })
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message);
+      return row;
+    }
+  });
+
+export const listEvaluationsForShortlist = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => z.object({ shortlist_id: z.string().uuid() }).parse(v))
+  .handler(async ({ data, context }) => {
+    const { data: sl } = await context.supabase
+      .from("shortlists")
+      .select("job_id")
+      .eq("id", data.shortlist_id)
+      .maybeSingle();
+    if (!sl) return [];
+    const { data: links } = await context.supabase
+      .from("shortlist_candidates")
+      .select("candidate_id")
+      .eq("shortlist_id", data.shortlist_id);
+    const cids = (links ?? []).map((l: any) => l.candidate_id);
+    if (cids.length === 0) return [];
+    const { data: evals, error } = await context.supabase
+      .from("candidate_job_evaluations")
+      .select("*")
+      .in("candidate_id", cids)
+      .eq("job_id", sl.job_id);
+    if (error) throw new Error(error.message);
+    return evals ?? [];
+  });
