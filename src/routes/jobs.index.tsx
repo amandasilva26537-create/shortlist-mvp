@@ -7,7 +7,17 @@ import { Plus, Briefcase } from "lucide-react";
 import { listJobs } from "@/lib/db/jobs.functions";
 
 export const Route = createFileRoute("/jobs/")({
-  head: () => ({ meta: [{ title: "Vagas · Moove Select" }] }),
+  head: () => ({
+    meta: [
+      { title: "Vagas · Moove Select" },
+      { name: "description", content: "Gerencie vagas ativas, requisitos e status de cada processo seletivo em um único painel executivo." },
+      { property: "og:title", content: "Vagas · Moove Select" },
+      { property: "og:description", content: "Painel de vagas abertas e em andamento na Moove Select." },
+      { property: "og:url", content: "https://intel-select-hub.lovable.app/jobs" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://intel-select-hub.lovable.app/jobs" }],
+  }),
   component: JobsPage,
 });
 
