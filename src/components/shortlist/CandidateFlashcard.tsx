@@ -57,7 +57,7 @@ export function CandidateFlashcard({ candidate, evaluation, onOpenAnalysis, onOp
                   <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{c.headline}</p>
                 )}
               </div>
-              {c.disc_profile && <DiscBadge profile={c.disc_profile} />}
+              {c.disc_profile && <Badge variant="secondary" className="text-xs">DISC {c.disc_profile}</Badge>}
             </div>
 
             {/* Chips essenciais */}
