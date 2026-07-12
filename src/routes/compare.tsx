@@ -122,6 +122,7 @@ function ComparePage() {
                 <button
                   onClick={() => remove(c!.id)}
                   className="rounded-md p-1 text-muted-foreground hover:bg-secondary"
+                  aria-label={`Remover ${c!.fullName} da comparação`}
                 >
                   <X className="h-4 w-4" />
                 </button>

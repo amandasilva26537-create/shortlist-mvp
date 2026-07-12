@@ -9,7 +9,17 @@ import { Plus } from "lucide-react";
 import { initials } from "@/lib/format";
 
 export const Route = createFileRoute("/clients/")({
-  head: () => ({ meta: [{ title: "Clientes · Moove Select" }] }),
+  head: () => ({
+    meta: [
+      { title: "Clientes · Moove Select" },
+      { name: "description", content: "Base de clientes atendidos pela Moove Select com contatos, processos ativos e histórico consultivo." },
+      { property: "og:title", content: "Clientes · Moove Select" },
+      { property: "og:description", content: "Gestão de clientes e contas atendidas pela consultoria." },
+      { property: "og:url", content: "https://intel-select-hub.lovable.app/clients" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://intel-select-hub.lovable.app/clients" }],
+  }),
   component: ClientsPage,
 });
 

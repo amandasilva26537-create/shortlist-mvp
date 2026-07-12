@@ -304,7 +304,7 @@ function NewCandidate() {
                       <FileText className="h-4 w-4 text-primary" />
                       <a href={d.url} target="_blank" rel="noreferrer" className="truncate flex-1 hover:underline">{d.label}</a>
                       <Badge variant="outline" className="text-[10px]">{d.kind}</Badge>
-                      <Button size="sm" variant="ghost" onClick={() => removeDoc(d.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => removeDoc(d.id)} aria-label="Remover documento"><Trash2 className="h-3.5 w-3.5" /></Button>
                     </div>
                   ))}
                 </div>
@@ -377,7 +377,7 @@ function NewCandidate() {
                 <div key={i} className="grid grid-cols-[1fr_2fr_auto] gap-2 mb-2">
                   <Input value={s.title ?? ""} onChange={(e) => { const arr = [...f.strengths]; arr[i] = { ...arr[i], title: e.target.value }; setF((p: any) => ({ ...p, strengths: arr })); }} placeholder="Título" />
                   <Input value={s.evidence ?? ""} onChange={(e) => { const arr = [...f.strengths]; arr[i] = { ...arr[i], evidence: e.target.value }; setF((p: any) => ({ ...p, strengths: arr })); }} placeholder="Evidência" />
-                  <Button variant="ghost" size="sm" onClick={() => setF((p: any) => ({ ...p, strengths: p.strengths.filter((_: any, j: number) => j !== i) }))}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => setF((p: any) => ({ ...p, strengths: p.strengths.filter((_: any, j: number) => j !== i) }))} aria-label="Remover item"><Trash2 className="h-3.5 w-3.5" /></Button>
                 </div>
               ))}
               <Button size="sm" variant="outline" onClick={() => setF((p: any) => ({ ...p, strengths: [...(p.strengths ?? []), { title: "", evidence: "" }] }))}>+ Adicionar</Button>
@@ -507,7 +507,7 @@ function ArraySection({ title, items, onChange }: { title: string; items: string
       {arr.map((s: string, i: number) => (
         <div key={i} className="flex gap-2 mb-2">
           <Input value={s} onChange={(e) => { const a = [...arr]; a[i] = e.target.value; onChange(a); }} />
-          <Button variant="ghost" size="sm" onClick={() => onChange(arr.filter((_, j) => j !== i))}><Trash2 className="h-3.5 w-3.5" /></Button>
+          <Button variant="ghost" size="sm" onClick={() => onChange(arr.filter((_, j) => j !== i))} aria-label="Remover item"><Trash2 className="h-3.5 w-3.5" /></Button>
         </div>
       ))}
       <Button size="sm" variant="outline" onClick={() => onChange([...arr, ""])}>+ Adicionar</Button>
@@ -551,7 +551,7 @@ function SimpleList({ items, fields, onChange }: { items: any[]; fields: [string
           {fields.map(([k, label]) => (
             <Input key={k} placeholder={label} value={item[k] ?? ""} onChange={(e) => { const a = [...items]; a[i] = { ...a[i], [k]: e.target.value }; onChange(a); }} />
           ))}
-          <Button variant="ghost" size="sm" onClick={() => onChange(items.filter((_, j) => j !== i))}><Trash2 className="h-3.5 w-3.5" /></Button>
+          <Button variant="ghost" size="sm" onClick={() => onChange(items.filter((_, j) => j !== i))} aria-label="Remover item"><Trash2 className="h-3.5 w-3.5" /></Button>
         </div>
       ))}
       <Button size="sm" variant="outline" onClick={() => onChange([...items, {}])}>+ Adicionar</Button>

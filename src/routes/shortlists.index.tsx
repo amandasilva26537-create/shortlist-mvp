@@ -7,7 +7,17 @@ import { Sparkles } from "lucide-react";
 import { listShortlists } from "@/lib/db/shortlists.functions";
 
 export const Route = createFileRoute("/shortlists/")({
-  head: () => ({ meta: [{ title: "Shortlists · Moove Select" }] }),
+  head: () => ({
+    meta: [
+      { title: "Shortlists · Moove Select" },
+      { name: "description", content: "Acompanhe shortlists em rascunho e enviadas, com status de aprovação e feedback dos gestores." },
+      { property: "og:title", content: "Shortlists · Moove Select" },
+      { property: "og:description", content: "Visão consolidada das shortlists ativas e histórico de processos concluídos." },
+      { property: "og:url", content: "https://intel-select-hub.lovable.app/shortlists" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://intel-select-hub.lovable.app/shortlists" }],
+  }),
   component: ShortlistsPage,
 });
 
