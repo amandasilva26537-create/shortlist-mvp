@@ -211,7 +211,10 @@ export function FlashcardDeck({
       </div>
 
       <Sheet open={!!analysisCandidate} onOpenChange={(open) => !open && setAnalysisCandidateId(null)}>
-        <SheetContent side="right" className="left-0 w-auto overflow-y-auto p-0 sm:left-auto sm:w-full sm:max-w-3xl">
+        <SheetContent
+          side="right"
+          className="left-0 right-0 w-auto translate-x-0 overflow-y-auto p-0 duration-0 data-[state=closed]:translate-x-0 data-[state=open]:translate-x-0 sm:left-auto sm:w-full sm:max-w-3xl"
+        >
           {analysisCandidate && (
             <div className="min-h-full bg-background">
               <div className="sticky top-0 z-10 border-b border-border bg-background/95 px-5 py-4 backdrop-blur print:hidden">
