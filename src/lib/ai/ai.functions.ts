@@ -276,25 +276,25 @@ REGRAS ABSOLUTAS:
 - Se dois materiais divergirem, liste em "inconsistencies".
 
 CANDIDATO (dados manuais):
-Nome: ${cand.full_name}
-Cargo atual: ${cand.current_position ?? ""}
-Empresa atual: ${cand.current_company ?? ""}
-Área: ${cand.area ?? ""}
-Senioridade: ${cand.seniority ?? ""}
-Cidade/UF/País: ${cand.city ?? ""} / ${cand.state ?? ""} / ${cand.country ?? ""}
-Modelo: ${cand.work_model ?? ""}
-Pretensão: ${cand.salary_expectation ?? ""}
-LinkedIn: ${cand.linkedin_url ?? ""}
-DISC: ${cand.disc_profile ?? ""} | Bruto: ${cand.disc_raw ?? ""}
+Nome: ${cAny.full_name}
+Cargo atual: ${cAny.current_position ?? ""}
+Empresa atual: ${cAny.current_company ?? ""}
+Área: ${cAny.area ?? ""}
+Senioridade: ${cAny.seniority ?? ""}
+Cidade/UF/País: ${cAny.city ?? ""} / ${cAny.state ?? ""} / ${cAny.country ?? ""}
+Modelo: ${cAny.work_model ?? ""}
+Pretensão: ${cAny.salary_expectation ?? ""}
+LinkedIn: ${cAny.linkedin_url ?? ""}
+DISC: ${cAny.disc_profile ?? ""} | Bruto: ${cAny.disc_raw ?? ""}
 
 Parecer do recrutador:
-${cand.recruiter_note ?? ""}
+${cAny.recruiter_note ?? ""}
 
 Resumo/transcrição da entrevista:
-${cand.transcript ?? ""}
+${cAny.transcript ?? ""}
 
 Informações adicionais/observações internas:
-${cand.internal_notes ?? ""}
+${cAny.internal_notes ?? ""}
 
 Arquivos anexados (leia o conteúdo): ${attachedList.join(" | ") || "nenhum"}
 
@@ -513,14 +513,14 @@ Soft skills: ${JSON.stringify(jobAny.soft_skills ?? [])}
 Competências avaliadas (com peso): ${JSON.stringify(jobAny.radar_competencies ?? ais.evaluation_competencies ?? [])}
 
 ===== CANDIDATO =====
-Nome: ${cand.full_name}
-Cargo atual: ${cand.current_position ?? ""} · ${cand.current_company ?? ""}
-Cidade/Modelo: ${cand.city ?? ""} / ${cand.work_model ?? ""}
-Pretensão: ${cand.salary_expectation ?? ""}
-DISC: ${cand.disc_profile ?? ""} — ${JSON.stringify(cand.disc_scores ?? {})}
-Headline: ${cand.headline ?? ""}
-Mini bio: ${cand.mini_bio ?? ""}
-Bio completa: ${cand.full_bio ?? ""}
+Nome: ${cAny.full_name}
+Cargo atual: ${cAny.current_position ?? ""} · ${cAny.current_company ?? ""}
+Cidade/Modelo: ${cAny.city ?? ""} / ${cAny.work_model ?? ""}
+Pretensão: ${cAny.salary_expectation ?? ""}
+DISC: ${cAny.disc_profile ?? ""} — ${JSON.stringify(cand.disc_scores ?? {})}
+Headline: ${cAny.headline ?? ""}
+Mini bio: ${cAny.mini_bio ?? ""}
+Bio completa: ${cAny.full_bio ?? ""}
 Resumo executivo: ${JSON.stringify(cand.executive_summary ?? [])}
 Especialidades: ${JSON.stringify(cand.specialties ?? [])}
 Resultados: ${JSON.stringify(cand.main_results ?? [])}
@@ -533,9 +533,9 @@ Momento profissional: ${JSON.stringify(cand.professional_moment ?? {})}
 Motivadores: ${JSON.stringify(cand.motivators ?? [])}
 Pontos fortes: ${JSON.stringify(cand.strengths ?? [])}
 Case principal (currículo): ${JSON.stringify(cand.main_case ?? {})}
-Parecer do recrutador (bruto): ${cand.recruiter_note ?? ""}
-Entrevista/Transcrição: ${cand.transcript ?? ""}
-Notas internas: ${cand.internal_notes ?? ""}
+Parecer do recrutador (bruto): ${cAny.recruiter_note ?? ""}
+Entrevista/Transcrição: ${cAny.transcript ?? ""}
+Notas internas: ${cAny.internal_notes ?? ""}
 
 Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
 {
