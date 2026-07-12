@@ -471,3 +471,143 @@ Retorne APENAS o texto reescrito, sem comentários.`,
     });
     return { text };
   });
+
+// ============ Evaluate a candidate for a specific job (shortlist analysis) ============
+export const evaluateCandidateForJob = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z.object({
+      candidate_id: z.string().uuid(),
+      job_id: z.string().uuid(),
+      shortlist_id: z.string().uuid().optional(),
+    }).parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const [{ data: cand, error: e1 }, { data: job, error: e2 }] = await Promise.all([
+      context.supabase.from("candidates").select("*").eq("id", data.candidate_id).single(),
+      context.supabase.from("jobs").select("*").eq("id", data.job_id).single(),
+    ]);
+    if (e1) throw new Error(e1.message);
+    if (e2) throw new Error(e2.message);
+
+    const jobAny: any = job;
+    const cAny: any = cand;
+    const ais: any = jobAny.ai_structure ?? {};
+    const promptText = `Você é um consultor sênior de recrutamento executivo. Avalie a aderência DESTE candidato a ESTA vaga específica. Seja HONESTO — não infle percentuais. Nunca aplique nota mínima obrigatória.
+
+Use SOMENTE informações realmente presentes no material fornecido. Se algo não estiver disponível, retorne "" ou [] ou marque status "unknown".
+
+===== VAGA =====
+Título: ${jobAny.title}
+Área: ${jobAny.area ?? ""}
+Cidade/Modelo: ${jobAny.location ?? ""} / ${jobAny.work_model ?? ""}
+Resumo: ${jobAny.summary ?? ais.summary ?? ""}
+Missão: ${ais.mission ?? ""}
+Contexto de contratação: ${ais.hiring_context ?? ""}
+Responsabilidades: ${JSON.stringify(ais.responsibilities ?? [])}
+Resultados esperados: ${JSON.stringify(ais.expected_results ?? [])}
+Must-have (eliminatórios): ${JSON.stringify(ais.must_have ?? jobAny.must_have ?? [])}
+Nice-to-have (desejáveis): ${JSON.stringify(ais.nice_to_have ?? jobAny.nice_to_have ?? [])}
+Hard skills: ${JSON.stringify(jobAny.hard_skills ?? [])}
+Soft skills: ${JSON.stringify(jobAny.soft_skills ?? [])}
+Competências avaliadas (com peso): ${JSON.stringify(jobAny.radar_competencies ?? ais.evaluation_competencies ?? [])}
+
+===== CANDIDATO =====
+Nome: ${cAny.full_name}
+Cargo atual: ${cAny.current_position ?? ""} · ${cAny.current_company ?? ""}
+Cidade/Modelo: ${cAny.city ?? ""} / ${cAny.work_model ?? ""}
+Pretensão: ${cAny.salary_expectation ?? ""}
+DISC: ${cAny.disc_profile ?? ""} — ${JSON.stringify(cAny.disc_scores ?? {})}
+Headline: ${cAny.headline ?? ""}
+Mini bio: ${cAny.mini_bio ?? ""}
+Bio completa: ${cAny.full_bio ?? ""}
+Resumo executivo: ${JSON.stringify(cAny.executive_summary ?? [])}
+Especialidades: ${JSON.stringify(cAny.specialties ?? [])}
+Resultados: ${JSON.stringify(cAny.main_results ?? [])}
+Conquistas: ${JSON.stringify(cAny.achievements ?? [])}
+Trajetória: ${JSON.stringify(cAny.trajectory ?? [])}
+Competências: ${JSON.stringify(cAny.competencies ?? {})}
+Formação: ${JSON.stringify(cAny.education ?? [])}
+Idiomas: ${JSON.stringify(cAny.languages ?? [])}
+Momento profissional: ${JSON.stringify(cAny.professional_moment ?? {})}
+Motivadores: ${JSON.stringify(cAny.motivators ?? [])}
+Pontos fortes: ${JSON.stringify(cAny.strengths ?? [])}
+Case principal (currículo): ${JSON.stringify(cAny.main_case ?? {})}
+Parecer do recrutador (bruto): ${cAny.recruiter_note ?? ""}
+Entrevista/Transcrição: ${cAny.transcript ?? ""}
+Notas internas: ${cAny.internal_notes ?? ""}
+
+Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
+{
+  "overall_match": number,                          // 0..100, honesto, sem piso
+  "key_differentiator": string,                     // 1 frase objetiva
+  "job_specific_summary": string,                   // até 4 linhas específicas desta vaga
+  "recruiter_opinion": string,                      // 6-10 linhas em tom consultivo humano — como se escrito por um recrutador experiente após entrevistar o candidato. Explique por que está apresentando, comunicação/postura/energia observada na entrevista, coerência currículo↔entrevista, interesse pela vaga e empresa, engajamento, disponibilidade, aderência comportamental, principais evidências. NUNCA use frases prontas como "excelente profissional", "ótima comunicação", "perfil aderente", "forte potencial".
+  "main_case": { "context": string, "challenge": string, "action": string, "result": string, "relation_to_job": string },
+  "risk_items": [{ "point": string, "mitigation": string }],   // 1-4 riscos concretos + mitigação já validada na entrevista (não hipotética)
+  "motivational_factor": string,                    // por que ele quer ESTA vaga, com base em entrevista/parecer
+  "eliminatory_checklist": [{ "criterion": string, "status": "yes"|"partial"|"no"|"unknown", "evidence": string }],
+  "top_strengths": [{ "title": string, "evidence": string }],  // 3-5 pontos fortes específicos para esta vaga com evidência
+  "dimension_scores": {
+    "hard_skills": number, "soft_skills": number, "experience": number,
+    "leadership": number, "communication": number, "strategy": number,
+    "execution": number, "cultural_fit": number, "adaptability": number
+  },
+  "radar_scores": { "<nome da competência da vaga>": number }
+}
+
+Regras finais:
+- Todas as pontuações são 0..100.
+- radar_scores deve usar exatamente os nomes das competências avaliadas da vaga.
+- Se não houver evidência para um critério eliminatório, use "unknown" e explique.
+- Não invente. Prefira "" a inventar.`;
+
+    const gateway = createLovableAiGateway(requireApiKey());
+    const model = gateway(AI_MODEL);
+    let output: any;
+    try {
+      const { text } = await generateText({
+        model,
+        prompt: promptText,
+      });
+      output = extractJson(text);
+    } catch (err: any) {
+      throw new Error(err?.message || "Falha ao chamar a IA");
+    }
+
+    // Persistir
+    const patch: any = {
+      overall_match: typeof output.overall_match === "number" ? Math.round(output.overall_match) : null,
+      key_differentiator: output.key_differentiator ?? null,
+      job_specific_summary: output.job_specific_summary ?? null,
+      recruiter_opinion: output.recruiter_opinion ?? null,
+      main_case: output.main_case ?? null,
+      risk_items: Array.isArray(output.risk_items) ? output.risk_items : [],
+      motivational_factor: output.motivational_factor ?? null,
+      eliminatory_checklist: Array.isArray(output.eliminatory_checklist) ? output.eliminatory_checklist : [],
+      top_strengths: Array.isArray(output.top_strengths) ? output.top_strengths : [],
+      dimension_scores: output.dimension_scores ?? {},
+      radar_scores: output.radar_scores ?? {},
+      ai_generated: output,
+      shortlist_id: data.shortlist_id ?? null,
+    };
+
+    const { data: existing } = await context.supabase
+      .from("candidate_job_evaluations")
+      .select("id")
+      .eq("candidate_id", data.candidate_id)
+      .eq("job_id", data.job_id)
+      .maybeSingle();
+
+    if (existing) {
+      await context.supabase.from("candidate_job_evaluations").update(patch).eq("id", existing.id);
+    } else {
+      await context.supabase.from("candidate_job_evaluations").insert({
+        candidate_id: data.candidate_id,
+        job_id: data.job_id,
+        ...patch,
+      });
+    }
+    return output;
+  });
+
