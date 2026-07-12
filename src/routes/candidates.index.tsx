@@ -16,7 +16,17 @@ import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialo
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/candidates/")({
-  head: () => ({ meta: [{ title: "Candidatos · Moove Select" }] }),
+  head: () => ({
+    meta: [
+      { title: "Candidatos · Moove Select" },
+      { name: "description", content: "Banco de candidatos avaliados pela Moove Select com filtros por vaga, senioridade e status do processo." },
+      { property: "og:title", content: "Candidatos · Moove Select" },
+      { property: "og:description", content: "Base de talentos avaliados e prontos para compor shortlists executivas." },
+      { property: "og:url", content: "https://intel-select-hub.lovable.app/candidates" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://intel-select-hub.lovable.app/candidates" }],
+  }),
   component: CandidatesList,
 });
 

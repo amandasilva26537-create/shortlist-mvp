@@ -1,0 +1,11 @@
+# Moove Select
+
+> Consultoria de recrutamento executivo que entrega shortlists inteligentes, com análises consultivas e ferramentas de decisão para gestores.
+
+A Moove Select transforma shortlists em experiências premium de decisão: consultorias entregam currículos, a Moove entrega inteligência para escolher o candidato certo.
+
+## Pages
+- [Dashboard](/): Visão geral dos processos ativos, KPIs e ações rápidas do recrutador.
+
+## Optional
+- [Login](/auth): Acesso restrito da equipe de recrutamento.

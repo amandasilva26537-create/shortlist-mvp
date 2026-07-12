@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /s/
+Disallow: /auth
+Disallow: /pdf/
+
+Sitemap: https://intel-select-hub.lovable.app/sitemap.xml
