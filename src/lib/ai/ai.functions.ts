@@ -553,12 +553,18 @@ Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
     "leadership": number, "communication": number, "strategy": number,
     "execution": number, "cultural_fit": number, "adaptability": number
   },
-  "radar_scores": { "<nome da competência da vaga>": number }
+  "radar_scores": { "<nome da competência da vaga>": number },
+  "cultural_fit": {
+    "summary": string,                                // 2-4 linhas sobre a aderência cultural DESTE candidato a ESTA vaga/empresa
+    "alignments": [{ "point": string, "evidence": string }],       // 2-5 pontos de alinhamento cultural com evidência
+    "attention_points": [{ "point": string, "mitigation": string }] // 0-4 pontos de atenção culturais e como mitigá-los
+  }
 }
 
 Regras finais:
 - Todas as pontuações são 0..100.
 - radar_scores deve usar exatamente os nomes das competências avaliadas da vaga.
+- cultural_fit é ESPECÍFICO desta vaga (empresa, momento, gestor, time) — não repita traços genéricos do candidato.
 - Se não houver evidência para um critério eliminatório, use "unknown" e explique.
 - Não invente. Prefira "" a inventar.`;
 
@@ -588,6 +594,7 @@ Regras finais:
       top_strengths: Array.isArray(output.top_strengths) ? output.top_strengths : [],
       dimension_scores: output.dimension_scores ?? {},
       radar_scores: output.radar_scores ?? {},
+      cultural_fit: output.cultural_fit ?? null,
       ai_generated: output,
       shortlist_id: data.shortlist_id ?? null,
     };

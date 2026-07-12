@@ -6,7 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Copy, ExternalLink, Send, Sparkles, Trash2, Loader2, Wand2 } from "lucide-react";
+import { Copy, ExternalLink, Send, Trash2, Loader2, Wand2 } from "lucide-react";
 import {
   getShortlist,
   publishShortlist,
@@ -113,7 +113,7 @@ function ShortlistDetail() {
           <div className="flex gap-2">
             <Button variant="outline" onClick={analyzeAll} disabled={batchBusy}>
               {batchBusy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Wand2 className="mr-1.5 h-4 w-4" />}
-              Analisar todos com IA
+              Analisar todos
             </Button>
             {!isSent && <Button onClick={doPublish}><Send className="mr-1.5 h-4 w-4" /> Publicar</Button>}
             {isSent && (
@@ -149,7 +149,7 @@ function ShortlistDetail() {
         />
 
         <div className="card-soft p-5 mt-8">
-          <div className="flex items-center gap-2 mb-3"><Sparkles className="h-5 w-5 text-primary" /><div className="font-semibold">Pedir análise comparativa da shortlist à IA</div></div>
+          <div className="flex items-center gap-2 mb-3"><Wand2 className="h-5 w-5 text-primary" /><div className="font-semibold">Análise comparativa da shortlist</div></div>
           <div className="flex gap-2">
             <Input placeholder="Ex: quem tem maior aderência a liderança? sugira ordem de apresentação…" value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} />
             <Button onClick={analyze} disabled={aiBusy}>{aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Analisar"}</Button>

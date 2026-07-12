@@ -88,6 +88,7 @@ export type Database = {
           candidate_id: string
           checklist: Json | null
           created_at: string
+          cultural_fit: Json | null
           dimension_scores: Json | null
           eliminatory_checklist: Json | null
           id: string
@@ -114,6 +115,7 @@ export type Database = {
           candidate_id: string
           checklist?: Json | null
           created_at?: string
+          cultural_fit?: Json | null
           dimension_scores?: Json | null
           eliminatory_checklist?: Json | null
           id?: string
@@ -140,6 +142,7 @@ export type Database = {
           candidate_id?: string
           checklist?: Json | null
           created_at?: string
+          cultural_fit?: Json | null
           dimension_scores?: Json | null
           eliminatory_checklist?: Json | null
           id?: string
