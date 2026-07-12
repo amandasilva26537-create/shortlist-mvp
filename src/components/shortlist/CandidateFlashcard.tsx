@@ -2,7 +2,7 @@ import { MatchRing } from "@/components/candidate/MatchRing";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, MapPin, Building2, DollarSign, Clock, Star, User, ChevronRight, FileText } from "lucide-react";
-import { useRef } from "react";
+import { useRef, type PointerEvent } from "react";
 
 interface Props {
   candidate: any;
@@ -32,7 +32,7 @@ export function CandidateFlashcard({ candidate, evaluation, onOpenAnalysis, onOp
     .join("")
     .toUpperCase();
 
-  const handleCardPointerUpCapture = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handleCardPointerUpCapture = (event: PointerEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement | null;
     if (target?.closest("button")) return;
 
