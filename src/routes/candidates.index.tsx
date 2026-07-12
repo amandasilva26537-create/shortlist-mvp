@@ -142,16 +142,16 @@ function CandidatesList() {
                   <Link to="/candidates/$candidateId" params={{ candidateId: c.id }} className="flex-1 min-w-[120px]">
                     <Button variant="outline" size="sm" className="w-full"><Eye className="mr-1 h-3.5 w-3.5" />Ver perfil</Button>
                   </Link>
-                  <Button variant="ghost" size="sm" onClick={() => setAddToSl(c)} title="Adicionar à shortlist">
+                  <Button variant="ghost" size="sm" onClick={() => setAddToSl(c)} title="Adicionar à shortlist" aria-label="Adicionar à shortlist">
                     <ListPlus className="h-3.5 w-3.5" />
                   </Button>
                   <Link to="/candidates/new" search={{ id: c.id } as any}>
-                    <Button variant="ghost" size="sm" title="Editar"><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button variant="ghost" size="sm" title="Editar" aria-label="Editar candidato"><Pencil className="h-3.5 w-3.5" /></Button>
                   </Link>
-                  <Button variant="ghost" size="sm" onClick={() => archive.mutate({ id: c.id, archive: c.status !== "arquivado" })} title={c.status === "arquivado" ? "Desarquivar" : "Arquivar"}>
+                  <Button variant="ghost" size="sm" onClick={() => archive.mutate({ id: c.id, archive: c.status !== "arquivado" })} title={c.status === "arquivado" ? "Desarquivar" : "Arquivar"} aria-label={c.status === "arquivado" ? "Desarquivar candidato" : "Arquivar candidato"}>
                     <Archive className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setToDelete(c)} title="Excluir" className="text-destructive hover:text-destructive">
+                  <Button variant="ghost" size="sm" onClick={() => setToDelete(c)} title="Excluir" aria-label="Excluir candidato" className="text-destructive hover:text-destructive">
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
