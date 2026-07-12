@@ -276,25 +276,25 @@ REGRAS ABSOLUTAS:
 - Se dois materiais divergirem, liste em "inconsistencies".
 
 CANDIDATO (dados manuais):
-Nome: ${cAny.full_name}
-Cargo atual: ${cAny.current_position ?? ""}
-Empresa atual: ${cAny.current_company ?? ""}
-Área: ${cAny.area ?? ""}
-Senioridade: ${cAny.seniority ?? ""}
-Cidade/UF/País: ${cAny.city ?? ""} / ${cAny.state ?? ""} / ${cAny.country ?? ""}
-Modelo: ${cAny.work_model ?? ""}
-Pretensão: ${cAny.salary_expectation ?? ""}
-LinkedIn: ${cAny.linkedin_url ?? ""}
-DISC: ${cAny.disc_profile ?? ""} | Bruto: ${cAny.disc_raw ?? ""}
+Nome: ${cand.full_name}
+Cargo atual: ${cand.current_position ?? ""}
+Empresa atual: ${cand.current_company ?? ""}
+Área: ${cand.area ?? ""}
+Senioridade: ${cand.seniority ?? ""}
+Cidade/UF/País: ${cand.city ?? ""} / ${cand.state ?? ""} / ${cand.country ?? ""}
+Modelo: ${cand.work_model ?? ""}
+Pretensão: ${cand.salary_expectation ?? ""}
+LinkedIn: ${cand.linkedin_url ?? ""}
+DISC: ${cand.disc_profile ?? ""} | Bruto: ${cand.disc_raw ?? ""}
 
 Parecer do recrutador:
-${cAny.recruiter_note ?? ""}
+${cand.recruiter_note ?? ""}
 
 Resumo/transcrição da entrevista:
-${cAny.transcript ?? ""}
+${cand.transcript ?? ""}
 
 Informações adicionais/observações internas:
-${cAny.internal_notes ?? ""}
+${cand.internal_notes ?? ""}
 
 Arquivos anexados (leia o conteúdo): ${attachedList.join(" | ") || "nenhum"}
 
