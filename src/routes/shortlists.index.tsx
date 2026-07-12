@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { listShortlists } from "@/lib/db/shortlists.functions";
 
-export const Route = createFileRoute("/shortlists")({
+export const Route = createFileRoute("/shortlists/")({
   head: () => ({ meta: [{ title: "Shortlists · Moove Select" }] }),
   component: ShortlistsPage,
 });
