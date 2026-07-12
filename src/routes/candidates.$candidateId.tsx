@@ -22,6 +22,9 @@ export const Route = createFileRoute("/candidates/$candidateId")({
 
 function CandidatePage() {
   const { candidateId } = Route.useParams();
+  const sp = (Route.useSearch() as any) ?? {};
+  const returnTo: string | undefined = sp.returnTo;
+  const cursor: string | undefined = sp.cursor;
   const navigate = useNavigate();
   const qc = useQueryClient();
   const getFn = useServerFn(getCandidate);
@@ -83,9 +86,6 @@ function CandidatePage() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
           {(() => {
-            const sp = (Route.useSearch() as any) ?? {};
-            const returnTo: string | undefined = sp.returnTo;
-            const cursor: string | undefined = sp.cursor;
             const isShortlist = typeof returnTo === "string" && returnTo.startsWith("/shortlists/");
             if (isShortlist) {
               const url = cursor ? `${returnTo}?cursor=${cursor}` : returnTo;
