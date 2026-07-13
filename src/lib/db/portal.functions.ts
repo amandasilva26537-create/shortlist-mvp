@@ -37,6 +37,58 @@ export const getPortalShortlist = createServerFn({ method: "GET" })
     return { shortlist: sl, candidates: links ?? [], evaluations: evals ?? [], documents: docs ?? [], feedback: feedback ?? [] };
   });
 
+export const getPortalCandidate = createServerFn({ method: "GET" })
+  .inputValidator((v: unknown) =>
+    z.object({ token: z.string().min(4), candidate_id: z.string().uuid() }).parse(v),
+  )
+  .handler(async ({ data }) => {
+    const supabase = publicClient();
+    const { data: sl } = await supabase
+      .from("shortlists")
+      .select("id, job_id")
+      .eq("share_token", data.token)
+      .eq("status", "sent")
+      .maybeSingle();
+    if (!sl) return null;
+    const { data: link } = await supabase
+      .from("shortlist_candidates")
+      .select("candidate_id")
+      .eq("shortlist_id", sl.id)
+      .eq("candidate_id", data.candidate_id)
+      .maybeSingle();
+    if (!link) return null;
+    const { data: candidate, error } = await supabase
+      .from("candidates")
+      .select("*")
+      .eq("id", data.candidate_id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!candidate) return null;
+    // Strip fields marcadas como internas ao recrutador
+    const {
+      internal_notes,
+      recruiter_note,
+      inconsistencies,
+      email,
+      phone,
+      ...safe
+    } = candidate as any;
+    const [{ data: docs }, { data: evaluation }] = await Promise.all([
+      supabase
+        .from("candidate_documents")
+        .select("*")
+        .eq("candidate_id", data.candidate_id)
+        .eq("visible_to_client", true),
+      supabase
+        .from("candidate_job_evaluations")
+        .select("*")
+        .eq("candidate_id", data.candidate_id)
+        .eq("job_id", sl.job_id)
+        .maybeSingle(),
+    ]);
+    return { candidate: { ...safe, documents: docs ?? [] }, evaluation: evaluation ?? null, shortlist_id: sl.id };
+  });
+
 export const submitPortalFeedback = createServerFn({ method: "POST" })
   .inputValidator((v: unknown) =>
     z.object({
