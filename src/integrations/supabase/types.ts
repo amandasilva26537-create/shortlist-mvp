@@ -745,7 +745,6 @@ export type Database = {
     }
     Functions: {
       current_share_token: { Args: never; Returns: string }
-      is_active_member: { Args: { _uid: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "recruiter" | "client"
