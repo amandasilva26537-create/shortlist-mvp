@@ -161,7 +161,7 @@ function PdfPage() {
 
       <div className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-primary-soft p-3 text-[10px] text-primary">
         <Sparkles className="h-3.5 w-3.5" />
-        Parecer gerado por IA — Moove Select · Confidencial.
+        Parecer gerado por IA — Moove List · Confidencial.
       </div>
     </div>
   );

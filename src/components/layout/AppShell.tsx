@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="flex flex-col leading-tight">
             <span className="text-sm font-semibold tracking-tight">Moove</span>
-            <span className="text-[11px] uppercase tracking-widest text-muted-foreground">Select</span>
+            <span className="text-[11px] uppercase tracking-widest text-muted-foreground">List</span>
           </div>
         </div>
         <nav className="flex-1 px-3 py-2">
