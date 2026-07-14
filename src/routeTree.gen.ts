@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -33,6 +34,11 @@ import { Route as ShortlistsShortlistIdAnalysisCandidateIdRouteImport } from './
 import { Route as STokenCCandidateIdRouteImport } from './routes/s.$token.c.$candidateId'
 import { Route as STokenAnalysisCandidateIdRouteImport } from './routes/s.$token.analysis.$candidateId'
 
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
   '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/candidates/new': typeof CandidatesNewRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
   '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/candidates/new': typeof CandidatesNewRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
   '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/candidates/new': typeof CandidatesNewRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -233,6 +242,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/compare'
     | '/sitemap.xml'
+    | '/team'
     | '/candidates/$candidateId'
     | '/candidates/new'
     | '/clients/$clientId'
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/compare'
     | '/sitemap.xml'
+    | '/team'
     | '/candidates/$candidateId'
     | '/candidates/new'
     | '/clients/$clientId'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/compare'
     | '/sitemap.xml'
+    | '/team'
     | '/candidates/$candidateId'
     | '/candidates/new'
     | '/clients/$clientId'
@@ -307,6 +319,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CompareRoute: typeof CompareRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TeamRoute: typeof TeamRoute
   CandidatesCandidateIdRoute: typeof CandidatesCandidateIdRoute
   CandidatesNewRoute: typeof CandidatesNewRoute
   ClientsClientIdRoute: typeof ClientsClientIdRoute
@@ -325,6 +338,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -525,6 +545,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CompareRoute: CompareRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TeamRoute: TeamRoute,
   CandidatesCandidateIdRoute: CandidatesCandidateIdRoute,
   CandidatesNewRoute: CandidatesNewRoute,
   ClientsClientIdRoute: ClientsClientIdRoute,

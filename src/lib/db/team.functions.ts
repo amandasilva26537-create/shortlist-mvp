@@ -35,6 +35,7 @@ export const getMyAccess = createServerFn({ method: "GET" })
     const isRecruiter = roleList.includes("recruiter");
     const status = (profile as any)?.status ?? "active";
     return {
+      userId: context.userId,
       isAdmin,
       isRecruiter,
       isActive: status === "active" && (isAdmin || isRecruiter),
