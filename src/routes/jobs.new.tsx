@@ -16,7 +16,7 @@ import { structureJob, refineJobSection } from "@/lib/ai/ai.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/jobs/new")({
-  head: () => ({ meta: [{ title: "Nova vaga · Moove Select" }] }),
+  head: () => ({ meta: [{ title: "Nova vaga · Moove List" }] }),
   validateSearch: (s: Record<string, unknown>) => ({ client: s.client as string | undefined }),
   component: NewJob,
 });

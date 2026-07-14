@@ -15,7 +15,7 @@ import { listCandidates } from "@/lib/db/candidates.functions";
 import { listDrafts } from "@/lib/db/drafts.functions";
 
 export const Route = createFileRoute("/")({
-  head: () => ({ meta: [{ title: "Dashboard · Moove Select" }] }),
+  head: () => ({ meta: [{ title: "Dashboard · Moove List" }] }),
   component: Dashboard,
 });
 

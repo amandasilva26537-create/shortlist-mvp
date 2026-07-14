@@ -11,9 +11,9 @@ import { initials } from "@/lib/format";
 export const Route = createFileRoute("/clients/")({
   head: () => ({
     meta: [
-      { title: "Clientes · Moove Select" },
-      { name: "description", content: "Base de clientes atendidos pela Moove Select com contatos, processos ativos e histórico consultivo." },
-      { property: "og:title", content: "Clientes · Moove Select" },
+      { title: "Clientes · Moove List" },
+      { name: "description", content: "Base de clientes atendidos pela Moove List com contatos, processos ativos e histórico consultivo." },
+      { property: "og:title", content: "Clientes · Moove List" },
       { property: "og:description", content: "Gestão de clientes e contas atendidas pela consultoria." },
       { property: "og:url", content: "https://intel-select-hub.lovable.app/clients" },
       { property: "og:type", content: "website" },

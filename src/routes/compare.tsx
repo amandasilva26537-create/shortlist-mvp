@@ -16,7 +16,7 @@ const searchSchema = z.object({ ids: z.string().optional() });
 
 export const Route = createFileRoute("/compare")({
   validateSearch: searchSchema,
-  head: () => ({ meta: [{ title: "Comparar candidatos · Moove Select" }] }),
+  head: () => ({ meta: [{ title: "Comparar candidatos · Moove List" }] }),
   component: ComparePage,
 });
 

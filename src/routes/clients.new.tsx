@@ -10,7 +10,7 @@ import { upsertClient } from "@/lib/db/clients.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/clients/new")({
-  head: () => ({ meta: [{ title: "Novo cliente · Moove Select" }] }),
+  head: () => ({ meta: [{ title: "Novo cliente · Moove List" }] }),
   validateSearch: (s: Record<string, unknown>) => ({ next: (s.next as string | undefined) }),
   component: NewClient,
 });

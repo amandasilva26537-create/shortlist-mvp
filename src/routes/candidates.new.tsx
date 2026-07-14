@@ -16,7 +16,7 @@ import { generateCandidateProfile, refineText } from "@/lib/ai/ai.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/candidates/new")({
-  head: () => ({ meta: [{ title: "Novo candidato · Moove Select" }] }),
+  head: () => ({ meta: [{ title: "Novo candidato · Moove List" }] }),
   validateSearch: (s: Record<string, unknown>) => ({ id: (s.id as string | undefined) ?? undefined }),
   component: NewCandidate,
 });
