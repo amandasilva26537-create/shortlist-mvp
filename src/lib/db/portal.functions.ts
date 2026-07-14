@@ -2,16 +2,27 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-function publicClient() {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+function publicClient(shareToken: string) {
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
+  return createClient(process.env.SUPABASE_URL!, key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    global: {
+      headers: { "x-share-token": shareToken },
+      fetch: (input, init) => {
+        const h = new Headers(init?.headers);
+        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization");
+        h.set("apikey", key);
+        h.set("x-share-token", shareToken);
+        return fetch(input, { ...init, headers: h });
+      },
+    },
   });
 }
 
 export const getPortalShortlist = createServerFn({ method: "GET" })
   .inputValidator((v: unknown) => z.object({ token: z.string().min(4) }).parse(v))
   .handler(async ({ data }) => {
-    const supabase = publicClient();
+    const supabase = publicClient(data.token);
     const { data: sl, error } = await supabase
       .from("shortlists")
       .select("*, clients(name, logo_url), jobs(*)")
@@ -28,7 +39,6 @@ export const getPortalShortlist = createServerFn({ method: "GET" })
         .order("position"),
       supabase.from("manager_feedback").select("*").eq("shortlist_id", sl.id),
     ]);
-    // Load evaluations & visible docs per candidate
     const cids = (links ?? []).map((l: any) => l.candidate_id);
     const [{ data: evals }, { data: docs }] = await Promise.all([
       supabase.from("candidate_job_evaluations").select("*").in("candidate_id", cids).eq("job_id", sl.job_id),
@@ -42,7 +52,7 @@ export const getPortalCandidate = createServerFn({ method: "GET" })
     z.object({ token: z.string().min(4), candidate_id: z.string().uuid() }).parse(v),
   )
   .handler(async ({ data }) => {
-    const supabase = publicClient();
+    const supabase = publicClient(data.token);
     const { data: sl } = await supabase
       .from("shortlists")
       .select("id, job_id")
@@ -64,7 +74,6 @@ export const getPortalCandidate = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!candidate) return null;
-    // Strip fields marcadas como internas ao recrutador
     const {
       internal_notes,
       recruiter_note,
@@ -94,15 +103,15 @@ export const submitPortalFeedback = createServerFn({ method: "POST" })
     z.object({
       token: z.string(),
       candidate_id: z.string().uuid(),
-      client_identifier: z.string().min(1),
-      rating: z.number().nullable().optional(),
+      client_identifier: z.string().min(1).max(200),
+      rating: z.number().min(0).max(5).nullable().optional(),
       favorite: z.boolean().optional(),
       decision: z.enum(["approved", "rejected", "second_interview"]).nullable().optional(),
-      comment: z.string().nullable().optional(),
+      comment: z.string().max(4000).nullable().optional(),
     }).parse(v),
   )
   .handler(async ({ data }) => {
-    const supabase = publicClient();
+    const supabase = publicClient(data.token);
     const { data: sl } = await supabase
       .from("shortlists")
       .select("id")
@@ -110,6 +119,14 @@ export const submitPortalFeedback = createServerFn({ method: "POST" })
       .eq("status", "sent")
       .maybeSingle();
     if (!sl) throw new Error("Shortlist não encontrada");
+    // Verify the candidate is actually part of this shortlist before writing feedback.
+    const { data: membership } = await supabase
+      .from("shortlist_candidates")
+      .select("candidate_id")
+      .eq("shortlist_id", sl.id)
+      .eq("candidate_id", data.candidate_id)
+      .maybeSingle();
+    if (!membership) throw new Error("Candidato não pertence a esta shortlist");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("manager_feedback").insert({
       shortlist_id: sl.id,
