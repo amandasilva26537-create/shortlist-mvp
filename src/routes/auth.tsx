@@ -9,7 +9,7 @@ import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Entrar · Moove Select" }] }),
+  head: () => ({ meta: [{ title: "Entrar · Moove List" }] }),
   component: AuthPage,
 });
 
@@ -66,7 +66,7 @@ function AuthPage() {
             </div>
             <div className="text-left leading-tight">
               <div className="text-base font-semibold">Moove</div>
-              <div className="text-[11px] uppercase tracking-widest text-muted-foreground">Select</div>
+              <div className="text-[11px] uppercase tracking-widest text-muted-foreground">List</div>
             </div>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">

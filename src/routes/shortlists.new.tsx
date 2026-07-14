@@ -17,7 +17,7 @@ import { listCandidates } from "@/lib/db/candidates.functions";
 import { upsertShortlist, setShortlistCandidates, nextShortlistNumber } from "@/lib/db/shortlists.functions";
 
 export const Route = createFileRoute("/shortlists/new")({
-  head: () => ({ meta: [{ title: "Nova shortlist · Moove Select" }] }),
+  head: () => ({ meta: [{ title: "Nova shortlist · Moove List" }] }),
   validateSearch: (s: Record<string, unknown>) => ({ client: s.client as string | undefined, job: s.job as string | undefined }),
   component: NewShortlist,
 });

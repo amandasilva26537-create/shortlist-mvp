@@ -18,7 +18,7 @@ import { analyzeShortlist, evaluateCandidateForJob } from "@/lib/ai/ai.functions
 import { FlashcardDeck } from "@/components/shortlist/FlashcardDeck";
 
 export const Route = createFileRoute("/shortlists/$shortlistId/")({
-  head: () => ({ meta: [{ title: "Shortlist · Moove Select" }] }),
+  head: () => ({ meta: [{ title: "Shortlist · Moove List" }] }),
   component: ShortlistDetail,
 });
 
