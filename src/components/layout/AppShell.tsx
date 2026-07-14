@@ -13,6 +13,7 @@ import {
   Plus,
   UserPlus,
   FilePlus,
+  Users2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getMyAccess } from "@/lib/db/team.functions";
+import { toast } from "sonner";
 
 const navItems: { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -35,13 +40,32 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
+  const accessFn = useServerFn(getMyAccess);
+  const access = useQuery({
+    queryKey: ["my-access"],
+    queryFn: () => accessFn(),
+    enabled: !!user,
+  });
+
   useEffect(() => {
     if (!loading && user === null) navigate({ to: "/auth" });
   }, [loading, user, navigate]);
 
+  useEffect(() => {
+    if (access.data && !access.data.isActive) {
+      toast.error("Seu acesso foi desativado. Fale com um administrador.");
+      supabase.auth.signOut().then(() => navigate({ to: "/auth", replace: true }));
+    }
+  }, [access.data, navigate]);
+
   if (loading || !user) {
     return <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">Carregando…</div>;
   }
+
+  const showTeam = access.data?.isAdmin;
+  const visibleNav = showTeam
+    ? [...navItems, { to: "/team", label: "Equipe", icon: Users2 }]
+    : navItems;
 
   const initials = (user.user_metadata?.full_name || user.email || "US")
     .split(" ")
@@ -68,7 +92,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <nav className="flex-1 px-3 py-2">
-          {navItems.map((item) => {
+          {visibleNav.map((item) => {
             const active = item.exact ? pathname === item.to : pathname === item.to || pathname.startsWith(item.to + "/");
             const Icon = item.icon;
             return (
