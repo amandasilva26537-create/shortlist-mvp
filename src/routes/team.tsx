@@ -155,7 +155,7 @@ function TeamPage() {
         <div className="card-soft divide-y divide-border">
           {isLoading && <div className="p-5 text-sm text-muted-foreground">Carregando membros…</div>}
           {members?.map((m: any) => {
-            const isMe = m.id === access.data?.profile?.id;
+            const isMe = m.id === access.data?.userId;
             const isAdminRole = m.roles?.includes("admin");
             return (
               <div key={m.id} className="flex flex-wrap items-center gap-4 p-5">
