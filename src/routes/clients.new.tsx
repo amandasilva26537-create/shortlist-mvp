@@ -1,17 +1,20 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { upsertClient } from "@/lib/db/clients.functions";
+import { upsertClient, getClient } from "@/lib/db/clients.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/clients/new")({
   head: () => ({ meta: [{ title: "Novo cliente · Moove List" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({ next: (s.next as string | undefined) }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: s.next as string | undefined,
+    edit: s.edit as string | undefined,
+  }),
   component: NewClient,
 });
 
