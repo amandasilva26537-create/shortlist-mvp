@@ -90,8 +90,8 @@ function NewClient() {
     <AppShell>
       <div className="mx-auto max-w-3xl">
         <div className="mb-6">
-          <div className="text-[11px] font-medium uppercase tracking-widest text-primary">Cadastro</div>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Novo cliente</h1>
+          <div className="text-[11px] font-medium uppercase tracking-widest text-primary">{isEdit ? "Edição" : "Cadastro"}</div>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">{isEdit ? "Editar cliente" : "Novo cliente"}</h1>
           <p className="mt-2 text-sm text-muted-foreground">Preencha as informações essenciais do cliente.</p>
         </div>
         <form onSubmit={submit()} className="card-elevated p-6 space-y-5">
