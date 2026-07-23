@@ -20,9 +20,13 @@ export const Route = createFileRoute("/clients/new")({
 
 function NewClient() {
   const navigate = useNavigate();
-  const search = useSearch({ from: "/clients/new" }) as { next?: string };
+  const search = useSearch({ from: "/clients/new" }) as { next?: string; edit?: string };
   const qc = useQueryClient();
   const upsert = useServerFn(upsertClient);
+  const getFn = useServerFn(getClient);
+  const editId = search?.edit;
+  const isEdit = !!editId;
+
   const [form, setForm] = useState({
     name: "",
     contact_name: "",
@@ -37,12 +41,33 @@ function NewClient() {
     (search?.next as "job" | "shortlist" | undefined) ?? "",
   );
 
+  const { data: existing } = useQuery({
+    queryKey: ["client", editId],
+    queryFn: () => getFn({ data: { id: editId! } }),
+    enabled: isEdit,
+  });
+
+  useEffect(() => {
+    if (existing) {
+      setForm({
+        name: existing.name ?? "",
+        contact_name: existing.contact_name ?? "",
+        segment: existing.segment ?? "",
+        contact_role: existing.contact_role ?? "",
+        contact: existing.contact ?? "",
+        website: existing.website ?? "",
+        instagram: existing.instagram ?? "",
+      });
+    }
+  }, [existing]);
+
   const mut = useMutation({
-    mutationFn: async (data: any) => upsert({ data }),
+    mutationFn: async (data: any) => upsert({ data: isEdit ? { ...data, id: editId } : data }),
     onSuccess: (row: any) => {
       qc.invalidateQueries({ queryKey: ["clients"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
-      toast.success("Cliente cadastrado");
+      if (isEdit) qc.invalidateQueries({ queryKey: ["client", editId] });
+      toast.success(isEdit ? "Cliente atualizado" : "Cliente cadastrado");
       if (next === "job") navigate({ to: "/jobs/new", search: { client: row.id } });
       else if (next === "shortlist") navigate({ to: "/shortlists/new", search: { client: row.id } });
       else navigate({ to: "/clients" });
