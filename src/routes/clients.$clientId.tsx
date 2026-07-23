@@ -1,116 +1,83 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/layout/AppShell";
-import { getClient, jobs, shortlists, getJob } from "@/lib/mock-data";
+import { getClient } from "@/lib/db/clients.functions";
 import { initials } from "@/lib/format";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Phone, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil, Globe, Instagram, Mail, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/clients/$clientId")({
-  loader: ({ params }) => {
-    const client = getClient(params.clientId);
-    if (!client) throw notFound();
-    return client;
-  },
-  head: ({ loaderData }) => ({
-    meta: [{ title: loaderData ? `${loaderData.name} · Clientes` : "Cliente" }],
-  }),
-  notFoundComponent: () => (
-    <AppShell>
-      <div className="text-sm text-muted-foreground">Cliente não encontrado.</div>
-    </AppShell>
-  ),
-  errorComponent: () => (
-    <AppShell>
-      <div className="text-sm text-muted-foreground">Erro ao carregar cliente.</div>
-    </AppShell>
-  ),
+  head: () => ({ meta: [{ title: "Cliente · Moove List" }] }),
   component: ClientDetail,
 });
 
 function ClientDetail() {
-  const c = Route.useLoaderData();
-  const clientJobs = jobs.filter((j) => j.clientId === c.id);
-  const clientShortlists = shortlists.filter((s) => s.clientId === c.id);
+  const { clientId } = Route.useParams();
+  const navigate = useNavigate();
+  const fn = useServerFn(getClient);
+  const { data: c, isLoading } = useQuery({
+    queryKey: ["client", clientId],
+    queryFn: () => fn({ data: { id: clientId } }),
+  });
+
+  if (isLoading) return <AppShell><div className="text-sm text-muted-foreground">Carregando…</div></AppShell>;
+  if (!c) return <AppShell><div className="text-sm text-muted-foreground">Cliente não encontrado.</div></AppShell>;
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-4xl">
         <Link to="/clients" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" /> Clientes
         </Link>
         <div className="card-elevated flex flex-wrap items-center gap-5 p-6">
           <Avatar className="h-16 w-16 rounded-2xl">
-            <AvatarFallback className="rounded-2xl bg-primary-soft text-primary text-lg font-semibold">
-              {initials(c.name)}
-            </AvatarFallback>
+            {c.logo_url ? (
+              <img src={c.logo_url} className="h-full w-full rounded-2xl object-cover" alt="" />
+            ) : (
+              <AvatarFallback className="rounded-2xl bg-primary-soft text-primary text-lg font-semibold">
+                {initials(c.name)}
+              </AvatarFallback>
+            )}
           </Avatar>
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-semibold tracking-tight">{c.name}</h1>
-            <div className="mt-1 text-sm text-muted-foreground">{c.contactName}</div>
-            <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5" /> {c.email}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5" /> {c.phone}
-              </span>
-            </div>
+            {c.segment && <div className="mt-1 text-sm text-muted-foreground">{c.segment}</div>}
           </div>
-          <Button variant="outline">Editar</Button>
+          <Button variant="outline" onClick={() => navigate({ to: "/clients/new", search: { edit: c.id } as any })}>
+            <Pencil className="mr-1.5 h-4 w-4" /> Editar
+          </Button>
         </div>
 
-        <Tabs defaultValue="jobs" className="mt-6">
-          <TabsList>
-            <TabsTrigger value="jobs">Vagas</TabsTrigger>
-            <TabsTrigger value="shortlists">Shortlists</TabsTrigger>
-            <TabsTrigger value="history">Histórico</TabsTrigger>
-          </TabsList>
-          <TabsContent value="jobs" className="mt-4 space-y-2">
-            {clientJobs.map((j) => (
-              <Link
-                key={j.id}
-                to="/jobs/$jobId"
-                params={{ jobId: j.id }}
-                className="card-soft flex items-center justify-between p-4 transition hover:shadow-[var(--shadow-elevated)]"
-              >
-                <div>
-                  <div className="font-semibold">{j.title}</div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">
-                    {j.area} · {j.workModel}
-                  </div>
-                </div>
-                <span className="rounded-full bg-[color:var(--success)]/10 px-2 py-0.5 text-[11px] font-medium text-[color:var(--success)]">
-                  Aberta
-                </span>
-              </Link>
-            ))}
-          </TabsContent>
-          <TabsContent value="shortlists" className="mt-4 space-y-2">
-            {clientShortlists.map((s) => (
-              <Link
-                key={s.id}
-                to="/shortlists/$shortlistId"
-                params={{ shortlistId: s.id }}
-                className="card-soft flex items-center justify-between p-4 transition hover:shadow-[var(--shadow-elevated)]"
-              >
-                <div>
-                  <div className="font-semibold">{getJob(s.jobId)?.title}</div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">
-                    Versão {s.version} · {s.candidateIds.length} candidatos
-                  </div>
-                </div>
-                <span className="text-xs text-muted-foreground">{s.createdAt}</span>
-              </Link>
-            ))}
-          </TabsContent>
-          <TabsContent value="history" className="mt-4">
-            <div className="card-soft p-8 text-center text-sm text-muted-foreground">
-              Nenhum evento histórico ainda.
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="card-soft p-5">
+            <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Responsável</div>
+            <div className="space-y-2 text-sm">
+              {c.contact_name && (
+                <div className="flex items-center gap-2"><UserIcon className="h-4 w-4 text-muted-foreground" /> {c.contact_name}{c.contact_role ? ` · ${c.contact_role}` : ""}</div>
+              )}
+              {c.contact && (
+                <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> {c.contact}</div>
+              )}
+              {!c.contact_name && !c.contact && <div className="text-muted-foreground">—</div>}
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+          <div className="card-soft p-5">
+            <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Presença digital</div>
+            <div className="space-y-2 text-sm">
+              {c.website && (
+                <a href={c.website} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-primary hover:underline">
+                  <Globe className="h-4 w-4" /> {c.website}
+                </a>
+              )}
+              {c.instagram && (
+                <div className="flex items-center gap-2"><Instagram className="h-4 w-4 text-muted-foreground" /> {c.instagram}</div>
+              )}
+              {!c.website && !c.instagram && <div className="text-muted-foreground">—</div>}
+            </div>
+          </div>
+        </div>
       </div>
     </AppShell>
   );
