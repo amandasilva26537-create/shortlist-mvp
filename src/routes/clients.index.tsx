@@ -1,12 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/layout/AppShell";
-import { listClients } from "@/lib/db/clients.functions";
+import { listClients, deleteClient } from "@/lib/db/clients.functions";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Plus } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2 } from "lucide-react";
 import { initials } from "@/lib/format";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/clients/")({
   head: () => ({
@@ -25,7 +26,21 @@ export const Route = createFileRoute("/clients/")({
 
 function ClientsPage() {
   const fn = useServerFn(listClients);
+  const delFn = useServerFn(deleteClient);
+  const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data: clients } = useQuery({ queryKey: ["clients"], queryFn: () => fn() });
+
+  const onDelete = async (id: string, name: string) => {
+    if (!confirm(`Excluir o cliente "${name}"? Esta ação não pode ser desfeita.`)) return;
+    try {
+      await delFn({ data: { id } });
+      toast.success("Cliente excluído");
+      qc.invalidateQueries({ queryKey: ["clients"] });
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao excluir");
+    }
+  };
 
   return (
     <AppShell>
@@ -60,7 +75,38 @@ function ClientsPage() {
                 </div>
               </div>
               {(c.city || c.state) && <div className="mt-3 text-xs text-muted-foreground">{[c.city, c.state, c.country].filter(Boolean).join(", ")}</div>}
-              <div className="mt-4 flex gap-2">
+
+              <div className="mt-4 flex items-center gap-1 border-t border-border pt-3">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="flex-1"
+                  onClick={() => navigate({ to: "/clients/$clientId", params: { clientId: c.id } })}
+                  aria-label={`Ver ${c.name}`}
+                >
+                  <Eye className="mr-1.5 h-4 w-4" /> Ver
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="flex-1"
+                  onClick={() => navigate({ to: "/clients/new", search: { edit: c.id } as any })}
+                  aria-label={`Editar ${c.name}`}
+                >
+                  <Pencil className="mr-1.5 h-4 w-4" /> Editar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => onDelete(c.id, c.name)}
+                  aria-label={`Excluir ${c.name}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="mt-2 flex gap-2">
                 <Link to="/jobs/new" search={{ client: c.id }} className="flex-1"><Button variant="outline" size="sm" className="w-full">Nova vaga</Button></Link>
                 <Link to="/shortlists/new" search={{ client: c.id }} className="flex-1"><Button size="sm" className="w-full">Shortlist</Button></Link>
               </div>
