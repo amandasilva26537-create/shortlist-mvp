@@ -561,8 +561,17 @@ Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
   }
 }
 
-Regras finais:
-- Todas as pontuações são 0..100.
+Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
+- Todas as pontuações são inteiras 0..100, sem piso mínimo. NÃO use valores padrão (ex: 70, 80, 85, 88, 90). Só use um valor se ele reflete evidência concreta.
+- Calcule "overall_match" pela FÓRMULA ponderada abaixo e arredonde:
+  overall_match =
+     0.40 × (percentual de critérios eliminatórios com status="yes", contando "partial" como 50% e "no"/"unknown" como 0%) +
+     0.35 × (média ponderada de dimension_scores usando os pesos das competências avaliadas da vaga; sem pesos, média simples) +
+     0.15 × (aderência de senioridade, localização, modelo de trabalho e pretensão salarial vs. vaga, 0..100) +
+     0.10 × (aderência de formação/idiomas obrigatórios, 0..100).
+- Se QUALQUER critério eliminatório retornar "no", overall_match ≤ 55.
+- Se houver 2+ critérios eliminatórios em "unknown", overall_match ≤ 70.
+- Cada dimension_score deve ser justificável pela evidência textual do candidato. Diferencie candidatos — não iguale scores entre pessoas com trajetórias distintas.
 - radar_scores deve usar exatamente os nomes das competências avaliadas da vaga.
 - cultural_fit é ESPECÍFICO desta vaga (empresa, momento, gestor, time) — não repita traços genéricos do candidato.
 - Se não houver evidência para um critério eliminatório, use "unknown" e explique.
@@ -575,6 +584,7 @@ Regras finais:
       const { text } = await generateText({
         model,
         prompt: promptText,
+        temperature: 0.5,
       });
       output = extractJson(text);
     } catch (err: any) {

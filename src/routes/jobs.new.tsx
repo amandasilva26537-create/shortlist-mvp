@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,13 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Sparkles, Loader2, Wand2, Paperclip, X, Plus, Trash2 } from "lucide-react";
 import { listClients } from "@/lib/db/clients.functions";
-import { upsertJob } from "@/lib/db/jobs.functions";
+import { upsertJob, getJob } from "@/lib/db/jobs.functions";
 import { structureJob, refineJobSection } from "@/lib/ai/ai.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/jobs/new")({
   head: () => ({ meta: [{ title: "Nova vaga · Moove List" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({ client: s.client as string | undefined }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    client: s.client as string | undefined,
+    edit: s.edit as string | undefined,
+  }),
   component: NewJob,
 });
 
@@ -25,14 +28,22 @@ type DocRef = { label: string; url: string; mime: string };
 
 function NewJob() {
   const navigate = useNavigate();
-  const search = useSearch({ from: "/jobs/new" }) as { client?: string };
+  const search = useSearch({ from: "/jobs/new" }) as { client?: string; edit?: string };
   const qc = useQueryClient();
   const clientsFn = useServerFn(listClients);
   const saveFn = useServerFn(upsertJob);
   const aiFn = useServerFn(structureJob);
   const refineFn = useServerFn(refineJobSection);
+  const getJobFn = useServerFn(getJob);
+  const editId = search.edit;
+  const isEdit = !!editId;
 
   const { data: clients } = useQuery({ queryKey: ["clients"], queryFn: () => clientsFn() });
+  const { data: existingJob } = useQuery({
+    queryKey: ["job", editId],
+    queryFn: () => getJobFn({ data: { id: editId! } }),
+    enabled: isEdit,
+  });
 
   const [basic, setBasic] = useState<any>({
     client_id: search.client ?? "",
@@ -49,9 +60,29 @@ function NewJob() {
   const [pastedText, setPastedText] = useState("");
   const [aiInstruction, setAiInstruction] = useState("");
   const [structure, setStructure] = useState<any>(null);
-  const [jobId, setJobId] = useState<string | undefined>();
+  const [jobId, setJobId] = useState<string | undefined>(editId);
   const [aiBusy, setAiBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (!existingJob) return;
+    const j: any = existingJob;
+    setBasic({
+      client_id: j.client_id ?? "",
+      title: j.title ?? "",
+      area: j.area ?? "",
+      location: j.location ?? "",
+      work_model: j.work_model ?? "Híbrido",
+      contract_type: j.contract_type ?? "CLT",
+      salary_min: j.salary_min ?? "",
+      salary_max: j.salary_max ?? "",
+      manager_name: j.manager_name ?? "",
+    });
+    setDocuments(Array.isArray(j.documents) ? j.documents : []);
+    setPastedText(j.pasted_text ?? "");
+    setStructure(j.ai_structure ?? null);
+    setJobId(j.id);
+  }, [existingJob]);
 
   const setB = (k: string) => (e: any) => setBasic((p: any) => ({ ...p, [k]: e?.target?.value ?? e }));
 
@@ -136,8 +167,8 @@ function NewJob() {
     <AppShell>
       <div className="mx-auto max-w-4xl">
         <div className="mb-6">
-          <div className="text-[11px] font-medium uppercase tracking-widest text-primary">Cadastro</div>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Nova vaga</h1>
+          <div className="text-[11px] font-medium uppercase tracking-widest text-primary">{isEdit ? "Edição" : "Cadastro"}</div>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">{isEdit ? "Editar vaga" : "Nova vaga"}</h1>
           <p className="mt-1 text-sm text-muted-foreground">Preencha os campos básicos, anexe o material e deixe a IA estruturar a vaga.</p>
         </div>
 

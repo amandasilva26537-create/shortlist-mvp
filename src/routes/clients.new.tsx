@@ -1,25 +1,32 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { upsertClient } from "@/lib/db/clients.functions";
+import { upsertClient, getClient } from "@/lib/db/clients.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/clients/new")({
   head: () => ({ meta: [{ title: "Novo cliente · Moove List" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({ next: (s.next as string | undefined) }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: s.next as string | undefined,
+    edit: s.edit as string | undefined,
+  }),
   component: NewClient,
 });
 
 function NewClient() {
   const navigate = useNavigate();
-  const search = useSearch({ from: "/clients/new" }) as { next?: string };
+  const search = useSearch({ from: "/clients/new" }) as { next?: string; edit?: string };
   const qc = useQueryClient();
   const upsert = useServerFn(upsertClient);
+  const getFn = useServerFn(getClient);
+  const editId = search?.edit;
+  const isEdit = !!editId;
+
   const [form, setForm] = useState({
     name: "",
     contact_name: "",
@@ -34,12 +41,33 @@ function NewClient() {
     (search?.next as "job" | "shortlist" | undefined) ?? "",
   );
 
+  const { data: existing } = useQuery({
+    queryKey: ["client", editId],
+    queryFn: () => getFn({ data: { id: editId! } }),
+    enabled: isEdit,
+  });
+
+  useEffect(() => {
+    if (existing) {
+      setForm({
+        name: existing.name ?? "",
+        contact_name: existing.contact_name ?? "",
+        segment: existing.segment ?? "",
+        contact_role: existing.contact_role ?? "",
+        contact: existing.contact ?? "",
+        website: existing.website ?? "",
+        instagram: existing.instagram ?? "",
+      });
+    }
+  }, [existing]);
+
   const mut = useMutation({
-    mutationFn: async (data: any) => upsert({ data }),
+    mutationFn: async (data: any) => upsert({ data: isEdit ? { ...data, id: editId } : data }),
     onSuccess: (row: any) => {
       qc.invalidateQueries({ queryKey: ["clients"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
-      toast.success("Cliente cadastrado");
+      if (isEdit) qc.invalidateQueries({ queryKey: ["client", editId] });
+      toast.success(isEdit ? "Cliente atualizado" : "Cliente cadastrado");
       if (next === "job") navigate({ to: "/jobs/new", search: { client: row.id } });
       else if (next === "shortlist") navigate({ to: "/shortlists/new", search: { client: row.id } });
       else navigate({ to: "/clients" });
@@ -62,8 +90,8 @@ function NewClient() {
     <AppShell>
       <div className="mx-auto max-w-3xl">
         <div className="mb-6">
-          <div className="text-[11px] font-medium uppercase tracking-widest text-primary">Cadastro</div>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Novo cliente</h1>
+          <div className="text-[11px] font-medium uppercase tracking-widest text-primary">{isEdit ? "Edição" : "Cadastro"}</div>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">{isEdit ? "Editar cliente" : "Novo cliente"}</h1>
           <p className="mt-2 text-sm text-muted-foreground">Preencha as informações essenciais do cliente.</p>
         </div>
         <form onSubmit={submit()} className="card-elevated p-6 space-y-5">
