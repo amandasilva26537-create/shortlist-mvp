@@ -327,7 +327,12 @@ Retorne um objeto JSON com EXATAMENTE estas chaves:
 Regras para basic_info:
 - Preencha somente com informações encontradas nos materiais. Não invente.
 - Use "" (string vazia) ou null (para salary_expectation) quando não encontrar.
-- work_model deve ser um de: "Remoto", "Híbrido", "Presencial", "Flexível" ou "" se não souber.`;
+- work_model deve ser um de: "Remoto", "Híbrido", "Presencial", "Flexível" ou "" se não souber.
+
+Regras de conteúdo:
+- competencies: cada categoria (hard_skills, tools, soft_skills, leadership, technical) com no máximo 15 itens, apenas o NOME do item (sem nível, sem tempo de experiência, sem observações). Não invente itens que não estejam nos materiais.
+- trajectory: ordene da experiência mais recente para a mais antiga. Para as 3 mais recentes, traga scope (resumo) e até 6 bullets no total somando responsibilities + deliveries + results. Para as demais, traga um resumo curto em scope e no máximo 3 bullets no total.
+- languages: level deve ser exatamente um de "Básico", "Intermediário", "Avançado" ou "Nativo". Nunca escreva "Sim", "Não" ou textos livres. Deixe professional_use como "" (não será exibido).`;
 
 
     const gateway = createLovableAiGateway(requireApiKey());

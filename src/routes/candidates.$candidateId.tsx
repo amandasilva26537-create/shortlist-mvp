@@ -15,6 +15,7 @@ import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candid
 import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus } from "@/lib/db/shortlists.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
 import { TagChips, TagPicker, BlockListWarning } from "@/components/candidate/CandidateTags";
+import { ExperienceItem, LanguageList } from "@/components/candidate/ProfileBits";
 import { toast } from "sonner";
 
 const SECONDARY_LABELS: Record<string, string> = {
@@ -269,13 +270,6 @@ function CandidatePage() {
                 ))}
               </Card>
             )}
-            {c.motivators?.length > 0 && <Card title="Preferências de carreira"><Tags items={c.motivators} /></Card>}
-            {c.work_model && <Card title="Modelo de trabalho desejado">{c.work_model}</Card>}
-            {(c.area || c.specialties?.length > 0) && (
-              <Card title="Áreas de interesse">
-                <Tags items={[c.area, ...(c.specialties ?? [])].filter(Boolean).slice(0, 12)} />
-              </Card>
-            )}
             {!c.headline && !c.mini_bio && (
               <div className="card-elevated p-10 text-center">
                 <Sparkles className="h-8 w-8 text-primary mx-auto mb-2" />
@@ -291,7 +285,7 @@ function CandidatePage() {
               {c.trajectory?.length > 0 ? (
                 <div className="space-y-3">
                   {c.trajectory.map((t: any, i: number) => (
-                    <ExperienceItem key={i} exp={t} defaultOpen={i < 2} />
+                    <ExperienceItem key={i} exp={t} defaultOpen={i < 3} compact={i >= 3} />
                   ))}
                 </div>
               ) : <Empty />}
@@ -306,9 +300,7 @@ function CandidatePage() {
                 {c.courses?.length > 0 && <Card title="Cursos, certificações e eventos">{sortByYearDesc(c.courses).map((e: any, i: number) => (
                   <div key={i} className="text-sm mb-1">• {[e.name, e.institution, e.year, e.workload].filter(Boolean).join(" · ")}</div>
                 ))}</Card>}
-                {c.languages?.length > 0 && <Card title="Idiomas">{c.languages.map((e: any, i: number) => (
-                  <div key={i} className="text-sm mb-1">• {[e.language, e.level, e.professional_use].filter(Boolean).join(" · ")}</div>
-                ))}</Card>}
+                {c.languages?.length > 0 && <Card title="Idiomas"><LanguageList items={c.languages} /></Card>}
                 {c.competencies?.technical?.length > 0 && <Card title="Conhecimentos complementares"><Tags items={c.competencies.technical} /></Card>}
                 {!c.education?.length && !c.courses?.length && !c.languages?.length && !c.competencies?.technical?.length && <Empty />}
               </div>
@@ -318,10 +310,10 @@ function CandidatePage() {
           <TabsContent value="skills" className="mt-4 space-y-4">
             {(c.competencies?.hard_skills?.length > 0 || c.competencies?.soft_skills?.length > 0 || c.competencies?.leadership?.length > 0 || c.competencies?.tools?.length > 0) ? (
               <>
-                {c.competencies?.hard_skills?.length > 0 && <Card title="Habilidades técnicas"><Tags items={c.competencies.hard_skills} /></Card>}
-                {c.competencies?.tools?.length > 0 && <Card title="Ferramentas"><Tags items={c.competencies.tools} /></Card>}
-                {c.competencies?.soft_skills?.length > 0 && <Card title="Habilidades comportamentais"><Tags items={c.competencies.soft_skills} /></Card>}
-                {c.competencies?.leadership?.length > 0 && <Card title="Liderança"><Tags items={c.competencies.leadership} /></Card>}
+                {c.competencies?.hard_skills?.length > 0 && <Card title="Habilidades técnicas"><Tags items={c.competencies.hard_skills.slice(0, 15)} /></Card>}
+                {c.competencies?.tools?.length > 0 && <Card title="Ferramentas"><Tags items={c.competencies.tools.slice(0, 15)} /></Card>}
+                {c.competencies?.soft_skills?.length > 0 && <Card title="Habilidades comportamentais"><Tags items={c.competencies.soft_skills.slice(0, 15)} /></Card>}
+                {c.competencies?.leadership?.length > 0 && <Card title="Habilidades de liderança"><Tags items={c.competencies.leadership.slice(0, 15)} /></Card>}
               </>
             ) : <Empty />}
           </TabsContent>
@@ -462,41 +454,6 @@ function ClampText({ text }: { text: string }) {
   );
 }
 
-function ExperienceItem({ exp, defaultOpen }: { exp: any; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(!!defaultOpen);
-  return (
-    <div className="card-elevated p-5">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-start justify-between gap-3 text-left">
-        <div className="min-w-0">
-          <div className="font-semibold">{[exp.role, exp.company].filter(Boolean).join(" — ")}</div>
-          <div className="text-xs text-muted-foreground">{[exp.segment, exp.location, exp.work_model].filter(Boolean).join(" · ")}</div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-muted-foreground">{[exp.start, exp.end].filter(Boolean).join(" — ")}{exp.duration ? ` (${exp.duration})` : ""}</span>
-          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-        </div>
-      </button>
-      {open && (
-        <div className="mt-3 border-t border-border pt-3">
-          {exp.scope && <div className="text-sm">{exp.scope}</div>}
-          {exp.responsibilities?.length > 0 && (
-            <div className="mt-2">
-              <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Responsabilidades</div>
-              <Bullets items={exp.responsibilities} />
-            </div>
-          )}
-          {exp.results?.length > 0 && (
-            <div className="mt-2">
-              <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Resultados</div>
-              <Bullets items={exp.results} />
-            </div>
-          )}
-          {exp.team_size && <div className="mt-2 text-xs text-muted-foreground">Equipe: {exp.team_size}</div>}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function StatusBadge({ status }: { status?: string }) {
   const map: Record<string,{ label: string; cls: string }> = {
