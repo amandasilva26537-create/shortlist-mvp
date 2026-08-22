@@ -133,6 +133,7 @@ export const submitPortalFeedback = createServerFn({ method: "POST" })
       shortlist_id: sl.id,
       candidate_id: data.candidate_id,
       client_identifier: data.client_identifier,
+      client_role: data.client_role ?? null,
       rating: data.rating ?? null,
       favorite: data.favorite ?? false,
       decision: data.decision ?? null,
