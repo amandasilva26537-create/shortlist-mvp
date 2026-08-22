@@ -37,47 +37,30 @@ const navItems: { to: string; label: string; icon: typeof LayoutDashboard; exact
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
+  // Acesso aberto: o sistema não exige login. Se houver uma sessão ativa,
+  // usamos os dados dela apenas para exibir nome e iniciais.
   const accessFn = useServerFn(getMyAccess);
   const access = useQuery({
     queryKey: ["my-access"],
     queryFn: () => accessFn(),
-    enabled: !!user,
   });
 
-  useEffect(() => {
-    if (!loading && user === null) navigate({ to: "/auth" });
-  }, [loading, user, navigate]);
-
-  useEffect(() => {
-    if (access.data && !access.data.isActive) {
-      toast.error("Seu acesso foi desativado. Fale com um administrador.");
-      supabase.auth.signOut().then(() => navigate({ to: "/auth", replace: true }));
-    }
-  }, [access.data, navigate]);
-
-  if (loading || !user) {
-    return <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">Carregando…</div>;
-  }
-
-  const showTeam = access.data?.isAdmin;
+  const showTeam = access.data?.isAdmin ?? true;
   const visibleNav = showTeam
     ? [...navItems, { to: "/team", label: "Equipe", icon: Users2 }]
     : navItems;
 
-  const initials = (user.user_metadata?.full_name || user.email || "US")
+  const displayName = user?.user_metadata?.full_name || user?.email || "Convidado";
+
+  const initials = String(displayName)
     .split(" ")
     .map((s: string) => s[0])
     .slice(0, 2)
     .join("")
     .toUpperCase();
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -111,23 +94,36 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="border-t border-border p-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex w-full items-center gap-2 rounded-lg px-2 py-2 hover:bg-secondary">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex w-full items-center gap-2 rounded-lg px-2 py-2 hover:bg-secondary">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary-soft text-primary text-xs">{initials}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1 text-left">
+                  <div className="truncate text-sm font-medium">{displayName}</div>
+                  <div className="truncate text-xs text-muted-foreground">Recrutador</div>
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => supabase.auth.signOut()}>
+                  <LogOut className="mr-2 h-4 w-4" /> Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex w-full items-center gap-2 rounded-lg px-2 py-2">
               <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary-soft text-primary text-xs">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-primary-soft text-primary text-xs">MV</AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1 text-left">
-                <div className="truncate text-sm font-medium">{user.user_metadata?.full_name ?? user.email}</div>
+                <div className="truncate text-sm font-medium">Acesso livre</div>
                 <div className="truncate text-xs text-muted-foreground">Recrutador</div>
               </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={signOut}>
-                <LogOut className="mr-2 h-4 w-4" /> Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </div>
+          )}
         </div>
+
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
