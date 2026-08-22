@@ -23,14 +23,15 @@ function Portal() {
   const { data, refetch } = useQuery({ queryKey: ["portal", token], queryFn: () => getFn({ data: { token } }) });
 
   const [name, setName] = useState("");
+  const [role, setRole] = useState("");
   const [openFor, setOpenFor] = useState<string | null>(null);
   const [comment, setComment] = useState("");
 
   if (!data) return <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">Carregando…</div>;
 
-  const send = async (candidate_id: string, decision: "approved" | "rejected" | "second_interview" | null, favorite?: boolean, commentText?: string) => {
+  const send = async (candidate_id: string, decision: string | null, favorite?: boolean, commentText?: string) => {
     if (!name) { toast.error("Informe seu nome para registrar"); return; }
-    await sendFn({ data: { token, candidate_id, client_identifier: name, decision, favorite, comment: commentText ?? null } });
+    await sendFn({ data: { token, candidate_id, client_identifier: name, client_role: role || null, decision, favorite, comment: commentText ?? null } });
     toast.success("Registrado. Obrigado!");
     setComment(""); setOpenFor(null);
     refetch();
@@ -54,8 +55,11 @@ function Portal() {
 
       <div className="mx-auto max-w-4xl p-5">
         <div className="card-soft p-4 mb-6">
-          <div className="text-sm font-medium mb-2">Seu nome (para registrar comentários e decisões)</div>
-          <Input placeholder="Ex: João Silva — Diretor de Operações" value={name} onChange={(e) => setName(e.target.value)} />
+          <div className="text-sm font-medium mb-2">Seus dados (para registrar comentários e decisões)</div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Input placeholder="Seu nome — Ex: João Silva" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input placeholder="Seu cargo — Ex: Diretor de Operações" value={role} onChange={(e) => setRole(e.target.value)} />
+          </div>
         </div>
 
         <FlashcardDeck
@@ -71,17 +75,14 @@ function Portal() {
             return (
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={() => send(cid, "approved")}>
-                    <ThumbsUp className="mr-1.5 h-3.5 w-3.5" /> Aprovar
+                  <Button size="sm" variant="outline" onClick={() => send(cid, "second_interview", false, openFor === cid ? comment : undefined)}>
+                    <ThumbsUp className="mr-1.5 h-3.5 w-3.5" /> Aprovado para a segunda entrevista
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => send(cid, "second_interview")}>
-                    2ª entrevista
+                  <Button size="sm" variant="outline" onClick={() => send(cid, "rejected", false, openFor === cid ? comment : undefined)}>
+                    <ThumbsDown className="mr-1.5 h-3.5 w-3.5" /> Reprovado
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => send(cid, "rejected")}>
-                    <ThumbsDown className="mr-1.5 h-3.5 w-3.5" /> Reprovar
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => send(cid, null, true)}>
-                    <Heart className="mr-1.5 h-3.5 w-3.5" /> Favoritar
+                  <Button size="sm" variant="outline" onClick={() => send(cid, "favorite_approved", true, openFor === cid ? comment : undefined)}>
+                    <Heart className="mr-1.5 h-3.5 w-3.5" /> Favoritado — aprovado
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setOpenFor(openFor === cid ? null : cid)}>
                     <MessageCircle className="mr-1.5 h-3.5 w-3.5" /> Comentar
@@ -90,6 +91,7 @@ function Portal() {
                 {openFor === cid && (
                   <div className="mt-3 space-y-2">
                     <Textarea rows={3} placeholder="Sua observação sobre este candidato…" value={comment} onChange={(e) => setComment(e.target.value)} />
+                    <p className="text-xs text-muted-foreground">Escreva o comentário e escolha uma decisão acima, ou envie apenas o comentário.</p>
                     <Button size="sm" onClick={() => send(cid, null, false, comment)}>Enviar comentário</Button>
                   </div>
                 )}
