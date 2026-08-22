@@ -98,6 +98,29 @@ export const getPortalCandidate = createServerFn({ method: "GET" })
     return { candidate: { ...safe, documents: docs ?? [] }, evaluation: evaluation ?? null, shortlist_id: sl.id };
   });
 
+export const getPortalFeedback = createServerFn({ method: "GET" })
+  .inputValidator((v: unknown) =>
+    z.object({ token: z.string().min(4), client_identifier: z.string().min(1).max(200) }).parse(v),
+  )
+  .handler(async ({ data }) => {
+    const supabase = publicClient(data.token);
+    const { data: sl } = await supabase
+      .from("shortlists")
+      .select("id")
+      .eq("share_token", data.token)
+      .eq("status", "sent")
+      .maybeSingle();
+    if (!sl) return [];
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("manager_feedback")
+      .select("candidate_id, decision, favorite, comment, client_identifier, client_role")
+      .eq("shortlist_id", sl.id)
+      .ilike("client_identifier", data.client_identifier);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
 export const submitPortalFeedback = createServerFn({ method: "POST" })
   .inputValidator((v: unknown) =>
     z.object({
@@ -129,7 +152,7 @@ export const submitPortalFeedback = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!membership) throw new Error("Candidato não pertence a esta shortlist");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("manager_feedback").insert({
+    const payload = {
       shortlist_id: sl.id,
       candidate_id: data.candidate_id,
       client_identifier: data.client_identifier,
@@ -138,7 +161,22 @@ export const submitPortalFeedback = createServerFn({ method: "POST" })
       favorite: data.favorite ?? false,
       decision: data.decision ?? null,
       comment: data.comment ?? null,
-    });
-    if (error) throw new Error(error.message);
+      updated_at: new Date().toISOString(),
+    };
+    const { data: existing } = await supabaseAdmin
+      .from("manager_feedback")
+      .select("id")
+      .eq("shortlist_id", sl.id)
+      .eq("candidate_id", data.candidate_id)
+      .ilike("client_identifier", data.client_identifier)
+      .maybeSingle();
+    if (existing) {
+      const { error } = await supabaseAdmin.from("manager_feedback").update(payload).eq("id", existing.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabaseAdmin.from("manager_feedback").insert(payload);
+      if (error) throw new Error(error.message);
+    }
     return { ok: true };
   });
+
