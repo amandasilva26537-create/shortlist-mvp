@@ -579,12 +579,7 @@ Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
     "leadership": number, "communication": number, "strategy": number,
     "execution": number, "cultural_fit": number, "adaptability": number
   },
-  "radar_scores": { "<nome da competência da vaga>": number },
-  "cultural_fit": {
-    "summary": string,                                // 2-4 linhas sobre a aderência cultural DESTE candidato a ESTA vaga/empresa
-    "alignments": [{ "point": string, "evidence": string }],       // 2-5 pontos de alinhamento cultural com evidência
-    "attention_points": [{ "point": string, "mitigation": string }] // 0-4 pontos de atenção culturais e como mitigá-los
-  }
+  "radar_scores": { "<nome da competência da vaga>": number }
 }
 
 Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
