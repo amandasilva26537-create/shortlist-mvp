@@ -340,7 +340,8 @@ Regras para basic_info:
 Regras de conteúdo:
 - competencies: cada categoria (hard_skills, tools, soft_skills, leadership, technical) com no máximo 15 itens, apenas o NOME do item (sem nível, sem tempo de experiência, sem observações). Não invente itens que não estejam nos materiais.
 - trajectory: ordene da experiência mais recente para a mais antiga. Para as 3 mais recentes, traga scope (resumo) e até 6 bullets no total somando responsibilities + deliveries + results. Para as demais, traga um resumo curto em scope e no máximo 3 bullets no total.
-- languages: level deve ser exatamente um de "Básico", "Intermediário", "Avançado" ou "Nativo". Nunca escreva "Sim", "Não" ou textos livres. Deixe professional_use como "" (não será exibido).`;
+- languages: level deve ser exatamente um de "Básico", "Intermediário", "Avançado" ou "Nativo". Nunca escreva "Sim", "Não" ou textos livres. Deixe professional_use como "" (não será exibido).
+- courses: liste até 10 cursos/certificações que apareçam no currículo ou nos materiais, dos mais recentes para os mais antigos. Não invente cursos; se houver menos de 10, liste apenas os encontrados.`;
 
 
     const gateway = createLovableAiGateway(requireApiKey());
