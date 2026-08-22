@@ -34,7 +34,7 @@ export const getPortalShortlist = createServerFn({ method: "GET" })
     const [{ data: links }, { data: feedback }] = await Promise.all([
       supabase
         .from("shortlist_candidates")
-        .select("*, candidates(id, full_name, photo_url, current_position, city, work_model, linkedin_url, disc_profile, disc_scores)")
+        .select("*, candidates(id, full_name, photo_url, current_position, city, work_model, linkedin_url, disc_profile, disc_scores, salary_expectation, salary_min, salary_max)")
         .eq("shortlist_id", sl.id)
         .order("position"),
       supabase.from("manager_feedback").select("*").eq("shortlist_id", sl.id),
