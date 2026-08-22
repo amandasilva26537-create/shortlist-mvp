@@ -67,6 +67,8 @@ function CandidatePage() {
   const c: any = data;
   const [addOpen, setAddOpen] = useState(false);
   const [delOpen, setDelOpen] = useState(false);
+  const [tab, setTab] = useState("overview");
+
 
   const removeLink = useMutation({
     mutationFn: (shortlist_id: string) => removeLinkFn({ data: { shortlist_id, candidate_id: candidateId } }),
