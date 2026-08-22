@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ExperienceItem, LanguageList } from "@/components/candidate/ProfileBits";
 import { DiscSection } from "@/components/candidate/DiscSection";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Linkedin, ExternalLink } from "lucide-react";
 import { getPortalCandidate } from "@/lib/db/portal.functions";
 import { ClientEvaluationPanel, loadIdentity, type PortalIdentity } from "@/components/shortlist/ClientEvaluationPanel";
-import { useEffect } from "react";
 
 export const Route = createFileRoute("/s/$token/c/$candidateId")({
   ssr: false,
