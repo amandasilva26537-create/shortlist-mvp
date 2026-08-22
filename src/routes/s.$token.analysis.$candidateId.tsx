@@ -5,6 +5,8 @@ import { ArrowLeft, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnalysisContent } from "@/components/shortlist/AnalysisContent";
 import { getPortalShortlist } from "@/lib/db/portal.functions";
+import { ClientEvaluationPanel, loadIdentity, type PortalIdentity } from "@/components/shortlist/ClientEvaluationPanel";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/s/$token/analysis/$candidateId")({
   ssr: false,
@@ -16,6 +18,8 @@ function PortalAnalysisPage() {
   const { token, candidateId } = Route.useParams();
   const getFn = useServerFn(getPortalShortlist);
   const { data } = useQuery({ queryKey: ["portal", token], queryFn: () => getFn({ data: { token } }) });
+  const [identity, setIdentity] = useState<PortalIdentity | null>(null);
+  useEffect(() => { setIdentity(loadIdentity(token)); }, [token]);
 
   if (!data) return <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">Carregando…</div>;
 
@@ -44,7 +48,9 @@ function PortalAnalysisPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-8 md:px-8">
+      <main className="mx-auto max-w-6xl px-4 py-8 md:px-8">
+        <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="min-w-0">
         <div className="mb-8 flex items-start gap-4">
           {candidate.photo_url ? (
             <img src={candidate.photo_url} alt="" className="h-20 w-20 rounded-full object-cover ring-2 ring-primary/20" />
@@ -65,6 +71,13 @@ function PortalAnalysisPage() {
           evaluation={evaluation}
           readOnly
         />
+        </div>
+        {identity && (
+          <div className="lg:sticky lg:top-20 lg:self-start print:hidden">
+            <ClientEvaluationPanel token={token} candidateId={candidate.id} candidateName={candidate.full_name} identity={identity} />
+          </div>
+        )}
+        </div>
       </main>
 
       <style>{`

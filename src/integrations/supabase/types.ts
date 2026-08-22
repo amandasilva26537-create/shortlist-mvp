@@ -571,6 +571,7 @@ export type Database = {
           id: string
           rating: number | null
           shortlist_id: string
+          updated_at: string
         }
         Insert: {
           candidate_id: string
@@ -583,6 +584,7 @@ export type Database = {
           id?: string
           rating?: number | null
           shortlist_id: string
+          updated_at?: string
         }
         Update: {
           candidate_id?: string
@@ -595,6 +597,7 @@ export type Database = {
           id?: string
           rating?: number | null
           shortlist_id?: string
+          updated_at?: string
         }
         Relationships: [
           {

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ExperienceItem, LanguageList } from "@/components/candidate/ProfileBits";
 import { DiscSection } from "@/components/candidate/DiscSection";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Linkedin, ExternalLink } from "lucide-react";
 import { getPortalCandidate } from "@/lib/db/portal.functions";
+import { ClientEvaluationPanel, loadIdentity, type PortalIdentity } from "@/components/shortlist/ClientEvaluationPanel";
 
 export const Route = createFileRoute("/s/$token/c/$candidateId")({
   ssr: false,
@@ -24,6 +25,9 @@ function PortalCandidatePage() {
     queryKey: ["portal-candidate", token, candidateId],
     queryFn: () => getFn({ data: { token, candidate_id: candidateId } }),
   });
+
+  const [identity, setIdentity] = useState<PortalIdentity | null>(null);
+  useEffect(() => { setIdentity(loadIdentity(token)); }, [token]);
 
   if (isLoading) {
     return <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">Carregando…</div>;
@@ -53,7 +57,9 @@ function PortalCandidatePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6 md:px-8">
+      <main className="mx-auto max-w-6xl px-4 py-6 md:px-8">
+        <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="min-w-0">
         <div className="card-elevated p-6 mb-4">
           <div className="flex items-start gap-4">
             <Avatar className="h-20 w-20">
@@ -195,7 +201,15 @@ function PortalCandidatePage() {
             </TabsContent>
           )}
         </Tabs>
+        </div>
+        {identity && (
+          <div className="lg:sticky lg:top-20 lg:self-start">
+            <ClientEvaluationPanel token={token} candidateId={c.id} candidateName={c.full_name} identity={identity} />
+          </div>
+        )}
+        </div>
       </main>
+
     </div>
   );
 }

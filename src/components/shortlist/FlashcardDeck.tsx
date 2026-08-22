@@ -19,11 +19,12 @@ interface Props {
   profileBasePath?: string;  // e.g. "/candidates" or "/s/{token}/c"
   returnTo?: string;
   actionsSlot?: (candidate: any, evaluation: any) => React.ReactNode;
+  onCurrentChange?: (candidate: any) => void;
 }
 
 export function FlashcardDeck({
   shortlistId, jobId, links, evaluations, initialCandidateId, readOnly, onReorder,
-  analysisBasePath, profileBasePath, returnTo, actionsSlot,
+  analysisBasePath, profileBasePath, returnTo, actionsSlot, onCurrentChange,
 }: Props) {
   const navigate = useNavigate();
 
@@ -54,6 +55,13 @@ export function FlashcardDeck({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
+
+  const currentId = ordered[Math.max(0, Math.min(idx, ordered.length - 1))]?.candidate_id;
+  useEffect(() => {
+    if (!currentId) return;
+    const link = ordered.find((l) => l.candidate_id === currentId);
+    if (link) onCurrentChange?.(link.candidates);
+  }, [currentId, ordered, onCurrentChange]);
 
   if (ordered.length === 0) {
     return (

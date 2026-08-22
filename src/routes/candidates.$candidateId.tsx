@@ -32,6 +32,8 @@ const DECISION_LABELS: Record<string, string> = {
   approved: "Aprovado",
   rejected: "Reprovado",
   favorite_approved: "Favoritado — aprovado",
+  approved_stage: "Aprovado nesta fase",
+  undecided: "Ainda não decidi",
 };
 
 function sortByYearDesc(items: any[]): any[] {
@@ -416,6 +418,7 @@ function CandidatePage() {
                             </div>
                             <div className="flex items-center gap-2">
                               {f.decision && <Badge variant="secondary">{DECISION_LABELS[f.decision] ?? f.decision}</Badge>}
+                              {f.favorite && <Badge variant="secondary">★ Favorito</Badge>}
                               <span className="text-xs text-muted-foreground">{new Date(f.created_at).toLocaleDateString("pt-BR")}</span>
                             </div>
                           </div>
