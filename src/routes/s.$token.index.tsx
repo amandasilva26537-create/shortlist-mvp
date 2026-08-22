@@ -119,9 +119,8 @@ function Portal() {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+
+
 
   const candidate = detail?.candidate ?? currentLink?.candidates;
   const evaluation =
