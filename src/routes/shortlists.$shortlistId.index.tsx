@@ -135,14 +135,6 @@ function ShortlistDetail() {
           onReorder={reorder}
         />
 
-        <div className="card-soft p-5 mt-8">
-          <div className="flex items-center gap-2 mb-3"><Wand2 className="h-5 w-5 text-primary" /><div className="font-semibold">Análise comparativa da shortlist</div></div>
-          <div className="flex gap-2">
-            <Input placeholder="Ex: quem tem maior aderência a liderança? sugira ordem de apresentação…" value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} />
-            <Button onClick={analyze} disabled={aiBusy}>{aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Analisar"}</Button>
-          </div>
-          {aiText && <div className="mt-4 whitespace-pre-wrap text-sm rounded-lg bg-secondary/40 p-4">{aiText}</div>}
-        </div>
       </div>
     </AppShell>
   );
