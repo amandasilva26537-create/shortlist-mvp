@@ -275,8 +275,16 @@ REGRAS ABSOLUTAS:
 - Se um dado não estiver disponível, retorne string vazia "" ou array vazio [].
 - Se dois materiais divergirem, liste em "inconsistencies".
 
+CONCORDÂNCIA DE GÊNERO (obrigatório em todos os textos gerados):
+- Gênero informado: ${(cand as any).gender || "Prefere não identificar"}.
+- "Masculino": escreva no masculino ("o candidato", "ele", "preparado", "responsável por").
+- "Feminino": escreva no feminino ("a candidata", "ela", "preparada", "responsável por").
+- "Prefere não identificar" ou vazio: use linguagem neutra, sem marcar gênero (use o nome da pessoa ou "o/a profissional" evitando adjetivos com marca de gênero). Nunca use "ele(a)" nem barras.
+- Aplique a concordância em headline, mini_bio, full_bio, executive_summary, strengths, work_style, professional_moment e demais textos.
+
 CANDIDATO (dados manuais):
 Nome: ${cand.full_name}
+Gênero: ${(cand as any).gender ?? ""}
 Cargo atual: ${cand.current_position ?? ""}
 Empresa atual: ${cand.current_company ?? ""}
 Área: ${cand.area ?? ""}
@@ -332,7 +340,8 @@ Regras para basic_info:
 Regras de conteúdo:
 - competencies: cada categoria (hard_skills, tools, soft_skills, leadership, technical) com no máximo 15 itens, apenas o NOME do item (sem nível, sem tempo de experiência, sem observações). Não invente itens que não estejam nos materiais.
 - trajectory: ordene da experiência mais recente para a mais antiga. Para as 3 mais recentes, traga scope (resumo) e até 6 bullets no total somando responsibilities + deliveries + results. Para as demais, traga um resumo curto em scope e no máximo 3 bullets no total.
-- languages: level deve ser exatamente um de "Básico", "Intermediário", "Avançado" ou "Nativo". Nunca escreva "Sim", "Não" ou textos livres. Deixe professional_use como "" (não será exibido).`;
+- languages: level deve ser exatamente um de "Básico", "Intermediário", "Avançado" ou "Nativo". Nunca escreva "Sim", "Não" ou textos livres. Deixe professional_use como "" (não será exibido).
+- courses: liste até 10 cursos/certificações que apareçam no currículo ou nos materiais, dos mais recentes para os mais antigos. Não invente cursos; se houver menos de 10, liste apenas os encontrados.`;
 
 
     const gateway = createLovableAiGateway(requireApiKey());
@@ -386,7 +395,7 @@ Regras de conteúdo:
       motivators: normArr(output.motivators),
       trajectory: normArr(output.trajectory),
       education: normArr(output.education),
-      courses: normArr(output.courses),
+      courses: normArr(output.courses).slice(0, 10),
       languages: normArr(output.languages),
       competencies: output.competencies ?? null,
       inconsistencies: normArr(output.inconsistencies),
@@ -461,7 +470,7 @@ export const refineText = createServerFn({ method: "POST" })
     const model = gateway(AI_MODEL);
     const { text } = await generateText({
       model,
-      prompt: `Você é um editor executivo. Reescreva o texto abaixo aplicando a instrução, mantendo veracidade e tom profissional.
+      prompt: `Você é um editor executivo. Reescreva o texto abaixo aplicando a instrução, mantendo veracidade e tom profissional. Respeite a concordância de gênero indicada no contexto (masculino, feminino ou linguagem neutra quando a pessoa preferir não identificar) e nunca use "ele(a)" ou barras.
 
 Contexto: ${data.context ?? "—"}
 

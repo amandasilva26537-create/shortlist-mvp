@@ -244,6 +244,7 @@ export type Database = {
           executive_summary: Json | null
           full_bio: string | null
           full_name: string
+          gender: string | null
           headline: string | null
           id: string
           inconsistencies: Json | null
@@ -293,6 +294,7 @@ export type Database = {
           executive_summary?: Json | null
           full_bio?: string | null
           full_name: string
+          gender?: string | null
           headline?: string | null
           id?: string
           inconsistencies?: Json | null
@@ -342,6 +344,7 @@ export type Database = {
           executive_summary?: Json | null
           full_bio?: string | null
           full_name?: string
+          gender?: string | null
           headline?: string | null
           id?: string
           inconsistencies?: Json | null

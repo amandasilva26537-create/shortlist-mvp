@@ -14,6 +14,7 @@ const CandidateInput = z.object({
   state: z.string().nullable().optional(),
   country: z.string().nullable().optional(),
   work_model: z.string().nullable().optional(),
+  gender: z.string().nullable().optional(),
   salary_expectation: z.number().nullable().optional(),
   linkedin_url: z.string().nullable().optional(),
   email: z.string().nullable().optional(),
