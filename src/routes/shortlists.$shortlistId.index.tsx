@@ -88,15 +88,6 @@ function ShortlistDetail() {
     finally { setBatchBusy(false); }
   };
 
-  const analyze = async () => {
-    setAiBusy(true);
-    try {
-      const r: any = await aiFn({ data: { shortlist_id: shortlistId, prompt: aiPrompt || undefined } });
-      setAiText(r.text);
-    } catch (e: any) { toast.error(e.message); }
-    finally { setAiBusy(false); }
-  };
-
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl">
