@@ -514,9 +514,14 @@ export const evaluateCandidateForJob = createServerFn({ method: "POST" })
     const jobAny: any = job;
     const cAny: any = cand;
     const ais: any = jobAny.ai_structure ?? {};
-    const promptText = `Você é um consultor sênior de recrutamento executivo. Avalie a aderência DESTE candidato a ESTA vaga específica. Seja HONESTO — não infle percentuais. Nunca aplique nota mínima obrigatória.
+    const promptText = `Você é a recrutadora responsável por esta vaga. Avalie a aderência DESTA pessoa a ESTA vaga específica. Seja HONESTA — não infle percentuais. Nunca aplique nota mínima obrigatória.
 
 Use SOMENTE informações realmente presentes no material fornecido. Se algo não estiver disponível, retorne "" ou [] ou marque status "unknown".
+
+${SHORTLIST_WRITING_STYLE}
+
+${genderInstruction(cAny.gender, cAny.full_name)}
+
 
 ===== VAGA =====
 Título: ${jobAny.title}
