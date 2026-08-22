@@ -68,7 +68,10 @@ function NewCandidate() {
     education: [], courses: [], languages: [], competencies: null, additional_info: null,
     inconsistencies: [], status: "rascunho",
   });
+  const suggestionsFn = useServerFn(listSkillSuggestions);
+  const { data: skillSuggestions } = useQuery({ queryKey: ["skill-suggestions"], queryFn: () => suggestionsFn() });
   const [aiBusy, setAiBusy] = useState(false);
+
   const [aiStep, setAiStep] = useState(0);
   const [refineInstr, setRefineInstr] = useState("");
   const [pastedContext, setPastedContext] = useState("");
