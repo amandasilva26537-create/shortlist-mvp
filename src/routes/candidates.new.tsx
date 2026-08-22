@@ -527,25 +527,48 @@ function TagSection({ title, items, onChange }: { title: string; items: string[]
   );
 }
 
-function TagInput({ items, onChange }: { items: string[]; onChange: (v: string[]) => void }) {
+function TagInput({ items, onChange, suggestions = [] }: { items: string[]; onChange: (v: string[]) => void; suggestions?: string[] }) {
   const [val, setVal] = useState("");
+  const current = items ?? [];
+  const norm = (s: string) => s.trim().toLowerCase();
+  const add = (raw: string) => {
+    const v = raw.trim();
+    if (!v) return;
+    if (current.some((t) => norm(t) === norm(v))) { setVal(""); return; }
+    onChange([...current, v]);
+    setVal("");
+  };
+  const matches = val.trim()
+    ? suggestions.filter((s) => norm(s).includes(norm(val)) && !current.some((t) => norm(t) === norm(s))).slice(0, 6)
+    : [];
   return (
     <div>
       <div className="flex flex-wrap gap-1.5 mb-2">
-        {(items ?? []).map((t, i) => (
+        {current.map((t, i) => (
           <Badge key={i} variant="secondary" className="gap-1">
             {t}
-            <button onClick={() => onChange(items.filter((_, j) => j !== i))} className="hover:text-destructive">×</button>
+            <button onClick={() => onChange(current.filter((_, j) => j !== i))} className="hover:text-destructive" aria-label={`Remover ${t}`}>×</button>
           </Badge>
         ))}
       </div>
       <div className="flex gap-2">
-        <Input value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && val.trim()) { e.preventDefault(); onChange([...(items ?? []), val.trim()]); setVal(""); } }} placeholder="Digite e pressione Enter" />
-        <Button size="sm" variant="outline" onClick={() => { if (val.trim()) { onChange([...(items ?? []), val.trim()]); setVal(""); } }}>Adicionar</Button>
+        <Input value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(val); } }} placeholder="Digite o nome e pressione Enter" />
+        <Button size="sm" variant="outline" onClick={() => add(val)}>Adicionar</Button>
       </div>
+      {matches.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">Já cadastrados:</span>
+          {matches.map((s) => (
+            <button key={s} type="button" onClick={() => add(s)} className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:bg-secondary">
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
+
 
 function SimpleList({ items, fields, onChange }: { items: any[]; fields: [string,string][]; onChange: (v: any[]) => void }) {
   return (
