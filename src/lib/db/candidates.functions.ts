@@ -57,7 +57,18 @@ export const listCandidates = createServerFn({ method: "GET" })
       .select("*")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    const rows = data ?? [];
+    const { data: links } = await context.supabase
+      .from("candidate_tags")
+      .select("candidate_id, tags(id, name, color)");
+    const byCandidate = new Map<string, any[]>();
+    for (const l of links ?? []) {
+      if (!l.tags) continue;
+      const arr = byCandidate.get(l.candidate_id) ?? [];
+      arr.push(l.tags);
+      byCandidate.set(l.candidate_id, arr);
+    }
+    return rows.map((c) => ({ ...c, tags: byCandidate.get(c.id) ?? [] }));
   });
 
 export const getCandidate = createServerFn({ method: "GET" })
@@ -76,8 +87,17 @@ export const getCandidate = createServerFn({ method: "GET" })
       .select("*")
       .eq("candidate_id", data.id)
       .order("created_at", { ascending: false });
-    return { ...cand, documents: docs ?? [] };
+    const { data: tagLinks } = await context.supabase
+      .from("candidate_tags")
+      .select("tags(id, name, color)")
+      .eq("candidate_id", data.id);
+    return {
+      ...cand,
+      documents: docs ?? [],
+      tags: (tagLinks ?? []).map((l: any) => l.tags).filter(Boolean),
+    };
   });
+
 
 export const upsertCandidate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
