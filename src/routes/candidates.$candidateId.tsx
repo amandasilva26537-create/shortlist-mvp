@@ -24,6 +24,14 @@ const SECONDARY_LABELS: Record<string, string> = {
   additional: "Informações adicionais",
   shortlists: "Vagas e shortlists",
   internal: "Anotações internas",
+  feedbacks: "Feedbacks de clientes",
+};
+
+const DECISION_LABELS: Record<string, string> = {
+  second_interview: "Aprovado para a segunda entrevista",
+  approved: "Aprovado",
+  rejected: "Reprovado",
+  favorite_approved: "Favoritado — aprovado",
 };
 
 function sortByYearDesc(items: any[]): any[] {
