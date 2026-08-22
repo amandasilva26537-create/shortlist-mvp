@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { toast } from "sonner";
 import { Copy, ExternalLink, Send, Trash2, Loader2, Wand2 } from "lucide-react";
 import {
@@ -14,7 +14,7 @@ import {
   updateShortlistOrder,
   listEvaluationsForShortlist,
 } from "@/lib/db/shortlists.functions";
-import { analyzeShortlist, evaluateCandidateForJob } from "@/lib/ai/ai.functions";
+import { evaluateCandidateForJob } from "@/lib/ai/ai.functions";
 import { FlashcardDeck } from "@/components/shortlist/FlashcardDeck";
 
 export const Route = createFileRoute("/shortlists/$shortlistId/")({
@@ -33,7 +33,6 @@ function ShortlistDetail() {
   const publishFn = useServerFn(publishShortlist);
   const delFn = useServerFn(deleteShortlist);
   const reorderFn = useServerFn(updateShortlistOrder);
-  const aiFn = useServerFn(analyzeShortlist);
   const evaluateFn = useServerFn(evaluateCandidateForJob);
 
   const { data, refetch } = useQuery({
@@ -46,9 +45,6 @@ function ShortlistDetail() {
     enabled: !!data,
   });
 
-  const [aiText, setAiText] = useState("");
-  const [aiBusy, setAiBusy] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState("");
   const [batchBusy, setBatchBusy] = useState(false);
 
   if (!data) return <AppShell><div className="text-sm text-muted-foreground">Carregando…</div></AppShell>;
@@ -90,15 +86,6 @@ function ShortlistDetail() {
       toast.success(`Análise concluída para ${missing.length} candidato(s)`);
     } catch (e: any) { toast.error(e.message); }
     finally { setBatchBusy(false); }
-  };
-
-  const analyze = async () => {
-    setAiBusy(true);
-    try {
-      const r: any = await aiFn({ data: { shortlist_id: shortlistId, prompt: aiPrompt || undefined } });
-      setAiText(r.text);
-    } catch (e: any) { toast.error(e.message); }
-    finally { setAiBusy(false); }
   };
 
   return (
@@ -148,14 +135,6 @@ function ShortlistDetail() {
           onReorder={reorder}
         />
 
-        <div className="card-soft p-5 mt-8">
-          <div className="flex items-center gap-2 mb-3"><Wand2 className="h-5 w-5 text-primary" /><div className="font-semibold">Análise comparativa da shortlist</div></div>
-          <div className="flex gap-2">
-            <Input placeholder="Ex: quem tem maior aderência a liderança? sugira ordem de apresentação…" value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} />
-            <Button onClick={analyze} disabled={aiBusy}>{aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Analisar"}</Button>
-          </div>
-          {aiText && <div className="mt-4 whitespace-pre-wrap text-sm rounded-lg bg-secondary/40 p-4">{aiText}</div>}
-        </div>
       </div>
     </AppShell>
   );
