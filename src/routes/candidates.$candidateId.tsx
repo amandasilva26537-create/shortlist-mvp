@@ -284,7 +284,7 @@ function CandidatePage() {
               {c.trajectory?.length > 0 ? (
                 <div className="space-y-3">
                   {c.trajectory.map((t: any, i: number) => (
-                    <ExperienceItem key={i} exp={t} defaultOpen={i < 2} />
+                    <ExperienceItem key={i} exp={t} defaultOpen={i < 3} compact={i >= 3} />
                   ))}
                 </div>
               ) : <Empty />}
@@ -299,9 +299,7 @@ function CandidatePage() {
                 {c.courses?.length > 0 && <Card title="Cursos, certificações e eventos">{sortByYearDesc(c.courses).map((e: any, i: number) => (
                   <div key={i} className="text-sm mb-1">• {[e.name, e.institution, e.year, e.workload].filter(Boolean).join(" · ")}</div>
                 ))}</Card>}
-                {c.languages?.length > 0 && <Card title="Idiomas">{c.languages.map((e: any, i: number) => (
-                  <div key={i} className="text-sm mb-1">• {[e.language, e.level, e.professional_use].filter(Boolean).join(" · ")}</div>
-                ))}</Card>}
+                {c.languages?.length > 0 && <Card title="Idiomas"><LanguageList items={c.languages} /></Card>}
                 {c.competencies?.technical?.length > 0 && <Card title="Conhecimentos complementares"><Tags items={c.competencies.technical} /></Card>}
                 {!c.education?.length && !c.courses?.length && !c.languages?.length && !c.competencies?.technical?.length && <Empty />}
               </div>
@@ -311,10 +309,10 @@ function CandidatePage() {
           <TabsContent value="skills" className="mt-4 space-y-4">
             {(c.competencies?.hard_skills?.length > 0 || c.competencies?.soft_skills?.length > 0 || c.competencies?.leadership?.length > 0 || c.competencies?.tools?.length > 0) ? (
               <>
-                {c.competencies?.hard_skills?.length > 0 && <Card title="Habilidades técnicas"><Tags items={c.competencies.hard_skills} /></Card>}
-                {c.competencies?.tools?.length > 0 && <Card title="Ferramentas"><Tags items={c.competencies.tools} /></Card>}
-                {c.competencies?.soft_skills?.length > 0 && <Card title="Habilidades comportamentais"><Tags items={c.competencies.soft_skills} /></Card>}
-                {c.competencies?.leadership?.length > 0 && <Card title="Liderança"><Tags items={c.competencies.leadership} /></Card>}
+                {c.competencies?.hard_skills?.length > 0 && <Card title="Habilidades técnicas"><Tags items={c.competencies.hard_skills.slice(0, 15)} /></Card>}
+                {c.competencies?.tools?.length > 0 && <Card title="Ferramentas"><Tags items={c.competencies.tools.slice(0, 15)} /></Card>}
+                {c.competencies?.soft_skills?.length > 0 && <Card title="Habilidades comportamentais"><Tags items={c.competencies.soft_skills.slice(0, 15)} /></Card>}
+                {c.competencies?.leadership?.length > 0 && <Card title="Habilidades de liderança"><Tags items={c.competencies.leadership.slice(0, 15)} /></Card>}
               </>
             ) : <Empty />}
           </TabsContent>
