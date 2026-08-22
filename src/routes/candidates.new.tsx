@@ -130,7 +130,14 @@ function NewCandidate() {
     if (!f.full_name.trim()) { toast.error("Nome é obrigatório"); return null; }
     const row: any = await saveFn({ data: buildPayload(extra) });
     setCandId(row.id);
-    setF((p: any) => ({ ...p, ...row, salary_expectation: row.salary_expectation ?? "" }));
+    setF((p: any) => ({
+      ...p,
+      ...row,
+      salary_expectation: row.salary_expectation ?? "",
+      salary_min: row.salary_min ?? "",
+      salary_max: row.salary_max ?? "",
+    }));
+
     qc.invalidateQueries({ queryKey: ["candidates"] });
     return row.id as string;
   };
