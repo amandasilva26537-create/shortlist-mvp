@@ -128,7 +128,39 @@ function CandidatesList() {
             <FilterSelect label="Currículo" value={hasResume} setValue={setHasResume} options={["yes","no"]} labels={{ yes: "Possui", no: "Não possui" }} />
             <FilterSelect label="Foto" value={hasPhoto} setValue={setHasPhoto} options={["yes","no"]} labels={{ yes: "Possui", no: "Não possui" }} />
           </div>
+          {allTags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 border-t border-border pt-3">
+              <span className="mr-1 text-xs font-medium text-muted-foreground">Etiquetas:</span>
+              {allTags.map((t: any) => {
+                const on = tagIds.includes(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() =>
+                      setTagIds((prev) => (on ? prev.filter((id) => id !== t.id) : [...prev, t.id]))
+                    }
+                    className={
+                      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors " +
+                      (on ? "border-primary bg-primary-soft text-primary" : "border-border text-muted-foreground hover:bg-secondary")
+                    }
+                  >
+                    <span className={`h-2 w-2 rounded-full ${tagDotClasses(t.color)}`} />
+                    {t.name}
+                    <span className="text-[10px] opacity-70">{t.candidate_count}</span>
+                  </button>
+                );
+              })}
+              {tagIds.length > 0 && (
+                <button type="button" onClick={() => setTagIds([])} className="ml-1 text-xs text-primary hover:underline">
+                  Limpar
+                </button>
+              )}
+            </div>
+          )}
         </div>
+
 
         {isLoading ? (
           <div className="text-sm text-muted-foreground">Carregando…</div>
