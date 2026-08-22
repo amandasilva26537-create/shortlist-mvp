@@ -685,10 +685,13 @@ export const generateDiscResult = createServerFn({ method: "POST" })
     const model = gateway(AI_MODEL);
     const { text } = await generateText({
       model,
-      prompt: `Você é um especialista em avaliação comportamental DISC. Interprete SOMENTE os dados abaixo e produza o resultado DISC. Não invente dados de currículo nem fale de experiência profissional.
+      prompt: `Você é a recrutadora responsável e interpreta o DISC. Interprete SOMENTE os dados abaixo e produza o resultado DISC. Não invente dados de currículo nem fale de experiência profissional.
+
+${SHORTLIST_WRITING_STYLE}
 
 Pessoa: ${cAny.full_name}
 ${genderRule}
+${genderInstruction(cAny.gender, cAny.full_name)}
 Pontuações brutas: D=${raw.D ?? "?"} I=${raw.I ?? "?"} S=${raw.S ?? "?"} C=${raw.C ?? "?"}
 Resultado bruto/relatório: ${cAny.disc_raw ?? "—"}
 
