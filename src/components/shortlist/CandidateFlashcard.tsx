@@ -28,10 +28,8 @@ export function CandidateFlashcard({ candidate, evaluation }: Props) {
 
 
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-lg animate-scale-in"
-      onPointerUpCapture={handleCardPointerUpCapture}
-    >
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-lg animate-scale-in">
+
       {/* Faixa decorativa superior */}
       <div className="h-1.5 bg-gradient-to-r from-primary/60 via-primary to-primary/60" />
 
