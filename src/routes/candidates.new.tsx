@@ -295,6 +295,11 @@ function NewCandidate() {
                 </Select>
               </div>
               <div><Label>Pretensão salarial (R$)</Label><Input type="number" value={f.salary_expectation} onChange={set("salary_expectation")} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label>Pretensão mínima (R$)</Label><Input type="number" value={f.salary_min} onChange={set("salary_min")} /></div>
+                <div><Label>Pretensão máxima (R$)</Label><Input type="number" value={f.salary_max} onChange={set("salary_max")} /></div>
+              </div>
+
               <div><Label>LinkedIn</Label><Input value={f.linkedin_url} onChange={set("linkedin_url")} placeholder="https://linkedin.com/in/…" /></div>
             </div>
 
