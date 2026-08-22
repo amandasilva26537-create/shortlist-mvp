@@ -156,8 +156,6 @@ export function FlashcardDeck({
             <CandidateFlashcard
               candidate={candidate}
               evaluation={evaluation}
-              onOpenAnalysis={openAnalysis}
-              onOpenProfile={openProfile}
               readOnly={readOnly}
             />
             {actionsSlot && (
@@ -178,59 +176,27 @@ export function FlashcardDeck({
         </div>
       </div>
 
-      <Sheet open={!!analysisCandidate} onOpenChange={(open) => !open && setAnalysisCandidateId(null)}>
-        <SheetContent
-          side="right"
-          className="left-0 right-0 w-auto translate-x-0 overflow-y-auto p-0 duration-0 data-[state=closed]:translate-x-0 data-[state=open]:translate-x-0 sm:left-auto sm:w-full sm:max-w-3xl"
-        >
-          {analysisCandidate && (
-            <div className="min-h-full bg-background">
-              <div className="sticky top-0 z-10 border-b border-border bg-background/95 px-5 py-4 backdrop-blur print:hidden">
-                <SheetHeader className="pr-10 text-left">
-                  <SheetTitle>Análise do candidato</SheetTitle>
-                  <SheetDescription>{analysisCandidate.full_name}</SheetDescription>
-                </SheetHeader>
-              </div>
+      {/* Menu com os três botões — abre o conteúdo na mesma tela */}
+      <div className="mt-4 space-y-4">
+        <CandidateSectionMenu value={section} onChange={setSection} />
 
-              <div className="px-5 py-6 md:px-8">
-                <div className="mb-6 flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex min-w-0 items-start gap-4">
-                    {analysisCandidate.photo_url ? (
-                      <img
-                        src={analysisCandidate.photo_url}
-                        alt=""
-                        className="h-20 w-20 shrink-0 rounded-full object-cover ring-2 ring-primary/20"
-                      />
-                    ) : (
-                      <div className="grid h-20 w-20 shrink-0 place-items-center rounded-full bg-primary-soft text-xl font-semibold text-primary">
-                        {initials}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <div className="text-[11px] uppercase tracking-widest text-primary">Análise da vaga</div>
-                      <h2 className="mt-1 text-2xl font-semibold tracking-tight">{analysisCandidate.full_name}</h2>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {analysisCandidate.headline || analysisCandidate.current_position || "—"}
-                      </p>
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={openAnalysisProfile} className="shrink-0 print:hidden">
-                    <User className="mr-1.5 h-4 w-4" /> Ver perfil completo
-                  </Button>
-                </div>
+        {section === "analysis" && (
+          <div className="rounded-2xl border border-border bg-card p-4 md:p-6">
+            <AnalysisContent
+              candidate={candidate}
+              jobId={jobId}
+              shortlistId={shortlistId}
+              evaluation={evaluation}
+              readOnly={readOnly}
+            />
+          </div>
+        )}
 
-                <AnalysisContent
-                  candidate={analysisCandidate}
-                  jobId={jobId}
-                  shortlistId={shortlistId}
-                  evaluation={analysisEvaluation}
-                  readOnly={readOnly}
-                />
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
+        {section === "profile" && <ProfessionalProfileView candidate={candidate} />}
+
+        {section === "behavior" && <DiscSection candidate={candidate} readOnly={readOnly} />}
+      </div>
+
     </div>
   );
 }
