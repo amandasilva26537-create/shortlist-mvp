@@ -209,25 +209,15 @@ function Portal() {
                     />
                   ))}
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3">
-                  <button
-                    type="button"
-                    onClick={() => scrollTo("analise-vaga")}
-                    className="rounded-full border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition hover:border-primary"
-                  >
-                    Análise para esta vaga
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => scrollTo("perfil-profissional")}
-                    className="rounded-full border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition hover:border-primary"
-                  >
-                    Perfil profissional
-                  </button>
-                </div>
               </nav>
 
-              <PortalCandidateView candidate={candidate} evaluation={evaluation} />
+              <PortalCandidateView
+                candidate={candidate}
+                evaluation={evaluation}
+                jobId={data.shortlist.job_id}
+                shortlistId={data.shortlist.id}
+              />
+
             </div>
 
             {/* 6. Painel de avaliação */}
