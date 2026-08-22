@@ -74,6 +74,12 @@ function CandidatePage() {
     queryFn: () => linksFn({ data: { candidate_id: candidateId } }),
     enabled: isUuid,
   });
+  const feedbackFn = useServerFn(listCandidateClientFeedback);
+  const { data: clientFeedback = [] } = useQuery({
+    queryKey: ["candidate-client-feedback", candidateId],
+    queryFn: () => feedbackFn({ data: { candidate_id: candidateId } }),
+    enabled: isUuid,
+  });
   const c: any = data;
   const [addOpen, setAddOpen] = useState(false);
   const [delOpen, setDelOpen] = useState(false);
