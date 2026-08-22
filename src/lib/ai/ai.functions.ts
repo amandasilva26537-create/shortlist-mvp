@@ -439,17 +439,21 @@ export const analyzeShortlist = createServerFn({ method: "POST" })
     const model = gateway(AI_MODEL);
     const brief = (links ?? []).map((l: any) => {
       const ev = (evals ?? []).find((e: any) => e.candidate_id === l.candidate_id);
-      return `- ${l.candidates.full_name} (${l.candidates.current_position ?? "?"}): aderência ${ev?.overall_match ?? "?"}%. Forças: ${(ev?.strengths ?? []).join(", ")}. Riscos: ${(ev?.risks ?? []).join(", ")}.`;
+      return `- ${l.candidates.full_name} (${l.candidates.current_position ?? "?"}) — ${genderInstruction(l.candidates.gender, l.candidates.full_name)} Aderência ${ev?.overall_match ?? "?"}%. Forças: ${(ev?.strengths ?? []).join(", ")}. Riscos: ${(ev?.risks ?? []).join(", ")}.`;
     }).join("\n");
 
     const { text } = await generateText({
       model,
-      prompt: `Você é um consultor sênior. Analise a shortlist para a vaga "${sl.jobs.title}" e apoie a decisão do gestor, sem tomá-la.
+      prompt: `Você é a recrutadora responsável por esta shortlist. Analise os candidatos para a vaga "${sl.jobs.title}" e apoie a decisão do gestor, sem tomá-la.
+
+${SHORTLIST_WRITING_STYLE}
+
+Respeite o gênero indicado ao lado de cada pessoa.
 
 Candidatos:
 ${brief}
 
-${data.prompt ? `Instrução: ${data.prompt}` : "Gere: (1) resumo comparativo executivo, (2) principais diferenciais de cada candidato, (3) sugestão de ordem de apresentação, (4) perguntas para desempate."}
+${data.prompt ? `Instrução: ${data.prompt}` : "Gere: (1) resumo comparativo, (2) o que cada pessoa fez que é relevante para esta vaga, (3) sugestão de ordem de apresentação com o motivo, (4) perguntas para desempate."}
 
 Responda em português, formatado em Markdown.`,
     });
