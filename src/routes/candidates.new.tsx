@@ -61,6 +61,7 @@ function NewCandidate() {
   const [f, setF] = useState<any>({
     full_name: "", photo_url: "", current_position: "", current_company: "", area: "", seniority: "",
     city: "", state: "", country: "Brasil", work_model: "Não informado", salary_expectation: "",
+    gender: "Prefere não identificar",
     linkedin_url: "", email: "", phone: "",
     resume_url: "", transcript: "", recruiter_note: "", internal_notes: "",
     disc_raw: "", disc_profile: "", disc_scores: null,
@@ -96,6 +97,7 @@ function NewCandidate() {
     area: f.area || null, seniority: f.seniority || null,
     city: f.city || null, state: f.state || null, country: f.country || null,
     work_model: f.work_model || null,
+    gender: f.gender || null,
     salary_expectation: f.salary_expectation ? Number(f.salary_expectation) : null,
     linkedin_url: f.linkedin_url || null, email: f.email || null, phone: f.phone || null,
     transcript: [f.transcript, pastedContext].filter(Boolean).join("\n\n---\n\n") || null,
@@ -254,6 +256,15 @@ function NewCandidate() {
               <div className="text-[11px] text-muted-foreground">Preencha o que já souber. A IA tentará completar o restante a partir dos arquivos anexados.</div>
               <div><Label>Nome completo *</Label><Input value={f.full_name} onChange={set("full_name")} /></div>
               <div><Label>Cargo atual</Label><Input value={f.current_position} onChange={set("current_position")} /></div>
+              <div><Label>Gênero</Label>
+                <Select value={f.gender || "Prefere não identificar"} onValueChange={set("gender")}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["Masculino","Feminino","Prefere não identificar"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <div className="mt-1 text-[11px] text-muted-foreground">Usado para a concordância dos textos do perfil.</div>
+              </div>
               <div><Label>Área profissional</Label><Input value={f.area} onChange={set("area")} /></div>
               <div><Label>Cidade</Label><Input value={f.city} onChange={set("city")} /></div>
               <div><Label>Modelo de trabalho</Label>
