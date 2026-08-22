@@ -108,6 +108,9 @@ function NewCandidate() {
     work_model: f.work_model || null,
     gender: f.gender || null,
     salary_expectation: f.salary_expectation ? Number(f.salary_expectation) : null,
+    salary_min: f.salary_min ? Number(f.salary_min) : null,
+    salary_max: f.salary_max ? Number(f.salary_max) : null,
+
     linkedin_url: f.linkedin_url || null, email: f.email || null, phone: f.phone || null,
     transcript: [f.transcript, pastedContext].filter(Boolean).join("\n\n---\n\n") || null,
     recruiter_note: f.recruiter_note || null, internal_notes: f.internal_notes || null,
