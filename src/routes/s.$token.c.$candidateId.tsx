@@ -152,7 +152,7 @@ function PortalCandidatePage() {
                 {c.education?.length > 0 && <Card title="Formação acadêmica">{c.education.map((e: any, i: number) => (
                   <div key={i} className="text-sm mb-1">• {[e.course, e.institution, [e.start, e.end].filter(Boolean).join("—"), e.status].filter(Boolean).join(" · ")}</div>
                 ))}</Card>}
-                {c.courses?.length > 0 && <Card title="Cursos, certificações e eventos">{c.courses.map((e: any, i: number) => (
+                {c.courses?.length > 0 && <Card title="Cursos, certificações e eventos">{c.courses.slice(0, 10).map((e: any, i: number) => (
                   <div key={i} className="text-sm mb-1">• {[e.name, e.institution, e.year, e.workload].filter(Boolean).join(" · ")}</div>
                 ))}</Card>}
                 {c.languages?.length > 0 && <Card title="Idiomas"><LanguageList items={c.languages} /></Card>}
