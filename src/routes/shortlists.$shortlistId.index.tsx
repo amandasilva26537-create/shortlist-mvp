@@ -14,7 +14,7 @@ import {
   updateShortlistOrder,
   listEvaluationsForShortlist,
 } from "@/lib/db/shortlists.functions";
-import { analyzeShortlist, evaluateCandidateForJob } from "@/lib/ai/ai.functions";
+import { evaluateCandidateForJob } from "@/lib/ai/ai.functions";
 import { FlashcardDeck } from "@/components/shortlist/FlashcardDeck";
 
 export const Route = createFileRoute("/shortlists/$shortlistId/")({
