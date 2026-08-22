@@ -1,14 +1,10 @@
 import { MatchRing } from "@/components/candidate/MatchRing";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, MapPin, Building2, DollarSign, Clock, Star, User, ChevronRight, FileText } from "lucide-react";
-import { useRef, type PointerEvent } from "react";
+import { Briefcase, MapPin, Building2, DollarSign, Clock, Star } from "lucide-react";
 
 interface Props {
   candidate: any;
   evaluation: any | null;
-  onOpenAnalysis: () => void;
-  onOpenProfile: () => void;
   readOnly?: boolean;
 }
 
@@ -19,11 +15,9 @@ function fmtSalary(v: any) {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 }
 
-export function CandidateFlashcard({ candidate, evaluation, onOpenAnalysis, onOpenProfile }: Props) {
+export function CandidateFlashcard({ candidate, evaluation }: Props) {
   const c = candidate;
   const ev = evaluation;
-  const analysisButtonRef = useRef<HTMLButtonElement>(null);
-  const profileButtonRef = useRef<HTMLButtonElement>(null);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
   const initials = (c.full_name ?? "")
     .split(" ")
@@ -32,26 +26,6 @@ export function CandidateFlashcard({ candidate, evaluation, onOpenAnalysis, onOp
     .join("")
     .toUpperCase();
 
-  const handleCardPointerUpCapture = (event: PointerEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement | null;
-    if (target?.closest("button")) return;
-
-    const hit = (button: HTMLButtonElement | null) => {
-      if (!button) return false;
-      const rect = button.getBoundingClientRect();
-      return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-    };
-
-    if (hit(analysisButtonRef.current)) {
-      event.preventDefault();
-      event.stopPropagation();
-      onOpenAnalysis();
-    } else if (hit(profileButtonRef.current)) {
-      event.preventDefault();
-      event.stopPropagation();
-      onOpenProfile();
-    }
-  };
 
   return (
     <div
