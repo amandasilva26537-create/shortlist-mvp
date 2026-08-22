@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ExperienceItem, LanguageList } from "@/components/candidate/ProfileBits";
+import { DiscSection } from "@/components/candidate/DiscSection";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Linkedin, FileDown, ExternalLink } from "lucide-react";
+import { ArrowLeft, Linkedin, ExternalLink } from "lucide-react";
 import { getPortalCandidate } from "@/lib/db/portal.functions";
 
 export const Route = createFileRoute("/s/$token/c/$candidateId")({
