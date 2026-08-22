@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-access";
 import { z } from "zod";
 
 const CandidateInput = z.object({
