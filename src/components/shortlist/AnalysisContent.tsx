@@ -76,7 +76,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
     data: Object.entries(radarObj).map(([k, v]) => ({ competency: k, value: Number(v) || 0 })),
   }];
 
-  const cultural = evaluation?.cultural_fit ?? null;
+  
 
   return (
     <div className="space-y-6">
