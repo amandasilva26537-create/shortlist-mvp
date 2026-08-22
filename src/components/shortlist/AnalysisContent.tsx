@@ -76,7 +76,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
     data: Object.entries(radarObj).map(([k, v]) => ({ competency: k, value: Number(v) || 0 })),
   }];
 
-  const cultural = evaluation?.cultural_fit ?? null;
+  
 
   return (
     <div className="space-y-6">
@@ -192,50 +192,6 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
         </section>
       )}
 
-      {/* 9. Aderência cultural — específica desta vaga */}
-      {cultural && (
-        <section>
-          <SectionTitle>9. Aderência cultural nesta vaga</SectionTitle>
-          <div className="rounded-xl border border-border bg-card p-5 space-y-4 text-sm">
-            {cultural.summary && (
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Leitura geral</div>
-                <div className="mt-1 whitespace-pre-wrap">{cultural.summary}</div>
-              </div>
-            )}
-            {Array.isArray(cultural.alignments) && cultural.alignments.length > 0 && (
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--success)]">Alinhamentos</div>
-                <ul className="mt-2 space-y-2">
-                  {cultural.alignments.map((a: any, i: number) => (
-                    <li key={i} className="rounded-lg border border-[color:var(--success)]/25 bg-[color:var(--success)]/5 p-3">
-                      <div className="font-medium">{typeof a === "string" ? a : a.point}</div>
-                      {typeof a !== "string" && a?.evidence && <div className="mt-0.5 text-xs text-muted-foreground">{a.evidence}</div>}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {Array.isArray(cultural.attention_points) && cultural.attention_points.length > 0 && (
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--warning)]">Pontos de atenção culturais</div>
-                <ul className="mt-2 space-y-2">
-                  {cultural.attention_points.map((a: any, i: number) => (
-                    <li key={i} className="rounded-lg border border-[color:var(--warning)]/30 bg-[color:var(--warning)]/5 p-3">
-                      <div className="font-medium">{typeof a === "string" ? a : a.point}</div>
-                      {typeof a !== "string" && a?.mitigation && (
-                        <div className="mt-1 text-xs">
-                          <span className="font-semibold text-primary">Mitigação: </span>{a.mitigation}
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
     </div>
   );
 }
