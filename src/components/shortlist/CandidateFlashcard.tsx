@@ -8,17 +8,12 @@ interface Props {
   readOnly?: boolean;
 }
 
-function fmtSalary(v: any) {
-  if (v == null || v === "") return "—";
-  const n = typeof v === "string" ? Number(v.replace(/[^\d.,]/g, "").replace(",", ".")) : Number(v);
-  if (!Number.isFinite(n)) return String(v);
-  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
-}
-
 export function CandidateFlashcard({ candidate, evaluation }: Props) {
   const c = candidate;
   const ev = evaluation;
+  const salary = salaryLabel(c);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
+
   const initials = (c.full_name ?? "")
     .split(" ")
     .slice(0, 2)
