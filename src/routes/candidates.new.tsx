@@ -437,13 +437,18 @@ function NewCandidate() {
             </Section>
 
             <Section title="Competências">
-              {(["hard_skills","soft_skills","leadership","tools","technical"] as const).map((k) => (
+              {(["hard_skills","tools","soft_skills","leadership","technical"] as const).map((k) => (
                 <div key={k} className="mb-3">
-                  <Label className="capitalize">{({hard_skills:"Hard skills",soft_skills:"Soft skills",leadership:"Liderança",tools:"Ferramentas e sistemas",technical:"Conhecimentos técnicos"} as any)[k]}</Label>
-                  <TagInput items={f.competencies?.[k] ?? []} onChange={(v) => setF((p: any) => ({ ...p, competencies: { ...(p.competencies ?? {}), [k]: v } }))} />
+                  <Label>{({hard_skills:"Habilidades técnicas",tools:"Ferramentas",soft_skills:"Habilidades comportamentais",leadership:"Liderança",technical:"Conhecimentos complementares"} as any)[k]}</Label>
+                  <TagInput
+                    items={f.competencies?.[k] ?? []}
+                    suggestions={(skillSuggestions as any)?.[k] ?? []}
+                    onChange={(v) => setF((p: any) => ({ ...p, competencies: { ...(p.competencies ?? {}), [k]: v } }))}
+                  />
                 </div>
               ))}
             </Section>
+
 
             <Section title="Informações adicionais (uso interno)">
               <Textarea rows={4} value={typeof f.additional_info === "string" ? f.additional_info : JSON.stringify(f.additional_info ?? "", null, 2)} onChange={(e) => setF((p: any) => ({ ...p, additional_info: e.target.value }))} placeholder="Áreas/cargos/segmentos/cidades de interesse, disponibilidade, restrições, observações internas…" />
