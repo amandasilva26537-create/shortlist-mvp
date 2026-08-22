@@ -94,23 +94,36 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="border-t border-border p-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex w-full items-center gap-2 rounded-lg px-2 py-2 hover:bg-secondary">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex w-full items-center gap-2 rounded-lg px-2 py-2 hover:bg-secondary">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary-soft text-primary text-xs">{initials}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1 text-left">
+                  <div className="truncate text-sm font-medium">{displayName}</div>
+                  <div className="truncate text-xs text-muted-foreground">Recrutador</div>
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => supabase.auth.signOut()}>
+                  <LogOut className="mr-2 h-4 w-4" /> Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex w-full items-center gap-2 rounded-lg px-2 py-2">
               <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary-soft text-primary text-xs">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-primary-soft text-primary text-xs">MV</AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1 text-left">
-                <div className="truncate text-sm font-medium">{user.user_metadata?.full_name ?? user.email}</div>
+                <div className="truncate text-sm font-medium">Acesso livre</div>
                 <div className="truncate text-xs text-muted-foreground">Recrutador</div>
               </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={signOut}>
-                <LogOut className="mr-2 h-4 w-4" /> Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </div>
+          )}
         </div>
+
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
