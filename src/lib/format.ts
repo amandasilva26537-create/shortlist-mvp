@@ -6,6 +6,25 @@ export function formatBRL(value: number) {
   }).format(value);
 }
 
+function toNumber(v: any): number | null {
+  if (v == null || v === "") return null;
+  const n = typeof v === "string" ? Number(v.replace(/[^\d.,-]/g, "").replace(",", ".")) : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Pretensão salarial do candidato: faixa (mín–máx) quando informada, ou valor único. */
+export function salaryLabel(candidate: any): string | null {
+  const min = toNumber(candidate?.salary_min);
+  const max = toNumber(candidate?.salary_max);
+  const single = toNumber(candidate?.salary_expectation);
+  if (min != null && max != null) return `${formatBRL(min)} – ${formatBRL(max)}`;
+  if (min != null) return `A partir de ${formatBRL(min)}`;
+  if (max != null) return `Até ${formatBRL(max)}`;
+  if (single != null) return formatBRL(single);
+  return null;
+}
+
+
 export function initials(name: string) {
   return name
     .split(" ")

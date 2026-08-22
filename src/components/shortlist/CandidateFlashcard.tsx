@@ -1,6 +1,8 @@
 import { MatchRing } from "@/components/candidate/MatchRing";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, MapPin, Building2, DollarSign, Clock, Star } from "lucide-react";
+import { salaryLabel } from "@/lib/format";
+
 
 interface Props {
   candidate: any;
@@ -8,17 +10,12 @@ interface Props {
   readOnly?: boolean;
 }
 
-function fmtSalary(v: any) {
-  if (v == null || v === "") return "—";
-  const n = typeof v === "string" ? Number(v.replace(/[^\d.,]/g, "").replace(",", ".")) : Number(v);
-  if (!Number.isFinite(n)) return String(v);
-  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
-}
-
 export function CandidateFlashcard({ candidate, evaluation }: Props) {
   const c = candidate;
   const ev = evaluation;
+  const salary = salaryLabel(c);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
+
   const initials = (c.full_name ?? "")
     .split(" ")
     .slice(0, 2)
@@ -67,9 +64,8 @@ export function CandidateFlashcard({ candidate, evaluation }: Props) {
               {c.area && <Chip icon={Building2} label="Área" value={c.area} />}
               {c.city && <Chip icon={MapPin} label="Cidade" value={c.city} />}
               {c.work_model && <Chip icon={Clock} label="Modelo" value={c.work_model} />}
-              {c.salary_expectation != null && c.salary_expectation !== "" && (
-                <Chip icon={DollarSign} label="Pretensão" value={fmtSalary(c.salary_expectation)} />
-              )}
+              {salary && <Chip icon={DollarSign} label="Pretensão salarial" value={salary} />}
+
               {c.professional_moment?.availability && (
                 <Chip icon={Clock} label="Disponibilidade" value={c.professional_moment.availability} />
               )}

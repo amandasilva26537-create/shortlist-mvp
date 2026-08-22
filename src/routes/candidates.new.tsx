@@ -61,6 +61,8 @@ function NewCandidate() {
   const [f, setF] = useState<any>({
     full_name: "", photo_url: "", current_position: "", current_company: "", area: "", seniority: "",
     city: "", state: "", country: "Brasil", work_model: "Não informado", salary_expectation: "",
+    salary_min: "", salary_max: "",
+
     gender: "Prefere não identificar",
     linkedin_url: "", email: "", phone: "",
     resume_url: "", transcript: "", recruiter_note: "", internal_notes: "",
@@ -82,7 +84,14 @@ function NewCandidate() {
 
   useEffect(() => {
     if (existing) {
-      setF((p: any) => ({ ...p, ...existing, salary_expectation: existing.salary_expectation ?? "" }));
+      setF((p: any) => ({
+        ...p,
+        ...existing,
+        salary_expectation: existing.salary_expectation ?? "",
+        salary_min: (existing as any).salary_min ?? "",
+        salary_max: (existing as any).salary_max ?? "",
+      }));
+
       setCandId(existing.id);
       setDocs(existing.documents ?? []);
     }
@@ -99,6 +108,9 @@ function NewCandidate() {
     work_model: f.work_model || null,
     gender: f.gender || null,
     salary_expectation: f.salary_expectation ? Number(f.salary_expectation) : null,
+    salary_min: f.salary_min ? Number(f.salary_min) : null,
+    salary_max: f.salary_max ? Number(f.salary_max) : null,
+
     linkedin_url: f.linkedin_url || null, email: f.email || null, phone: f.phone || null,
     transcript: [f.transcript, pastedContext].filter(Boolean).join("\n\n---\n\n") || null,
     recruiter_note: f.recruiter_note || null, internal_notes: f.internal_notes || null,
@@ -118,7 +130,14 @@ function NewCandidate() {
     if (!f.full_name.trim()) { toast.error("Nome é obrigatório"); return null; }
     const row: any = await saveFn({ data: buildPayload(extra) });
     setCandId(row.id);
-    setF((p: any) => ({ ...p, ...row, salary_expectation: row.salary_expectation ?? "" }));
+    setF((p: any) => ({
+      ...p,
+      ...row,
+      salary_expectation: row.salary_expectation ?? "",
+      salary_min: row.salary_min ?? "",
+      salary_max: row.salary_max ?? "",
+    }));
+
     qc.invalidateQueries({ queryKey: ["candidates"] });
     return row.id as string;
   };
@@ -180,6 +199,9 @@ function NewCandidate() {
           ...p,
           ...fresh,
           salary_expectation: fresh.salary_expectation ?? p.salary_expectation ?? "",
+          salary_min: fresh.salary_min ?? p.salary_min ?? "",
+          salary_max: fresh.salary_max ?? p.salary_max ?? "",
+
           executive_summary: fresh.executive_summary ?? [],
           specialties: fresh.specialties ?? [],
           main_results: fresh.main_results ?? [],
@@ -276,6 +298,11 @@ function NewCandidate() {
                 </Select>
               </div>
               <div><Label>Pretensão salarial (R$)</Label><Input type="number" value={f.salary_expectation} onChange={set("salary_expectation")} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label>Pretensão mínima (R$)</Label><Input type="number" value={f.salary_min} onChange={set("salary_min")} /></div>
+                <div><Label>Pretensão máxima (R$)</Label><Input type="number" value={f.salary_max} onChange={set("salary_max")} /></div>
+              </div>
+
               <div><Label>LinkedIn</Label><Input value={f.linkedin_url} onChange={set("linkedin_url")} placeholder="https://linkedin.com/in/…" /></div>
             </div>
 
