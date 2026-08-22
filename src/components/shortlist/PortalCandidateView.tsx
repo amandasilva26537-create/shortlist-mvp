@@ -20,6 +20,8 @@ interface Props {
 export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, shortlistId }: Props) {
   const [section, setSection] = useState<CandidateSection | null>(null);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
+  const salary = salaryLabel(c);
+
   const initials = (c.full_name ?? "")
     .split(" ")
     .slice(0, 2)
