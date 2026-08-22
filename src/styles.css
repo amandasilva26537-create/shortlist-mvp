@@ -154,3 +154,51 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-elevated);
 }
+
+/* Identidade visual Portus — aplicada apenas ao portal do cliente. */
+.portus-theme {
+  --background: #fafcfb;
+  --foreground: #202524;
+
+  --card: #ffffff;
+  --card-foreground: #202524;
+
+  --popover: #ffffff;
+  --popover-foreground: #202524;
+
+  --primary: #009b76;
+  --primary-foreground: #ffffff;
+  --primary-soft: #ddf8ed;
+
+  --secondary: #eef8f4;
+  --secondary-foreground: #007a5e;
+
+  --muted: #f1f7f4;
+  --muted-foreground: #5c6b66;
+
+  --accent: #ddf8ed;
+  --accent-foreground: #007a5e;
+
+  --success: #009b76;
+  --warning: #d98b00;
+
+  --border: #dde7e3;
+  --input: #dde7e3;
+  --ring: #00d6a3;
+
+  --chart-1: #009b76;
+  --chart-2: #00d6a3;
+  --chart-3: #007a5e;
+
+  font-family: "Poppins", var(--font-sans);
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.portus-theme h1,
+.portus-theme h2,
+.portus-theme h3,
+.portus-theme h4 {
+  font-family: "Poppins", var(--font-sans);
+  letter-spacing: -0.015em;
+}
