@@ -5,7 +5,9 @@ import { DiscSection } from "@/components/candidate/DiscSection";
 import { ProfessionalProfileView } from "@/components/candidate/ProfessionalProfileView";
 import { AnalysisContent } from "@/components/shortlist/AnalysisContent";
 import { CandidateSectionMenu, type CandidateSection } from "@/components/shortlist/CandidateSectionMenu";
-import { Briefcase, MapPin, Clock, Linkedin, Star } from "lucide-react";
+import { Briefcase, MapPin, Clock, Linkedin, Star, DollarSign } from "lucide-react";
+import { salaryLabel } from "@/lib/format";
+
 
 interface Props {
   candidate: any;
