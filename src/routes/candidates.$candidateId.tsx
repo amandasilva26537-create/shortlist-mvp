@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles, ListPlus, Trash2, Archive, ChevronDown } from "lucide-react";
 import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
+import { generateDiscResult } from "@/lib/ai/ai.functions";
 import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus } from "@/lib/db/shortlists.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
 import { TagChips, TagPicker, BlockListWarning } from "@/components/candidate/CandidateTags";
@@ -449,4 +450,97 @@ function StatusBadge({ status }: { status?: string }) {
   };
   const s = map[status ?? "rascunho"] ?? map.rascunho;
   return <Badge className={s.cls + " border-0"}>{s.label}</Badge>;
+}
+
+const DISC_FACTORS = [
+  { key: "D", label: "Dominância", color: "#dc2626" },
+  { key: "I", label: "Influência", color: "#f59e0b" },
+  { key: "S", label: "Estabilidade", color: "#16a34a" },
+  { key: "C", label: "Conformidade", color: "#2563eb" },
+] as const;
+
+function DiscSection({ candidate }: { candidate: any }) {
+  const qc = useQueryClient();
+  const genFn = useServerFn(generateDiscResult);
+  const d: any = candidate.disc_scores && typeof candidate.disc_scores === "object" ? candidate.disc_scores : {};
+  const num = (v: any) => (v === null || v === undefined || v === "" || isNaN(Number(v)) ? null : Number(v));
+  const values = DISC_FACTORS.map((f) => ({ ...f, value: num(d[f.key]) }));
+  const max = Math.max(100, ...values.map((v) => v.value ?? 0));
+  const hasRaw = values.some((v) => v.value !== null) || !!candidate.disc_raw;
+
+  const gen = useMutation({
+    mutationFn: () => genFn({ data: { candidate_id: candidate.id } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["candidate", candidate.id] }); toast.success("Resultado DISC atualizado"); },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao gerar resultado DISC"),
+  });
+
+  if (!hasRaw) {
+    return (
+      <Card title="Perfil comportamental (DISC)">
+        <div className="text-sm text-muted-foreground">
+          Cadastre os dados brutos de Dominância, Influência, Estabilidade e Conformidade para gerar o resultado.
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card title="Perfil comportamental (DISC)">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            {candidate.disc_profile && <div className="text-lg font-semibold">{candidate.disc_profile}</div>}
+            <div className="text-xs text-muted-foreground">Dados brutos do teste</div>
+          </div>
+          <Button size="sm" onClick={() => gen.mutate()} disabled={gen.isPending}>
+            <Sparkles className="mr-1.5 h-4 w-4" />
+            {gen.isPending ? "Gerando…" : d.generated_at ? "Atualizar resultado DISC" : "Gerar resultado DISC"}
+          </Button>
+        </div>
+
+        {/* Gráfico com os quatro fatores + dados brutos */}
+        <div className="space-y-3">
+          {values.map((f) => (
+            <div key={f.key}>
+              <div className="mb-1 flex items-center justify-between text-xs">
+                <span className="font-medium">{f.key} · {f.label}</span>
+                <span className="text-muted-foreground">{f.value ?? "—"}</span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-secondary">
+                <div className="h-full rounded-full transition-all" style={{ width: `${((f.value ?? 0) / max) * 100}%`, background: f.color }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 grid grid-cols-4 gap-3">
+          {values.map((f) => (
+            <div key={f.key} className="rounded-lg border border-border p-3 text-center">
+              <div className="text-xs text-muted-foreground">{f.key}</div>
+              <div className="text-lg font-semibold">{f.value ?? "—"}</div>
+            </div>
+          ))}
+        </div>
+
+        {candidate.disc_raw && (
+          <details className="mt-3">
+            <summary className="cursor-pointer text-xs text-muted-foreground">Resultado bruto</summary>
+            <pre className="mt-2 whitespace-pre-wrap text-xs">{candidate.disc_raw}</pre>
+          </details>
+        )}
+      </Card>
+
+      {d.dominant && <Card title="Perfil predominante">
+        <div className="text-sm">{d.dominant}{d.secondary ? ` · secundário: ${d.secondary}` : ""}</div>
+      </Card>}
+      {d.behavior_summary && <Card title="Resumo do resultado"><ClampText text={d.behavior_summary} /></Card>}
+      {d.strengths?.length > 0 && <Card title="Pontos fortes"><Bullets items={d.strengths} /></Card>}
+      {d.attention_points?.length > 0 && <Card title="Pontos de atenção"><Bullets items={d.attention_points} /></Card>}
+      {d.communication_style && <Card title="Forma de comunicação"><div className="text-sm whitespace-pre-wrap">{d.communication_style}</div></Card>}
+      {d.work_style && <Card title="Estilo de trabalho"><div className="text-sm whitespace-pre-wrap">{d.work_style}</div></Card>}
+      {d.leadership_style && <Card title="Estilo de liderança"><div className="text-sm whitespace-pre-wrap">{d.leadership_style}</div></Card>}
+      {d.motivators?.length > 0 && <Card title="Motivadores"><Bullets items={d.motivators} /></Card>}
+      {d.ideal_environment && <Card title="Ambiente de melhor desempenho"><div className="text-sm whitespace-pre-wrap">{d.ideal_environment}</div></Card>}
+    </div>
+  );
 }
