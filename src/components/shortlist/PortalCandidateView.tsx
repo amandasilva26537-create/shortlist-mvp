@@ -50,7 +50,9 @@ export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, short
                 {c.current_position && <Chip icon={Briefcase}>{c.current_position}</Chip>}
                 {c.city && <Chip icon={MapPin}>{c.city}</Chip>}
                 {c.work_model && <Chip icon={Clock}>{c.work_model}</Chip>}
+                {salary && <Chip icon={DollarSign}>Pretensão: {salary}</Chip>}
                 {c.disc_profile && <Badge variant="secondary" className="rounded-full">DISC {c.disc_profile}</Badge>}
+
                 {c.linkedin_url && (
                   <a
                     href={c.linkedin_url}
