@@ -92,16 +92,6 @@ export function CandidateFlashcard({ candidate, evaluation }: Props) {
           </div>
         </div>
 
-        {/* Ações */}
-        <div className="relative z-20 mt-6 flex flex-wrap gap-2 border-t border-border bg-card pt-4">
-          <Button ref={analysisButtonRef} onClick={onOpenAnalysis} className="relative z-20 flex-1 min-w-[160px]">
-            <FileText className="mr-2 h-4 w-4" /> Ver análise
-            <ChevronRight className="ml-auto h-4 w-4" />
-          </Button>
-          <Button ref={profileButtonRef} variant="outline" onClick={onOpenProfile} className="relative z-20 flex-1 min-w-[160px]">
-            <User className="mr-2 h-4 w-4" /> Ver perfil completo
-          </Button>
-        </div>
       </div>
     </div>
   );
