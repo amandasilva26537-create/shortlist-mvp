@@ -228,7 +228,7 @@ function CandidatePage() {
           </div>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
-            {c.mini_bio && <Card title="Resumo profissional"><ClampText text={c.mini_bio} /></Card>}
+            {c.mini_bio && <Card title="mini bio"><ClampText text={c.mini_bio} /></Card>}
             {c.full_bio && <Card title="Resumo profissional detalhado"><ClampText text={c.full_bio} /></Card>}
             {c.executive_summary?.length > 0 && <Card title="Resumo executivo"><Bullets items={c.executive_summary} /></Card>}
             {c.specialties?.length > 0 && <Card title="Áreas de especialidade"><Tags items={c.specialties} /></Card>}
