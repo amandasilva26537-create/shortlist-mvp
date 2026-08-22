@@ -3,6 +3,7 @@ import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-
 import { generateText } from "ai";
 import { z } from "zod";
 import { AI_MODEL, createLovableAiGateway, requireApiKey } from "./gateway.server";
+import { SHORTLIST_WRITING_STYLE, genderInstruction } from "./writing-style";
 
 const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
