@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TeamRouteImport } from './routes/team'
+import { Route as TagsRouteImport } from './routes/tags'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -37,6 +38,11 @@ import { Route as STokenAnalysisCandidateIdRouteImport } from './routes/s.$token
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TagsRoute = TagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -163,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tags': typeof TagsRoute
   '/team': typeof TeamRoute
   '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/candidates/new': typeof CandidatesNewRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tags': typeof TagsRoute
   '/team': typeof TeamRoute
   '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/candidates/new': typeof CandidatesNewRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tags': typeof TagsRoute
   '/team': typeof TeamRoute
   '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/candidates/new': typeof CandidatesNewRoute
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/compare'
     | '/sitemap.xml'
+    | '/tags'
     | '/team'
     | '/candidates/$candidateId'
     | '/candidates/new'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/compare'
     | '/sitemap.xml'
+    | '/tags'
     | '/team'
     | '/candidates/$candidateId'
     | '/candidates/new'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/compare'
     | '/sitemap.xml'
+    | '/tags'
     | '/team'
     | '/candidates/$candidateId'
     | '/candidates/new'
@@ -319,6 +331,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CompareRoute: typeof CompareRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TagsRoute: typeof TagsRoute
   TeamRoute: typeof TeamRoute
   CandidatesCandidateIdRoute: typeof CandidatesCandidateIdRoute
   CandidatesNewRoute: typeof CandidatesNewRoute
@@ -343,6 +356,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/team'
       preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tags': {
+      id: '/tags'
+      path: '/tags'
+      fullPath: '/tags'
+      preLoaderRoute: typeof TagsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -545,6 +565,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CompareRoute: CompareRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TagsRoute: TagsRoute,
   TeamRoute: TeamRoute,
   CandidatesCandidateIdRoute: CandidatesCandidateIdRoute,
   CandidatesNewRoute: CandidatesNewRoute,

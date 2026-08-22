@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { Sparkles, Loader2, Wand2, Upload, Lock, FileText, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
 import { getCandidate, upsertCandidate, addCandidateDocument, deleteCandidateDocument } from "@/lib/db/candidates.functions";
 import { generateCandidateProfile, refineText } from "@/lib/ai/ai.functions";
+import { listSkillSuggestions } from "@/lib/db/tags.functions";
+
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/candidates/new")({
@@ -68,7 +70,10 @@ function NewCandidate() {
     education: [], courses: [], languages: [], competencies: null, additional_info: null,
     inconsistencies: [], status: "rascunho",
   });
+  const suggestionsFn = useServerFn(listSkillSuggestions);
+  const { data: skillSuggestions } = useQuery({ queryKey: ["skill-suggestions"], queryFn: () => suggestionsFn() });
   const [aiBusy, setAiBusy] = useState(false);
+
   const [aiStep, setAiStep] = useState(0);
   const [refineInstr, setRefineInstr] = useState("");
   const [pastedContext, setPastedContext] = useState("");
@@ -437,13 +442,18 @@ function NewCandidate() {
             </Section>
 
             <Section title="Competências">
-              {(["hard_skills","soft_skills","leadership","tools","technical"] as const).map((k) => (
+              {(["hard_skills","tools","soft_skills","leadership","technical"] as const).map((k) => (
                 <div key={k} className="mb-3">
-                  <Label className="capitalize">{({hard_skills:"Hard skills",soft_skills:"Soft skills",leadership:"Liderança",tools:"Ferramentas e sistemas",technical:"Conhecimentos técnicos"} as any)[k]}</Label>
-                  <TagInput items={f.competencies?.[k] ?? []} onChange={(v) => setF((p: any) => ({ ...p, competencies: { ...(p.competencies ?? {}), [k]: v } }))} />
+                  <Label>{({hard_skills:"Habilidades técnicas",tools:"Ferramentas",soft_skills:"Habilidades comportamentais",leadership:"Liderança",technical:"Conhecimentos complementares"} as any)[k]}</Label>
+                  <TagInput
+                    items={f.competencies?.[k] ?? []}
+                    suggestions={(skillSuggestions as any)?.[k] ?? []}
+                    onChange={(v) => setF((p: any) => ({ ...p, competencies: { ...(p.competencies ?? {}), [k]: v } }))}
+                  />
                 </div>
               ))}
             </Section>
+
 
             <Section title="Informações adicionais (uso interno)">
               <Textarea rows={4} value={typeof f.additional_info === "string" ? f.additional_info : JSON.stringify(f.additional_info ?? "", null, 2)} onChange={(e) => setF((p: any) => ({ ...p, additional_info: e.target.value }))} placeholder="Áreas/cargos/segmentos/cidades de interesse, disponibilidade, restrições, observações internas…" />
@@ -527,25 +537,48 @@ function TagSection({ title, items, onChange }: { title: string; items: string[]
   );
 }
 
-function TagInput({ items, onChange }: { items: string[]; onChange: (v: string[]) => void }) {
+function TagInput({ items, onChange, suggestions = [] }: { items: string[]; onChange: (v: string[]) => void; suggestions?: string[] }) {
   const [val, setVal] = useState("");
+  const current = items ?? [];
+  const norm = (s: string) => s.trim().toLowerCase();
+  const add = (raw: string) => {
+    const v = raw.trim();
+    if (!v) return;
+    if (current.some((t) => norm(t) === norm(v))) { setVal(""); return; }
+    onChange([...current, v]);
+    setVal("");
+  };
+  const matches = val.trim()
+    ? suggestions.filter((s) => norm(s).includes(norm(val)) && !current.some((t) => norm(t) === norm(s))).slice(0, 6)
+    : [];
   return (
     <div>
       <div className="flex flex-wrap gap-1.5 mb-2">
-        {(items ?? []).map((t, i) => (
+        {current.map((t, i) => (
           <Badge key={i} variant="secondary" className="gap-1">
             {t}
-            <button onClick={() => onChange(items.filter((_, j) => j !== i))} className="hover:text-destructive">×</button>
+            <button onClick={() => onChange(current.filter((_, j) => j !== i))} className="hover:text-destructive" aria-label={`Remover ${t}`}>×</button>
           </Badge>
         ))}
       </div>
       <div className="flex gap-2">
-        <Input value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && val.trim()) { e.preventDefault(); onChange([...(items ?? []), val.trim()]); setVal(""); } }} placeholder="Digite e pressione Enter" />
-        <Button size="sm" variant="outline" onClick={() => { if (val.trim()) { onChange([...(items ?? []), val.trim()]); setVal(""); } }}>Adicionar</Button>
+        <Input value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(val); } }} placeholder="Digite o nome e pressione Enter" />
+        <Button size="sm" variant="outline" onClick={() => add(val)}>Adicionar</Button>
       </div>
+      {matches.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">Já cadastrados:</span>
+          {matches.map((s) => (
+            <button key={s} type="button" onClick={() => add(s)} className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:bg-secondary">
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
+
 
 function SimpleList({ items, fields, onChange }: { items: any[]; fields: [string,string][]; onChange: (v: any[]) => void }) {
   return (

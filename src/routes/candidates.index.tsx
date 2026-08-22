@@ -12,8 +12,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Search, Archive, Pencil, Eye, FileText, Linkedin, Image as ImageIcon, Trash2, ListPlus } from "lucide-react";
 import { listCandidates, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
 import { listCandidateShortlistLinks } from "@/lib/db/shortlists.functions";
+import { listTags } from "@/lib/db/tags.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
+import { TagChips, tagDotClasses } from "@/components/candidate/CandidateTags";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/candidates/")({
   head: () => ({
@@ -61,12 +64,16 @@ function CandidatesList() {
   const [hasLinkedin, setHasLinkedin] = useState<string>("all");
   const [hasResume, setHasResume] = useState<string>("all");
   const [hasPhoto, setHasPhoto] = useState<string>("all");
+  const [tagIds, setTagIds] = useState<string[]>([]);
+
+  const tagsFn = useServerFn(listTags);
+  const { data: allTags = [] } = useQuery({ queryKey: ["tags"], queryFn: () => tagsFn() });
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     return candidates.filter((c: any) => {
       if (term) {
-        const hay = [c.full_name, c.current_position, c.area, c.city, c.current_company, c.linkedin_url, c.phone, c.email, ...(c.competencies?.hard_skills ?? []), ...(c.competencies?.soft_skills ?? [])]
+        const hay = [c.full_name, c.current_position, c.area, c.city, c.current_company, c.linkedin_url, c.phone, c.email, ...(c.competencies?.hard_skills ?? []), ...(c.competencies?.soft_skills ?? []), ...(c.tags ?? []).map((t: any) => t.name)]
           .filter(Boolean).join(" ").toLowerCase();
         if (!hay.includes(term)) return false;
       }
@@ -81,11 +88,16 @@ function CandidatesList() {
       if (hasResume === "no" && c.resume_url) return false;
       if (hasPhoto === "yes" && !c.photo_url) return false;
       if (hasPhoto === "no" && c.photo_url) return false;
+      if (tagIds.length > 0) {
+        const own = new Set<string>((c.tags ?? []).map((t: any) => t.id));
+        if (!tagIds.some((id) => own.has(id))) return false;
+      }
       return true;
     });
-  }, [candidates, q, area, seniority, city, wm, status, hasLinkedin, hasResume, hasPhoto]);
+  }, [candidates, q, area, seniority, city, wm, status, hasLinkedin, hasResume, hasPhoto, tagIds]);
 
   const uniques = (k: string) => Array.from(new Set(candidates.map((c: any) => c[k]).filter(Boolean))) as string[];
+
 
   return (
     <AppShell>
@@ -116,7 +128,39 @@ function CandidatesList() {
             <FilterSelect label="Currículo" value={hasResume} setValue={setHasResume} options={["yes","no"]} labels={{ yes: "Possui", no: "Não possui" }} />
             <FilterSelect label="Foto" value={hasPhoto} setValue={setHasPhoto} options={["yes","no"]} labels={{ yes: "Possui", no: "Não possui" }} />
           </div>
+          {allTags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 border-t border-border pt-3">
+              <span className="mr-1 text-xs font-medium text-muted-foreground">Etiquetas:</span>
+              {allTags.map((t: any) => {
+                const on = tagIds.includes(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() =>
+                      setTagIds((prev) => (on ? prev.filter((id) => id !== t.id) : [...prev, t.id]))
+                    }
+                    className={
+                      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors " +
+                      (on ? "border-primary bg-primary-soft text-primary" : "border-border text-muted-foreground hover:bg-secondary")
+                    }
+                  >
+                    <span className={`h-2 w-2 rounded-full ${tagDotClasses(t.color)}`} />
+                    {t.name}
+                    <span className="text-[10px] opacity-70">{t.candidate_count}</span>
+                  </button>
+                );
+              })}
+              {tagIds.length > 0 && (
+                <button type="button" onClick={() => setTagIds([])} className="ml-1 text-xs text-primary hover:underline">
+                  Limpar
+                </button>
+              )}
+            </div>
+          )}
         </div>
+
 
         {isLoading ? (
           <div className="text-sm text-muted-foreground">Carregando…</div>
@@ -140,7 +184,9 @@ function CandidatesList() {
                   </div>
                   <StatusBadge status={c.status} />
                 </div>
+                <TagChips tags={c.tags} max={4} />
                 {c.mini_bio && <div className="text-sm text-muted-foreground line-clamp-3">{c.mini_bio}</div>}
+
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   {c.photo_url && <ImageIcon className="h-3.5 w-3.5" />}
                   {c.resume_url && <FileText className="h-3.5 w-3.5" />}

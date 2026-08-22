@@ -14,6 +14,8 @@ import {
   UserPlus,
   FilePlus,
   Users2,
+  Tag as TagIcon,
+
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,8 +34,10 @@ const navItems: { to: string; label: string; icon: typeof LayoutDashboard; exact
   { to: "/candidates", label: "Candidatos", icon: UserPlus },
   { to: "/jobs", label: "Vagas", icon: Briefcase },
   { to: "/shortlists", label: "Shortlists", icon: ListChecks },
+  { to: "/tags", label: "Etiquetas", icon: TagIcon },
   { to: "/compare", label: "Comparar", icon: GitCompare },
 ];
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });

@@ -9,11 +9,29 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles, ListPlus, Trash2, Archive } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles, ListPlus, Trash2, Archive, ChevronDown } from "lucide-react";
 import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
 import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus } from "@/lib/db/shortlists.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
+import { TagChips, TagPicker, BlockListWarning } from "@/components/candidate/CandidateTags";
 import { toast } from "sonner";
+
+const SECONDARY_LABELS: Record<string, string> = {
+  documents: "Documentos e arquivos",
+  additional: "Informações adicionais",
+  shortlists: "Vagas e shortlists",
+  internal: "Anotações internas",
+};
+
+function sortByYearDesc(items: any[]): any[] {
+  const year = (o: any) => {
+    const m = String(o?.end ?? o?.year ?? o?.start ?? "").match(/\d{4}/);
+    return m ? Number(m[0]) : 0;
+  };
+  return [...items].sort((a, b) => year(b) - year(a));
+}
+
 
 export const Route = createFileRoute("/candidates/$candidateId")({
   head: ({ params }) => ({ meta: [{ title: `Candidato · ${params.candidateId}` }] }),
@@ -49,6 +67,8 @@ function CandidatePage() {
   const c: any = data;
   const [addOpen, setAddOpen] = useState(false);
   const [delOpen, setDelOpen] = useState(false);
+  const [tab, setTab] = useState("overview");
+
 
   const removeLink = useMutation({
     mutationFn: (shortlist_id: string) => removeLinkFn({ data: { shortlist_id, candidate_id: candidateId } }),
@@ -144,6 +164,8 @@ function CandidatePage() {
         </div>
 
 
+        <BlockListWarning tags={c.tags} />
+
         <div className="card-elevated p-6 mb-4">
           <div className="flex items-start gap-4">
             <Avatar className="h-20 w-20">
@@ -165,30 +187,60 @@ function CandidatePage() {
                 Cadastrado em {new Date(c.created_at).toLocaleDateString("pt-BR")}
                 {c.linkedin_url && <> · <a href={c.linkedin_url} target="_blank" rel="noreferrer" className="text-primary hover:underline inline-flex items-center gap-1"><Linkedin className="h-3 w-3" />LinkedIn</a></>}
               </div>
+              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                <TagChips tags={c.tags} />
+                <TagPicker candidateId={candidateId} candidateTags={c.tags} />
+              </div>
             </div>
           </div>
         </div>
 
-        <Tabs defaultValue="overview">
-          <TabsList className="flex-wrap h-auto">
-            <TabsTrigger value="overview">Visão geral</TabsTrigger>
-            <TabsTrigger value="trajectory">Trajetória</TabsTrigger>
-            <TabsTrigger value="education">Formação</TabsTrigger>
-            <TabsTrigger value="skills">Competências</TabsTrigger>
-            <TabsTrigger value="disc">DISC</TabsTrigger>
-            <TabsTrigger value="documents">Documentos</TabsTrigger>
-            <TabsTrigger value="additional">Adicionais</TabsTrigger>
-            <TabsTrigger value="shortlists">Vagas e shortlists{shortlistLinks.length > 0 && <Badge variant="secondary" className="ml-1.5 h-4 px-1.5 text-[10px]">{shortlistLinks.length}</Badge>}</TabsTrigger>
-            <TabsTrigger value="internal"><Lock className="h-3 w-3 mr-1" />Interno</TabsTrigger>
-          </TabsList>
+        <Tabs value={tab} onValueChange={setTab}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <TabsList className="flex-wrap h-auto">
+              <TabsTrigger value="overview">Visão geral</TabsTrigger>
+              <TabsTrigger value="experience">Experiência e Formação</TabsTrigger>
+              <TabsTrigger value="skills">Competências</TabsTrigger>
+              <TabsTrigger value="disc">Perfil comportamental</TabsTrigger>
+            </TabsList>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Mais <ChevronDown className="ml-1 h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem onClick={() => setTab("documents")}>Documentos e arquivos</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTab("additional")}>Informações adicionais</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTab("shortlists")}>
+                  Vagas e shortlists{shortlistLinks.length > 0 && ` (${shortlistLinks.length})`}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTab("internal")}>
+                  <Lock className="mr-2 h-3.5 w-3.5" />Anotações internas
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {SECONDARY_LABELS[tab] && (
+              <Badge variant="secondary" className="ml-auto">{SECONDARY_LABELS[tab]}</Badge>
+            )}
+          </div>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
-            {c.mini_bio && <Card title="Mini bio">{c.mini_bio}</Card>}
-            {c.full_bio && <Card title="Bio completa"><div className="whitespace-pre-wrap">{c.full_bio}</div></Card>}
+            {c.mini_bio && <Card title="Resumo profissional"><ClampText text={c.mini_bio} /></Card>}
+            {c.full_bio && <Card title="Resumo profissional detalhado"><ClampText text={c.full_bio} /></Card>}
             {c.executive_summary?.length > 0 && <Card title="Resumo executivo"><Bullets items={c.executive_summary} /></Card>}
-            {c.specialties?.length > 0 && <Card title="Especialidades"><Tags items={c.specialties} /></Card>}
-            {c.main_results?.length > 0 && <Card title="Principais resultados"><Bullets items={c.main_results} /></Card>}
-            {c.achievements?.length > 0 && <Card title="Principais conquistas"><Bullets items={c.achievements} /></Card>}
+            {c.specialties?.length > 0 && <Card title="Áreas de especialidade"><Tags items={c.specialties} /></Card>}
+            {(c.achievements?.length > 0 || c.main_results?.length > 0) && (
+              <Card title="Destaques da carreira">
+                {c.achievements?.length > 0 && <Bullets items={c.achievements} />}
+                {c.main_results?.length > 0 && (
+                  <div className={c.achievements?.length > 0 ? "mt-3" : ""}>
+                    <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Principais resultados</div>
+                    <Bullets items={c.main_results} />
+                  </div>
+                )}
+              </Card>
+            )}
             {c.main_case && Object.values(c.main_case).some(Boolean) && (
               <Card title="Principal case">
                 {["context","challenge","action","result"].map((k) => c.main_case[k] && (
@@ -210,67 +262,73 @@ function CandidatePage() {
               </Card>
             )}
             {c.work_style && <Card title="Estilo de atuação">{c.work_style}</Card>}
-            {c.professional_moment && (
+            {c.professional_moment && Object.values(c.professional_moment).some(Boolean) && (
               <Card title="Momento profissional">
                 {Object.entries({reason_for_move:"Motivo da movimentação",looking_for:"O que busca",availability:"Disponibilidade",expectations:"Expectativas"}).map(([k,label]) => c.professional_moment[k] && (
                   <div key={k} className="mb-1 text-sm"><span className="text-muted-foreground">{label}: </span>{c.professional_moment[k]}</div>
                 ))}
               </Card>
             )}
-            {c.motivators?.length > 0 && <Card title="Motivadores de carreira"><Tags items={c.motivators} /></Card>}
+            {c.motivators?.length > 0 && <Card title="Preferências de carreira"><Tags items={c.motivators} /></Card>}
+            {c.work_model && <Card title="Modelo de trabalho desejado">{c.work_model}</Card>}
+            {(c.area || c.specialties?.length > 0) && (
+              <Card title="Áreas de interesse">
+                <Tags items={[c.area, ...(c.specialties ?? [])].filter(Boolean).slice(0, 12)} />
+              </Card>
+            )}
             {!c.headline && !c.mini_bio && (
               <div className="card-elevated p-10 text-center">
                 <Sparkles className="h-8 w-8 text-primary mx-auto mb-2" />
-                <div className="text-sm text-muted-foreground mb-3">O perfil ainda não foi gerado pela IA.</div>
+                <div className="text-sm text-muted-foreground mb-3">O perfil ainda não foi gerado.</div>
                 <Button onClick={() => navigate({ to: "/candidates/new", search: { id: candidateId } as any })}>Editar e gerar perfil</Button>
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="trajectory" className="mt-4">
-            {c.trajectory?.length > 0 ? (
-              <div className="space-y-3">
-                {c.trajectory.map((t: any, i: number) => (
-                  <div key={i} className="card-elevated p-5">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="font-semibold">{t.role} — {t.company}</div>
-                        <div className="text-xs text-muted-foreground">{[t.segment, t.location, t.work_model].filter(Boolean).join(" · ")}</div>
-                      </div>
-                      <div className="text-xs text-muted-foreground">{t.start} — {t.end} {t.duration && `(${t.duration})`}</div>
-                    </div>
-                    {t.scope && <div className="mt-2 text-sm">{t.scope}</div>}
-                    {t.responsibilities?.length > 0 && <div className="mt-2"><div className="text-xs font-semibold text-muted-foreground">Responsabilidades</div><Bullets items={t.responsibilities} /></div>}
-                    {t.results?.length > 0 && <div className="mt-2"><div className="text-xs font-semibold text-muted-foreground">Resultados</div><Bullets items={t.results} /></div>}
-                    {t.team_size && <div className="mt-2 text-xs text-muted-foreground">Equipe: {t.team_size}</div>}
-                  </div>
-                ))}
-              </div>
-            ) : <Empty />}
-          </TabsContent>
+          <TabsContent value="experience" className="mt-4 space-y-6">
+            <section>
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">Experiência profissional</h2>
+              {c.trajectory?.length > 0 ? (
+                <div className="space-y-3">
+                  {c.trajectory.map((t: any, i: number) => (
+                    <ExperienceItem key={i} exp={t} defaultOpen={i < 2} />
+                  ))}
+                </div>
+              ) : <Empty />}
+            </section>
 
-          <TabsContent value="education" className="mt-4 space-y-4">
-            {c.education?.length > 0 && <Card title="Formação acadêmica">{c.education.map((e: any, i: number) => (
-              <div key={i} className="text-sm mb-1">• {[e.course, e.institution, `${e.start}—${e.end}`, e.status].filter(Boolean).join(" · ")}</div>
-            ))}</Card>}
-            {c.courses?.length > 0 && <Card title="Cursos e certificações">{c.courses.map((e: any, i: number) => (
-              <div key={i} className="text-sm mb-1">• {[e.name, e.institution, e.year, e.workload].filter(Boolean).join(" · ")}</div>
-            ))}</Card>}
-            {c.languages?.length > 0 && <Card title="Idiomas">{c.languages.map((e: any, i: number) => (
-              <div key={i} className="text-sm mb-1">• {[e.language, e.level, e.professional_use].filter(Boolean).join(" · ")}</div>
-            ))}</Card>}
-            {!c.education?.length && !c.courses?.length && !c.languages?.length && <Empty />}
+            <section>
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">Formação e desenvolvimento</h2>
+              <div className="space-y-4">
+                {c.education?.length > 0 && <Card title="Formação acadêmica">{sortByYearDesc(c.education).map((e: any, i: number) => (
+                  <div key={i} className="text-sm mb-1">• {[e.course, e.institution, [e.start, e.end].filter(Boolean).join("—"), e.status].filter(Boolean).join(" · ")}</div>
+                ))}</Card>}
+                {c.courses?.length > 0 && <Card title="Cursos, certificações e eventos">{sortByYearDesc(c.courses).map((e: any, i: number) => (
+                  <div key={i} className="text-sm mb-1">• {[e.name, e.institution, e.year, e.workload].filter(Boolean).join(" · ")}</div>
+                ))}</Card>}
+                {c.languages?.length > 0 && <Card title="Idiomas">{c.languages.map((e: any, i: number) => (
+                  <div key={i} className="text-sm mb-1">• {[e.language, e.level, e.professional_use].filter(Boolean).join(" · ")}</div>
+                ))}</Card>}
+                {c.competencies?.technical?.length > 0 && <Card title="Conhecimentos complementares"><Tags items={c.competencies.technical} /></Card>}
+                {!c.education?.length && !c.courses?.length && !c.languages?.length && !c.competencies?.technical?.length && <Empty />}
+              </div>
+            </section>
           </TabsContent>
 
           <TabsContent value="skills" className="mt-4 space-y-4">
-            {c.competencies ? Object.entries({hard_skills:"Hard skills",soft_skills:"Soft skills",leadership:"Liderança",tools:"Ferramentas",technical:"Técnicos"}).map(([k,label]) => (c.competencies[k]?.length > 0) && (
-              <Card key={k} title={label}><Tags items={c.competencies[k]} /></Card>
-            )) : <Empty />}
+            {(c.competencies?.hard_skills?.length > 0 || c.competencies?.soft_skills?.length > 0 || c.competencies?.leadership?.length > 0 || c.competencies?.tools?.length > 0) ? (
+              <>
+                {c.competencies?.hard_skills?.length > 0 && <Card title="Habilidades técnicas"><Tags items={c.competencies.hard_skills} /></Card>}
+                {c.competencies?.tools?.length > 0 && <Card title="Ferramentas"><Tags items={c.competencies.tools} /></Card>}
+                {c.competencies?.soft_skills?.length > 0 && <Card title="Habilidades comportamentais"><Tags items={c.competencies.soft_skills} /></Card>}
+                {c.competencies?.leadership?.length > 0 && <Card title="Liderança"><Tags items={c.competencies.leadership} /></Card>}
+              </>
+            ) : <Empty />}
           </TabsContent>
 
           <TabsContent value="disc" className="mt-4">
             {c.disc_scores || c.disc_raw ? (
-              <Card title="Perfil DISC">
+              <Card title="Perfil comportamental (DISC)">
                 {c.disc_profile && <div className="text-lg font-semibold mb-2">{c.disc_profile}</div>}
                 {c.disc_scores && typeof c.disc_scores === "object" && (
                   <div className="grid grid-cols-4 gap-3 my-3">
@@ -314,6 +372,7 @@ function CandidatePage() {
               </Card>
             ) : <Empty />}
           </TabsContent>
+
 
           <TabsContent value="internal" className="mt-4 space-y-4">
             <div className="rounded-lg border-l-4 border-amber-500 bg-amber-50 p-3 text-xs text-amber-800">
@@ -387,6 +446,58 @@ function Card({ title, children }: { title: string; children: any }) {
 function Bullets({ items }: { items: string[] }) { return <ul className="list-disc pl-5 space-y-1">{items.map((s, i) => <li key={i}>{s}</li>)}</ul>; }
 function Tags({ items }: { items: string[] }) { return <div className="flex flex-wrap gap-1.5">{items.map((t, i) => <Badge key={i} variant="secondary">{t}</Badge>)}</div>; }
 function Empty() { return <div className="card-elevated p-6 text-sm text-muted-foreground text-center">Sem informações nesta seção.</div>; }
+
+function ClampText({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 420;
+  return (
+    <div>
+      <div className={`whitespace-pre-wrap text-sm ${!open && long ? "line-clamp-6" : ""}`}>{text}</div>
+      {long && (
+        <button type="button" onClick={() => setOpen((v) => !v)} className="mt-1 text-xs font-medium text-primary hover:underline">
+          {open ? "Ver menos" : "Ver mais"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ExperienceItem({ exp, defaultOpen }: { exp: any; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  return (
+    <div className="card-elevated p-5">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-start justify-between gap-3 text-left">
+        <div className="min-w-0">
+          <div className="font-semibold">{[exp.role, exp.company].filter(Boolean).join(" — ")}</div>
+          <div className="text-xs text-muted-foreground">{[exp.segment, exp.location, exp.work_model].filter(Boolean).join(" · ")}</div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs text-muted-foreground">{[exp.start, exp.end].filter(Boolean).join(" — ")}{exp.duration ? ` (${exp.duration})` : ""}</span>
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+        </div>
+      </button>
+      {open && (
+        <div className="mt-3 border-t border-border pt-3">
+          {exp.scope && <div className="text-sm">{exp.scope}</div>}
+          {exp.responsibilities?.length > 0 && (
+            <div className="mt-2">
+              <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Responsabilidades</div>
+              <Bullets items={exp.responsibilities} />
+            </div>
+          )}
+          {exp.results?.length > 0 && (
+            <div className="mt-2">
+              <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Resultados</div>
+              <Bullets items={exp.results} />
+            </div>
+          )}
+          {exp.team_size && <div className="mt-2 text-xs text-muted-foreground">Equipe: {exp.team_size}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StatusBadge({ status }: { status?: string }) {
   const map: Record<string,{ label: string; cls: string }> = {
     rascunho: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
