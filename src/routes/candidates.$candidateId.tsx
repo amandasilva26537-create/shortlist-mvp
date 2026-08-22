@@ -269,13 +269,6 @@ function CandidatePage() {
                 ))}
               </Card>
             )}
-            {c.motivators?.length > 0 && <Card title="Preferências de carreira"><Tags items={c.motivators} /></Card>}
-            {c.work_model && <Card title="Modelo de trabalho desejado">{c.work_model}</Card>}
-            {(c.area || c.specialties?.length > 0) && (
-              <Card title="Áreas de interesse">
-                <Tags items={[c.area, ...(c.specialties ?? [])].filter(Boolean).slice(0, 12)} />
-              </Card>
-            )}
             {!c.headline && !c.mini_bio && (
               <div className="card-elevated p-10 text-center">
                 <Sparkles className="h-8 w-8 text-primary mx-auto mb-2" />
