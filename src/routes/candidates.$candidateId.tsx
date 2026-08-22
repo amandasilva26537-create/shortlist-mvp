@@ -9,11 +9,29 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles, ListPlus, Trash2, Archive } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles, ListPlus, Trash2, Archive, ChevronDown } from "lucide-react";
 import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
 import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus } from "@/lib/db/shortlists.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
+import { TagChips, TagPicker, BlockListWarning } from "@/components/candidate/CandidateTags";
 import { toast } from "sonner";
+
+const SECONDARY_LABELS: Record<string, string> = {
+  documents: "Documentos e arquivos",
+  additional: "Informações adicionais",
+  shortlists: "Vagas e shortlists",
+  internal: "Anotações internas",
+};
+
+function sortByYearDesc(items: any[]): any[] {
+  const year = (o: any) => {
+    const m = String(o?.end ?? o?.year ?? o?.start ?? "").match(/\d{4}/);
+    return m ? Number(m[0]) : 0;
+  };
+  return [...items].sort((a, b) => year(b) - year(a));
+}
+
 
 export const Route = createFileRoute("/candidates/$candidateId")({
   head: ({ params }) => ({ meta: [{ title: `Candidato · ${params.candidateId}` }] }),
