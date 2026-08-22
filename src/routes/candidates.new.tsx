@@ -199,6 +199,9 @@ function NewCandidate() {
           ...p,
           ...fresh,
           salary_expectation: fresh.salary_expectation ?? p.salary_expectation ?? "",
+          salary_min: fresh.salary_min ?? p.salary_min ?? "",
+          salary_max: fresh.salary_max ?? p.salary_max ?? "",
+
           executive_summary: fresh.executive_summary ?? [],
           specialties: fresh.specialties ?? [],
           main_results: fresh.main_results ?? [],
