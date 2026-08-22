@@ -261,6 +261,8 @@ export type Database = {
           recruiter_note: string | null
           resume_url: string | null
           salary_expectation: number | null
+          salary_max: number | null
+          salary_min: number | null
           seniority: string | null
           specialties: Json | null
           state: string | null
@@ -311,6 +313,8 @@ export type Database = {
           recruiter_note?: string | null
           resume_url?: string | null
           salary_expectation?: number | null
+          salary_max?: number | null
+          salary_min?: number | null
           seniority?: string | null
           specialties?: Json | null
           state?: string | null
@@ -361,6 +365,8 @@ export type Database = {
           recruiter_note?: string | null
           resume_url?: string | null
           salary_expectation?: number | null
+          salary_max?: number | null
+          salary_min?: number | null
           seniority?: string | null
           specialties?: Json | null
           state?: string | null
