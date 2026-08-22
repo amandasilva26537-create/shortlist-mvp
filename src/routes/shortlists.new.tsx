@@ -18,7 +18,7 @@ import { upsertShortlist, setShortlistCandidates, nextShortlistNumber } from "@/
 
 export const Route = createFileRoute("/shortlists/new")({
   head: () => ({ meta: [{ title: "Nova shortlist · Moove List" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({ client: s.client as string | undefined, job: s.job as string | undefined }),
+  validateSearch: (s: Record<string, unknown>): { client?: string; job?: string } => ({ client: s.client as string | undefined, job: s.job as string | undefined }),
   component: NewShortlist,
 });
 

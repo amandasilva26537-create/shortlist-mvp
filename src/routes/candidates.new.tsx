@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/candidates/new")({
   head: () => ({ meta: [{ title: "Novo candidato · Moove List" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({ id: (s.id as string | undefined) ?? undefined }),
+  validateSearch: (s: Record<string, unknown>): { id?: string } => ({ id: (s.id as string | undefined) ?? undefined }),
   component: NewCandidate,
 });
 

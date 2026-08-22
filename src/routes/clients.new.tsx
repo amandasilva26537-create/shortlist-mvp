@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/clients/new")({
   head: () => ({ meta: [{ title: "Novo cliente · Moove List" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: Record<string, unknown>): { next?: string; edit?: string } => ({
     next: s.next as string | undefined,
     edit: s.edit as string | undefined,
   }),
