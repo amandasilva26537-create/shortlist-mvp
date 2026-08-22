@@ -99,48 +99,8 @@ export function FlashcardDeck({
     setIdx(safeIdx + 1);
   };
 
-  const openAnalysis = () => {
-    setAnalysisCandidateId(candidate.id);
-  };
+  const [section, setSection] = useState<CandidateSection | null>(null);
 
-  const openProfile = () => {
-    if (profileBasePath) {
-      navigate({ to: `${profileBasePath}/${candidate.id}` as any });
-    } else {
-      navigate({
-        to: "/candidates/$candidateId",
-        params: { candidateId: candidate.id },
-        search: { returnTo: returnTo ?? `/shortlists/${shortlistId}`, cursor: candidate.id } as any,
-      });
-    }
-  };
-
-  const analysisLink = analysisCandidateId
-    ? ordered.find((l) => l.candidate_id === analysisCandidateId)
-    : null;
-  const analysisCandidate = analysisLink?.candidates ?? null;
-  const analysisEvaluation = analysisCandidateId
-    ? evaluations.find((e) => e.candidate_id === analysisCandidateId) ?? null
-    : null;
-  const initials = (analysisCandidate?.full_name ?? "")
-    .split(" ")
-    .slice(0, 2)
-    .map((s: string) => s[0])
-    .join("")
-    .toUpperCase();
-
-  const openAnalysisProfile = () => {
-    if (!analysisCandidate) return;
-    if (profileBasePath) {
-      navigate({ to: `${profileBasePath}/${analysisCandidate.id}` as any });
-    } else {
-      navigate({
-        to: "/candidates/$candidateId",
-        params: { candidateId: analysisCandidate.id },
-        search: { returnTo: returnTo ?? `/shortlists/${shortlistId}`, cursor: analysisCandidate.id } as any,
-      });
-    }
-  };
 
   return (
     <div>
