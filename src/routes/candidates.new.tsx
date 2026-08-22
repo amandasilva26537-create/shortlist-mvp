@@ -61,6 +61,8 @@ function NewCandidate() {
   const [f, setF] = useState<any>({
     full_name: "", photo_url: "", current_position: "", current_company: "", area: "", seniority: "",
     city: "", state: "", country: "Brasil", work_model: "Não informado", salary_expectation: "",
+    salary_min: "", salary_max: "",
+
     gender: "Prefere não identificar",
     linkedin_url: "", email: "", phone: "",
     resume_url: "", transcript: "", recruiter_note: "", internal_notes: "",
