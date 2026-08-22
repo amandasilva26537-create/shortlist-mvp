@@ -33,7 +33,6 @@ function ShortlistDetail() {
   const publishFn = useServerFn(publishShortlist);
   const delFn = useServerFn(deleteShortlist);
   const reorderFn = useServerFn(updateShortlistOrder);
-  const aiFn = useServerFn(analyzeShortlist);
   const evaluateFn = useServerFn(evaluateCandidateForJob);
 
   const { data, refetch } = useQuery({
