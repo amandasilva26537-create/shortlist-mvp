@@ -184,7 +184,9 @@ function CandidatesList() {
                   </div>
                   <StatusBadge status={c.status} />
                 </div>
+                <TagChips tags={c.tags} max={4} />
                 {c.mini_bio && <div className="text-sm text-muted-foreground line-clamp-3">{c.mini_bio}</div>}
+
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   {c.photo_url && <ImageIcon className="h-3.5 w-3.5" />}
                   {c.resume_url && <FileText className="h-3.5 w-3.5" />}
