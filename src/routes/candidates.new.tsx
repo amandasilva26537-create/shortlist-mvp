@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { Sparkles, Loader2, Wand2, Upload, Lock, FileText, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
 import { getCandidate, upsertCandidate, addCandidateDocument, deleteCandidateDocument } from "@/lib/db/candidates.functions";
 import { generateCandidateProfile, refineText } from "@/lib/ai/ai.functions";
+import { listSkillSuggestions } from "@/lib/db/tags.functions";
+
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/candidates/new")({
