@@ -275,8 +275,16 @@ REGRAS ABSOLUTAS:
 - Se um dado não estiver disponível, retorne string vazia "" ou array vazio [].
 - Se dois materiais divergirem, liste em "inconsistencies".
 
+CONCORDÂNCIA DE GÊNERO (obrigatório em todos os textos gerados):
+- Gênero informado: ${(cand as any).gender || "Prefere não identificar"}.
+- "Masculino": escreva no masculino ("o candidato", "ele", "preparado", "responsável por").
+- "Feminino": escreva no feminino ("a candidata", "ela", "preparada", "responsável por").
+- "Prefere não identificar" ou vazio: use linguagem neutra, sem marcar gênero (use o nome da pessoa ou "o/a profissional" evitando adjetivos com marca de gênero). Nunca use "ele(a)" nem barras.
+- Aplique a concordância em headline, mini_bio, full_bio, executive_summary, strengths, work_style, professional_moment e demais textos.
+
 CANDIDATO (dados manuais):
 Nome: ${cand.full_name}
+Gênero: ${(cand as any).gender ?? ""}
 Cargo atual: ${cand.current_position ?? ""}
 Empresa atual: ${cand.current_company ?? ""}
 Área: ${cand.area ?? ""}
