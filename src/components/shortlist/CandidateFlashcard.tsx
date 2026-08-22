@@ -67,9 +67,8 @@ export function CandidateFlashcard({ candidate, evaluation }: Props) {
               {c.area && <Chip icon={Building2} label="Área" value={c.area} />}
               {c.city && <Chip icon={MapPin} label="Cidade" value={c.city} />}
               {c.work_model && <Chip icon={Clock} label="Modelo" value={c.work_model} />}
-              {c.salary_expectation != null && c.salary_expectation !== "" && (
-                <Chip icon={DollarSign} label="Pretensão" value={fmtSalary(c.salary_expectation)} />
-              )}
+              {salary && <Chip icon={DollarSign} label="Pretensão salarial" value={salary} />}
+
               {c.professional_moment?.availability && (
                 <Chip icon={Clock} label="Disponibilidade" value={c.professional_moment.availability} />
               )}
