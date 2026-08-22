@@ -12,8 +12,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Search, Archive, Pencil, Eye, FileText, Linkedin, Image as ImageIcon, Trash2, ListPlus } from "lucide-react";
 import { listCandidates, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
 import { listCandidateShortlistLinks } from "@/lib/db/shortlists.functions";
+import { listTags } from "@/lib/db/tags.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
+import { TagChips, tagDotClasses } from "@/components/candidate/CandidateTags";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/candidates/")({
   head: () => ({
