@@ -395,7 +395,7 @@ Regras de conteúdo:
       motivators: normArr(output.motivators),
       trajectory: normArr(output.trajectory),
       education: normArr(output.education),
-      courses: normArr(output.courses),
+      courses: normArr(output.courses).slice(0, 10),
       languages: normArr(output.languages),
       competencies: output.competencies ?? null,
       inconsistencies: normArr(output.inconsistencies),
@@ -470,7 +470,7 @@ export const refineText = createServerFn({ method: "POST" })
     const model = gateway(AI_MODEL);
     const { text } = await generateText({
       model,
-      prompt: `Você é um editor executivo. Reescreva o texto abaixo aplicando a instrução, mantendo veracidade e tom profissional.
+      prompt: `Você é um editor executivo. Reescreva o texto abaixo aplicando a instrução, mantendo veracidade e tom profissional. Respeite a concordância de gênero indicada no contexto (masculino, feminino ou linguagem neutra quando a pessoa preferir não identificar) e nunca use "ele(a)" ou barras.
 
 Contexto: ${data.context ?? "—"}
 
