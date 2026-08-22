@@ -446,6 +446,58 @@ function Card({ title, children }: { title: string; children: any }) {
 function Bullets({ items }: { items: string[] }) { return <ul className="list-disc pl-5 space-y-1">{items.map((s, i) => <li key={i}>{s}</li>)}</ul>; }
 function Tags({ items }: { items: string[] }) { return <div className="flex flex-wrap gap-1.5">{items.map((t, i) => <Badge key={i} variant="secondary">{t}</Badge>)}</div>; }
 function Empty() { return <div className="card-elevated p-6 text-sm text-muted-foreground text-center">Sem informações nesta seção.</div>; }
+
+function ClampText({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 420;
+  return (
+    <div>
+      <div className={`whitespace-pre-wrap text-sm ${!open && long ? "line-clamp-6" : ""}`}>{text}</div>
+      {long && (
+        <button type="button" onClick={() => setOpen((v) => !v)} className="mt-1 text-xs font-medium text-primary hover:underline">
+          {open ? "Ver menos" : "Ver mais"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ExperienceItem({ exp, defaultOpen }: { exp: any; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  return (
+    <div className="card-elevated p-5">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-start justify-between gap-3 text-left">
+        <div className="min-w-0">
+          <div className="font-semibold">{[exp.role, exp.company].filter(Boolean).join(" — ")}</div>
+          <div className="text-xs text-muted-foreground">{[exp.segment, exp.location, exp.work_model].filter(Boolean).join(" · ")}</div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs text-muted-foreground">{[exp.start, exp.end].filter(Boolean).join(" — ")}{exp.duration ? ` (${exp.duration})` : ""}</span>
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+        </div>
+      </button>
+      {open && (
+        <div className="mt-3 border-t border-border pt-3">
+          {exp.scope && <div className="text-sm">{exp.scope}</div>}
+          {exp.responsibilities?.length > 0 && (
+            <div className="mt-2">
+              <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Responsabilidades</div>
+              <Bullets items={exp.responsibilities} />
+            </div>
+          )}
+          {exp.results?.length > 0 && (
+            <div className="mt-2">
+              <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Resultados</div>
+              <Bullets items={exp.results} />
+            </div>
+          )}
+          {exp.team_size && <div className="mt-2 text-xs text-muted-foreground">Equipe: {exp.team_size}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StatusBadge({ status }: { status?: string }) {
   const map: Record<string,{ label: string; cls: string }> = {
     rascunho: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
