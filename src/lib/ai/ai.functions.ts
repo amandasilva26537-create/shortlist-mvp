@@ -593,9 +593,8 @@ Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
 - Se QUALQUER critério eliminatório retornar "no", overall_match ≤ 55.
 - Se houver 2+ critérios eliminatórios em "unknown", overall_match ≤ 70.
 - Cada dimension_score deve ser justificável pela evidência textual do candidato. Diferencie candidatos — não iguale scores entre pessoas com trajetórias distintas.
-- radar_scores deve usar exatamente os nomes das competências avaliadas da vaga.
-- cultural_fit é ESPECÍFICO desta vaga (empresa, momento, gestor, time) — não repita traços genéricos do candidato.
-- Se não houver evidência para um critério eliminatório, use "unknown" e explique.
+  - radar_scores deve usar exatamente os nomes das competências avaliadas da vaga.
+  - Se não houver evidência para um critério eliminatório, use "unknown" e explique.
 - Não invente. Prefira "" a inventar.`;
 
     const gateway = createLovableAiGateway(requireApiKey());
