@@ -45,9 +45,6 @@ function ShortlistDetail() {
     enabled: !!data,
   });
 
-  const [aiText, setAiText] = useState("");
-  const [aiBusy, setAiBusy] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState("");
   const [batchBusy, setBatchBusy] = useState(false);
 
   if (!data) return <AppShell><div className="text-sm text-muted-foreground">Carregando…</div></AppShell>;
