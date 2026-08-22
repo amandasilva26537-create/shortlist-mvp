@@ -104,9 +104,10 @@ export const submitPortalFeedback = createServerFn({ method: "POST" })
       token: z.string(),
       candidate_id: z.string().uuid(),
       client_identifier: z.string().min(1).max(200),
+      client_role: z.string().max(200).nullable().optional(),
       rating: z.number().min(0).max(5).nullable().optional(),
       favorite: z.boolean().optional(),
-      decision: z.enum(["approved", "rejected", "second_interview"]).nullable().optional(),
+      decision: z.string().max(60).nullable().optional(),
       comment: z.string().max(4000).nullable().optional(),
     }).parse(v),
   )
