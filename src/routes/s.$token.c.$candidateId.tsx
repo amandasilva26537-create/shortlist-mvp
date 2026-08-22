@@ -202,7 +202,15 @@ function PortalCandidatePage() {
             </TabsContent>
           )}
         </Tabs>
+        </div>
+        {identity && (
+          <div className="lg:sticky lg:top-20 lg:self-start">
+            <ClientEvaluationPanel token={token} candidateId={c.id} candidateName={c.full_name} identity={identity} />
+          </div>
+        )}
+        </div>
       </main>
+
     </div>
   );
 }
