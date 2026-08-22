@@ -285,7 +285,7 @@ function CandidatePage() {
               {c.trajectory?.length > 0 ? (
                 <div className="space-y-3">
                   {c.trajectory.map((t: any, i: number) => (
-                    <ExperienceItem key={i} exp={t} defaultOpen={i < 3} compact={i >= 3} />
+                    <ExperienceItem key={i} exp={t} defaultOpen={true} compact={false} />
                   ))}
                 </div>
               ) : <Empty />}
