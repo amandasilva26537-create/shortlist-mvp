@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ChevronLeft, ChevronRight, ArrowUp, ArrowDown, User } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from "lucide-react";
 import { CandidateFlashcard } from "./CandidateFlashcard";
 import { AnalysisContent } from "./AnalysisContent";
-import { useNavigate } from "@tanstack/react-router";
+import { CandidateSectionMenu, type CandidateSection } from "./CandidateSectionMenu";
+import { ProfessionalProfileView } from "@/components/candidate/ProfessionalProfileView";
+import { DiscSection } from "@/components/candidate/DiscSection";
+
 
 interface Props {
   shortlistId: string;
