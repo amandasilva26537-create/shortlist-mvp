@@ -624,7 +624,6 @@ Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
       top_strengths: Array.isArray(output.top_strengths) ? output.top_strengths : [],
       dimension_scores: output.dimension_scores ?? {},
       radar_scores: output.radar_scores ?? {},
-      cultural_fit: output.cultural_fit ?? null,
       ai_generated: output,
       shortlist_id: data.shortlist_id ?? null,
     };
