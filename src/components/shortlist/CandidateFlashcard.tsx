@@ -1,14 +1,10 @@
 import { MatchRing } from "@/components/candidate/MatchRing";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, MapPin, Building2, DollarSign, Clock, Star, User, ChevronRight, FileText } from "lucide-react";
-import { useRef, type PointerEvent } from "react";
+import { Briefcase, MapPin, Building2, DollarSign, Clock, Star } from "lucide-react";
 
 interface Props {
   candidate: any;
   evaluation: any | null;
-  onOpenAnalysis: () => void;
-  onOpenProfile: () => void;
   readOnly?: boolean;
 }
 
@@ -19,11 +15,9 @@ function fmtSalary(v: any) {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 }
 
-export function CandidateFlashcard({ candidate, evaluation, onOpenAnalysis, onOpenProfile }: Props) {
+export function CandidateFlashcard({ candidate, evaluation }: Props) {
   const c = candidate;
   const ev = evaluation;
-  const analysisButtonRef = useRef<HTMLButtonElement>(null);
-  const profileButtonRef = useRef<HTMLButtonElement>(null);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
   const initials = (c.full_name ?? "")
     .split(" ")
@@ -32,32 +26,10 @@ export function CandidateFlashcard({ candidate, evaluation, onOpenAnalysis, onOp
     .join("")
     .toUpperCase();
 
-  const handleCardPointerUpCapture = (event: PointerEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement | null;
-    if (target?.closest("button")) return;
-
-    const hit = (button: HTMLButtonElement | null) => {
-      if (!button) return false;
-      const rect = button.getBoundingClientRect();
-      return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-    };
-
-    if (hit(analysisButtonRef.current)) {
-      event.preventDefault();
-      event.stopPropagation();
-      onOpenAnalysis();
-    } else if (hit(profileButtonRef.current)) {
-      event.preventDefault();
-      event.stopPropagation();
-      onOpenProfile();
-    }
-  };
 
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-lg animate-scale-in"
-      onPointerUpCapture={handleCardPointerUpCapture}
-    >
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-lg animate-scale-in">
+
       {/* Faixa decorativa superior */}
       <div className="h-1.5 bg-gradient-to-r from-primary/60 via-primary to-primary/60" />
 
@@ -120,16 +92,6 @@ export function CandidateFlashcard({ candidate, evaluation, onOpenAnalysis, onOp
           </div>
         </div>
 
-        {/* Ações */}
-        <div className="relative z-20 mt-6 flex flex-wrap gap-2 border-t border-border bg-card pt-4">
-          <Button ref={analysisButtonRef} onClick={onOpenAnalysis} className="relative z-20 flex-1 min-w-[160px]">
-            <FileText className="mr-2 h-4 w-4" /> Ver análise
-            <ChevronRight className="ml-auto h-4 w-4" />
-          </Button>
-          <Button ref={profileButtonRef} variant="outline" onClick={onOpenProfile} className="relative z-20 flex-1 min-w-[160px]">
-            <User className="mr-2 h-4 w-4" /> Ver perfil completo
-          </Button>
-        </div>
       </div>
     </div>
   );
