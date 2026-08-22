@@ -175,24 +175,7 @@ function PortalCandidatePage() {
           </TabsContent>
 
           <TabsContent value="disc" className="mt-4">
-            {c.disc_scores || c.disc_raw ? (
-              <Card title="Perfil comportamental (DISC)">
-                {c.disc_profile && <div className="text-lg font-semibold mb-2">{c.disc_profile}</div>}
-                {c.disc_scores && typeof c.disc_scores === "object" && (
-                  <div className="grid grid-cols-4 gap-3 my-3">
-                    {["D", "I", "S", "C"].map((l) => (
-                      <div key={l} className="rounded-lg border border-border p-3 text-center">
-                        <div className="text-xs text-muted-foreground">{l}</div>
-                        <div className="text-lg font-semibold">{c.disc_scores[l] ?? "—"}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {c.disc_scores?.behavior_summary && <div className="text-sm mt-2"><b>Resumo:</b> {c.disc_scores.behavior_summary}</div>}
-                {c.disc_scores?.communication_style && <div className="text-sm"><b>Comunicação:</b> {c.disc_scores.communication_style}</div>}
-                {c.disc_scores?.ideal_environment && <div className="text-sm"><b>Ambiente ideal:</b> {c.disc_scores.ideal_environment}</div>}
-              </Card>
-            ) : <Empty />}
+            <DiscSection candidate={c} readOnly />
           </TabsContent>
 
 
