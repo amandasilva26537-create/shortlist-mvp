@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { toast } from "sonner";
 import { Copy, ExternalLink, Send, Trash2, Loader2, Wand2 } from "lucide-react";
 import {
