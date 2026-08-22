@@ -200,7 +200,7 @@ export type Database = {
           country: string | null
           courses: Json | null
           created_at: string
-          created_by: string
+          created_by: string | null
           current_company: string | null
           current_position: string | null
           disc_profile: string | null
@@ -249,7 +249,7 @@ export type Database = {
           country?: string | null
           courses?: Json | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           current_company?: string | null
           current_position?: string | null
           disc_profile?: string | null
@@ -298,7 +298,7 @@ export type Database = {
           country?: string | null
           courses?: Json | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           current_company?: string | null
           current_position?: string | null
           disc_profile?: string | null
@@ -351,7 +351,7 @@ export type Database = {
           internal_notes: string | null
           logo_url: string | null
           name: string
-          owner_id: string
+          owner_id: string | null
           segment: string | null
           state: string | null
           updated_at: string
@@ -369,7 +369,7 @@ export type Database = {
           internal_notes?: string | null
           logo_url?: string | null
           name: string
-          owner_id: string
+          owner_id?: string | null
           segment?: string | null
           state?: string | null
           updated_at?: string
@@ -387,7 +387,7 @@ export type Database = {
           internal_notes?: string | null
           logo_url?: string | null
           name?: string
-          owner_id?: string
+          owner_id?: string | null
           segment?: string | null
           state?: string | null
           updated_at?: string
@@ -403,7 +403,7 @@ export type Database = {
           payload: Json
           title: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           entity_id?: string | null
@@ -412,7 +412,7 @@ export type Database = {
           payload?: Json
           title?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           entity_id?: string | null
@@ -421,7 +421,7 @@ export type Database = {
           payload?: Json
           title?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -433,7 +433,7 @@ export type Database = {
           client_id: string
           contract_type: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string | null
           documents: Json
           hard_skills: string[] | null
@@ -462,7 +462,7 @@ export type Database = {
           client_id: string
           contract_type?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description?: string | null
           documents?: Json
           hard_skills?: string[] | null
@@ -491,7 +491,7 @@ export type Database = {
           client_id?: string
           contract_type?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string | null
           documents?: Json
           hard_skills?: string[] | null
@@ -660,7 +660,7 @@ export type Database = {
           job_id: string
           message: string | null
           number: number
-          owner_id: string
+          owner_id: string | null
           published_at: string | null
           responsible: string | null
           send_date: string | null
@@ -676,7 +676,7 @@ export type Database = {
           job_id: string
           message?: string | null
           number?: number
-          owner_id: string
+          owner_id?: string | null
           published_at?: string | null
           responsible?: string | null
           send_date?: string | null
@@ -692,7 +692,7 @@ export type Database = {
           job_id?: string
           message?: string | null
           number?: number
-          owner_id?: string
+          owner_id?: string | null
           published_at?: string | null
           responsible?: string | null
           send_date?: string | null
