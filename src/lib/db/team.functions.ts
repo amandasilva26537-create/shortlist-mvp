@@ -2,45 +2,23 @@ import { createServerFn } from "@tanstack/react-start";
 import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-access";
 import { z } from "zod";
 
-async function assertAdmin(supabase: any, userId: string) {
-  const { data, error } = await supabase.rpc("has_role" as any, {
-    _user_id: userId,
-    _role: "admin",
-  });
-  // has_role now lives in private schema; use direct table lookup as fallback.
-  if (error || data !== true) {
-    const { data: rows } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
-    const isAdmin = (rows ?? []).some((r: any) => r.role === "admin");
-    if (!isAdmin) throw new Error("Apenas administradores podem executar esta ação.");
-  }
+// Acesso aberto: o sistema funciona sem login, então não há papéis a validar.
+// A função é mantida para não alterar os handlers que já a chamam.
+async function assertAdmin(_supabase: any, _userId: string) {
+  return;
 }
 
 export const getMyAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId);
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("status, full_name, role_title, email")
-      .eq("id", context.userId)
-      .maybeSingle();
-    const roleList = (roles ?? []).map((r: any) => r.role);
-    const isAdmin = roleList.includes("admin");
-    const isRecruiter = roleList.includes("recruiter");
-    const status = (profile as any)?.status ?? "active";
+    // Modo aberto: todo visitante tem acesso total de recrutador e administrador.
     return {
       userId: context.userId,
-      isAdmin,
-      isRecruiter,
-      isActive: status === "active" && (isAdmin || isRecruiter),
-      status,
-      profile: profile ?? null,
+      isAdmin: true,
+      isRecruiter: true,
+      isActive: true,
+      status: "active",
+      profile: null as null | Record<string, unknown>,
     };
   });
 
