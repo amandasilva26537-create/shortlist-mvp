@@ -15,6 +15,7 @@ import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candid
 import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus } from "@/lib/db/shortlists.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
 import { TagChips, TagPicker, BlockListWarning } from "@/components/candidate/CandidateTags";
+import { ExperienceItem, LanguageList } from "@/components/candidate/ProfileBits";
 import { toast } from "sonner";
 
 const SECONDARY_LABELS: Record<string, string> = {
@@ -453,41 +454,6 @@ function ClampText({ text }: { text: string }) {
   );
 }
 
-function ExperienceItem({ exp, defaultOpen }: { exp: any; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(!!defaultOpen);
-  return (
-    <div className="card-elevated p-5">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-start justify-between gap-3 text-left">
-        <div className="min-w-0">
-          <div className="font-semibold">{[exp.role, exp.company].filter(Boolean).join(" — ")}</div>
-          <div className="text-xs text-muted-foreground">{[exp.segment, exp.location, exp.work_model].filter(Boolean).join(" · ")}</div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-muted-foreground">{[exp.start, exp.end].filter(Boolean).join(" — ")}{exp.duration ? ` (${exp.duration})` : ""}</span>
-          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-        </div>
-      </button>
-      {open && (
-        <div className="mt-3 border-t border-border pt-3">
-          {exp.scope && <div className="text-sm">{exp.scope}</div>}
-          {exp.responsibilities?.length > 0 && (
-            <div className="mt-2">
-              <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Responsabilidades</div>
-              <Bullets items={exp.responsibilities} />
-            </div>
-          )}
-          {exp.results?.length > 0 && (
-            <div className="mt-2">
-              <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Resultados</div>
-              <Bullets items={exp.results} />
-            </div>
-          )}
-          {exp.team_size && <div className="mt-2 text-xs text-muted-foreground">Equipe: {exp.team_size}</div>}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function StatusBadge({ status }: { status?: string }) {
   const map: Record<string,{ label: string; cls: string }> = {
