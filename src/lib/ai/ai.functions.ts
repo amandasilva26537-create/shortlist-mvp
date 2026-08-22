@@ -3,6 +3,7 @@ import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-
 import { generateText } from "ai";
 import { z } from "zod";
 import { AI_MODEL, createLovableAiGateway, requireApiKey } from "./gateway.server";
+import { SHORTLIST_WRITING_STYLE, genderInstruction } from "./writing-style";
 
 const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
@@ -438,17 +439,21 @@ export const analyzeShortlist = createServerFn({ method: "POST" })
     const model = gateway(AI_MODEL);
     const brief = (links ?? []).map((l: any) => {
       const ev = (evals ?? []).find((e: any) => e.candidate_id === l.candidate_id);
-      return `- ${l.candidates.full_name} (${l.candidates.current_position ?? "?"}): aderência ${ev?.overall_match ?? "?"}%. Forças: ${(ev?.strengths ?? []).join(", ")}. Riscos: ${(ev?.risks ?? []).join(", ")}.`;
+      return `- ${l.candidates.full_name} (${l.candidates.current_position ?? "?"}) — ${genderInstruction(l.candidates.gender, l.candidates.full_name)} Aderência ${ev?.overall_match ?? "?"}%. Forças: ${(ev?.strengths ?? []).join(", ")}. Riscos: ${(ev?.risks ?? []).join(", ")}.`;
     }).join("\n");
 
     const { text } = await generateText({
       model,
-      prompt: `Você é um consultor sênior. Analise a shortlist para a vaga "${sl.jobs.title}" e apoie a decisão do gestor, sem tomá-la.
+      prompt: `Você é a recrutadora responsável por esta shortlist. Analise os candidatos para a vaga "${sl.jobs.title}" e apoie a decisão do gestor, sem tomá-la.
+
+${SHORTLIST_WRITING_STYLE}
+
+Respeite o gênero indicado ao lado de cada pessoa.
 
 Candidatos:
 ${brief}
 
-${data.prompt ? `Instrução: ${data.prompt}` : "Gere: (1) resumo comparativo executivo, (2) principais diferenciais de cada candidato, (3) sugestão de ordem de apresentação, (4) perguntas para desempate."}
+${data.prompt ? `Instrução: ${data.prompt}` : "Gere: (1) resumo comparativo, (2) o que cada pessoa fez que é relevante para esta vaga, (3) sugestão de ordem de apresentação com o motivo, (4) perguntas para desempate."}
 
 Responda em português, formatado em Markdown.`,
     });
@@ -470,7 +475,9 @@ export const refineText = createServerFn({ method: "POST" })
     const model = gateway(AI_MODEL);
     const { text } = await generateText({
       model,
-      prompt: `Você é um editor executivo. Reescreva o texto abaixo aplicando a instrução, mantendo veracidade e tom profissional. Respeite a concordância de gênero indicada no contexto (masculino, feminino ou linguagem neutra quando a pessoa preferir não identificar) e nunca use "ele(a)" ou barras.
+      prompt: `Você é a recrutadora responsável. Reescreva o texto abaixo aplicando a instrução, mantendo veracidade. Respeite a concordância de gênero indicada no contexto (masculino, feminino ou linguagem neutra quando a pessoa preferir não identificar) e nunca use "ele(a)" ou barras.
+
+${SHORTLIST_WRITING_STYLE}
 
 Contexto: ${data.context ?? "—"}
 
@@ -507,9 +514,14 @@ export const evaluateCandidateForJob = createServerFn({ method: "POST" })
     const jobAny: any = job;
     const cAny: any = cand;
     const ais: any = jobAny.ai_structure ?? {};
-    const promptText = `Você é um consultor sênior de recrutamento executivo. Avalie a aderência DESTE candidato a ESTA vaga específica. Seja HONESTO — não infle percentuais. Nunca aplique nota mínima obrigatória.
+    const promptText = `Você é a recrutadora responsável por esta vaga. Avalie a aderência DESTA pessoa a ESTA vaga específica. Seja HONESTA — não infle percentuais. Nunca aplique nota mínima obrigatória.
 
 Use SOMENTE informações realmente presentes no material fornecido. Se algo não estiver disponível, retorne "" ou [] ou marque status "unknown".
+
+${SHORTLIST_WRITING_STYLE}
+
+${genderInstruction(cAny.gender, cAny.full_name)}
+
 
 ===== VAGA =====
 Título: ${jobAny.title}
@@ -673,10 +685,13 @@ export const generateDiscResult = createServerFn({ method: "POST" })
     const model = gateway(AI_MODEL);
     const { text } = await generateText({
       model,
-      prompt: `Você é um especialista em avaliação comportamental DISC. Interprete SOMENTE os dados abaixo e produza o resultado DISC. Não invente dados de currículo nem fale de experiência profissional.
+      prompt: `Você é a recrutadora responsável e interpreta o DISC. Interprete SOMENTE os dados abaixo e produza o resultado DISC. Não invente dados de currículo nem fale de experiência profissional.
+
+${SHORTLIST_WRITING_STYLE}
 
 Pessoa: ${cAny.full_name}
 ${genderRule}
+${genderInstruction(cAny.gender, cAny.full_name)}
 Pontuações brutas: D=${raw.D ?? "?"} I=${raw.I ?? "?"} S=${raw.S ?? "?"} C=${raw.C ?? "?"}
 Resultado bruto/relatório: ${cAny.disc_raw ?? "—"}
 
