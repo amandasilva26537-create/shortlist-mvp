@@ -61,12 +61,16 @@ function CandidatesList() {
   const [hasLinkedin, setHasLinkedin] = useState<string>("all");
   const [hasResume, setHasResume] = useState<string>("all");
   const [hasPhoto, setHasPhoto] = useState<string>("all");
+  const [tagIds, setTagIds] = useState<string[]>([]);
+
+  const tagsFn = useServerFn(listTags);
+  const { data: allTags = [] } = useQuery({ queryKey: ["tags"], queryFn: () => tagsFn() });
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     return candidates.filter((c: any) => {
       if (term) {
-        const hay = [c.full_name, c.current_position, c.area, c.city, c.current_company, c.linkedin_url, c.phone, c.email, ...(c.competencies?.hard_skills ?? []), ...(c.competencies?.soft_skills ?? [])]
+        const hay = [c.full_name, c.current_position, c.area, c.city, c.current_company, c.linkedin_url, c.phone, c.email, ...(c.competencies?.hard_skills ?? []), ...(c.competencies?.soft_skills ?? []), ...(c.tags ?? []).map((t: any) => t.name)]
           .filter(Boolean).join(" ").toLowerCase();
         if (!hay.includes(term)) return false;
       }
@@ -81,11 +85,16 @@ function CandidatesList() {
       if (hasResume === "no" && c.resume_url) return false;
       if (hasPhoto === "yes" && !c.photo_url) return false;
       if (hasPhoto === "no" && c.photo_url) return false;
+      if (tagIds.length > 0) {
+        const own = new Set<string>((c.tags ?? []).map((t: any) => t.id));
+        if (!tagIds.some((id) => own.has(id))) return false;
+      }
       return true;
     });
-  }, [candidates, q, area, seniority, city, wm, status, hasLinkedin, hasResume, hasPhoto]);
+  }, [candidates, q, area, seniority, city, wm, status, hasLinkedin, hasResume, hasPhoto, tagIds]);
 
   const uniques = (k: string) => Array.from(new Set(candidates.map((c: any) => c[k]).filter(Boolean))) as string[];
+
 
   return (
     <AppShell>
