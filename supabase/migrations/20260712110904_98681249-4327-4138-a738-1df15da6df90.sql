@@ -1,1 +1,0 @@
-ALTER TABLE public.candidate_job_evaluations ADD COLUMN IF NOT EXISTS cultural_fit jsonb;

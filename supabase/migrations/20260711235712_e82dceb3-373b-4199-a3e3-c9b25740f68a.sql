@@ -1,1 +1,0 @@
-ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS contact TEXT, ADD COLUMN IF NOT EXISTS instagram TEXT;
