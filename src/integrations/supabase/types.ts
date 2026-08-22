@@ -563,6 +563,7 @@ export type Database = {
         Row: {
           candidate_id: string
           client_identifier: string | null
+          client_role: string | null
           comment: string | null
           created_at: string
           decision: string | null
@@ -574,6 +575,7 @@ export type Database = {
         Insert: {
           candidate_id: string
           client_identifier?: string | null
+          client_role?: string | null
           comment?: string | null
           created_at?: string
           decision?: string | null
@@ -585,6 +587,7 @@ export type Database = {
         Update: {
           candidate_id?: string
           client_identifier?: string | null
+          client_role?: string | null
           comment?: string | null
           created_at?: string
           decision?: string | null

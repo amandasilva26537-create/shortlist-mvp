@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles, ListPlus, Trash2, Archive, ChevronDown } from "lucide-react";
 import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
-import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus } from "@/lib/db/shortlists.functions";
+import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus, listCandidateClientFeedback } from "@/lib/db/shortlists.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
 import { TagChips, TagPicker, BlockListWarning } from "@/components/candidate/CandidateTags";
 import { ExperienceItem, LanguageList } from "@/components/candidate/ProfileBits";
@@ -24,6 +24,14 @@ const SECONDARY_LABELS: Record<string, string> = {
   additional: "Informações adicionais",
   shortlists: "Vagas e shortlists",
   internal: "Anotações internas",
+  feedbacks: "Feedbacks de clientes",
+};
+
+const DECISION_LABELS: Record<string, string> = {
+  second_interview: "Aprovado para a segunda entrevista",
+  approved: "Aprovado",
+  rejected: "Reprovado",
+  favorite_approved: "Favoritado — aprovado",
 };
 
 function sortByYearDesc(items: any[]): any[] {
@@ -64,6 +72,12 @@ function CandidatePage() {
   const { data: shortlistLinks = [] } = useQuery({
     queryKey: ["candidate-shortlists", candidateId],
     queryFn: () => linksFn({ data: { candidate_id: candidateId } }),
+    enabled: isUuid,
+  });
+  const feedbackFn = useServerFn(listCandidateClientFeedback);
+  const { data: clientFeedback = [] } = useQuery({
+    queryKey: ["candidate-client-feedback", candidateId],
+    queryFn: () => feedbackFn({ data: { candidate_id: candidateId } }),
     enabled: isUuid,
   });
   const c: any = data;
@@ -217,6 +231,9 @@ function CandidatePage() {
                 <DropdownMenuItem onClick={() => setTab("shortlists")}>
                   Vagas e shortlists{shortlistLinks.length > 0 && ` (${shortlistLinks.length})`}
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTab("feedbacks")}>
+                  <Lock className="mr-2 h-3.5 w-3.5" />Feedbacks de clientes{clientFeedback.length > 0 && ` (${clientFeedback.length})`}
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTab("internal")}>
                   <Lock className="mr-2 h-3.5 w-3.5" />Anotações internas
                 </DropdownMenuItem>
@@ -362,6 +379,54 @@ function CandidatePage() {
             {c.transcript && <Card title="Resumo/transcrição da entrevista"><div className="whitespace-pre-wrap text-sm">{c.transcript}</div></Card>}
             {c.internal_notes && <Card title="Observações internas"><div className="whitespace-pre-wrap text-sm">{c.internal_notes}</div></Card>}
             {c.inconsistencies?.length > 0 && <Card title="Inconsistências detectadas"><Bullets items={c.inconsistencies} /></Card>}
+          </TabsContent>
+
+          <TabsContent value="feedbacks" className="mt-4 space-y-4">
+            {clientFeedback.length === 0 ? (
+              <div className="card-elevated p-6 text-center text-sm text-muted-foreground">Nenhum feedback de cliente registrado para este candidato.</div>
+            ) : (
+              Object.entries(
+                (clientFeedback as any[]).reduce((acc: Record<string, any[]>, f: any) => {
+                  const key = f.shortlist_id;
+                  (acc[key] ||= []).push(f);
+                  return acc;
+                }, {}),
+              ).map(([shortlistId, items]) => {
+                const sl = (items as any[])[0]?.shortlists;
+                const slName = sl?.title || (sl?.number != null ? `Shortlist ${String(sl.number).padStart(2, "0")}` : "Shortlist");
+                return (
+                  <div key={shortlistId} className="card-elevated p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted-foreground">{sl?.clients?.name}</div>
+                        <div className="font-medium">{slName}</div>
+                        {sl?.jobs?.title && <div className="text-xs text-muted-foreground">{sl.jobs.title}</div>}
+                      </div>
+                      <Link to="/shortlists/$shortlistId" params={{ shortlistId }}>
+                        <Button variant="outline" size="sm">Abrir shortlist</Button>
+                      </Link>
+                    </div>
+                    <div className="space-y-2">
+                      {(items as any[]).map((f: any) => (
+                        <div key={f.id} className="rounded-lg border border-border p-3">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="text-sm font-medium">
+                              {f.client_identifier || "Cliente"}
+                              {f.client_role && <span className="text-muted-foreground font-normal"> · {f.client_role}</span>}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {f.decision && <Badge variant="secondary">{DECISION_LABELS[f.decision] ?? f.decision}</Badge>}
+                              <span className="text-xs text-muted-foreground">{new Date(f.created_at).toLocaleDateString("pt-BR")}</span>
+                            </div>
+                          </div>
+                          {f.comment && <div className="mt-2 whitespace-pre-wrap text-sm">{f.comment}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </TabsContent>
 
           <TabsContent value="shortlists" className="mt-4 space-y-3">

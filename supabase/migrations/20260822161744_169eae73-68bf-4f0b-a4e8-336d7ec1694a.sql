@@ -1,0 +1,1 @@
+ALTER TABLE public.manager_feedback ADD COLUMN IF NOT EXISTS client_role text;

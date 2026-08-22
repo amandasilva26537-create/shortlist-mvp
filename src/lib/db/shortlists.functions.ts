@@ -310,3 +310,17 @@ export const listEvaluationsForShortlist = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return evals ?? [];
   });
+
+// ============ Feedbacks de clientes por candidato (uso interno) ============
+export const listCandidateClientFeedback = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => z.object({ candidate_id: z.string().uuid() }).parse(v))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("manager_feedback")
+      .select("*, shortlists(id, number, title, jobs(id, title), clients(id, name))")
+      .eq("candidate_id", data.candidate_id)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
