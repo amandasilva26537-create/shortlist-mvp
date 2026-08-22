@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles, ListPlus, Trash2, Archive, ChevronDown } from "lucide-react";
 import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
-import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus } from "@/lib/db/shortlists.functions";
+import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus, listCandidateClientFeedback } from "@/lib/db/shortlists.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
 import { TagChips, TagPicker, BlockListWarning } from "@/components/candidate/CandidateTags";
 import { ExperienceItem, LanguageList } from "@/components/candidate/ProfileBits";
