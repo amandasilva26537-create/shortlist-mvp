@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Linkedin, ExternalLink } from "lucide-react";
 import { getPortalCandidate } from "@/lib/db/portal.functions";
+import { ClientEvaluationPanel, loadIdentity, type PortalIdentity } from "@/components/shortlist/ClientEvaluationPanel";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/s/$token/c/$candidateId")({
   ssr: false,
@@ -24,6 +26,9 @@ function PortalCandidatePage() {
     queryKey: ["portal-candidate", token, candidateId],
     queryFn: () => getFn({ data: { token, candidate_id: candidateId } }),
   });
+
+  const [identity, setIdentity] = useState<PortalIdentity | null>(null);
+  useEffect(() => { setIdentity(loadIdentity(token)); }, [token]);
 
   if (isLoading) {
     return <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">Carregando…</div>;
@@ -53,7 +58,9 @@ function PortalCandidatePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6 md:px-8">
+      <main className="mx-auto max-w-6xl px-4 py-6 md:px-8">
+        <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="min-w-0">
         <div className="card-elevated p-6 mb-4">
           <div className="flex items-start gap-4">
             <Avatar className="h-20 w-20">
