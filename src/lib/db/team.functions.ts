@@ -18,7 +18,7 @@ export const getMyAccess = createServerFn({ method: "GET" })
       isRecruiter: true,
       isActive: true,
       status: "active",
-      profile: null as null | Record<string, unknown>,
+      profile: null as { full_name?: string; email?: string; role_title?: string; status?: string } | null,
     };
   });
 
