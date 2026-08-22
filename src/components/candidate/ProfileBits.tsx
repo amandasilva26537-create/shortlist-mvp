@@ -70,10 +70,11 @@ export function experienceBullets(exp: any, max: number): string[] {
     seen.add(k);
     return true;
   });
-  if (unique.length <= max) return unique;
+  const withPeriod = unique.map((s) => (/[.!?]$/.test(s) ? s : `${s}.`));
+  if (withPeriod.length <= max) return withPeriod;
   // Agrupa o excedente no último bullet para não perder informação.
-  const head = unique.slice(0, max - 1);
-  const tail = unique.slice(max - 1).join("; ");
+  const head = withPeriod.slice(0, max - 1);
+  const tail = withPeriod.slice(max - 1).join("; ");
   return [...head, tail];
 }
 
