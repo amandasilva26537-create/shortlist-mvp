@@ -642,3 +642,83 @@ Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
     return output;
   });
 
+
+// ============ Generate DISC result only ============
+export const generateDiscResult = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => z.object({ candidate_id: z.string().uuid() }).parse(v))
+  .handler(async ({ data, context }) => {
+    const { data: cand, error } = await context.supabase
+      .from("candidates")
+      .select("id, full_name, gender, disc_raw, disc_profile, disc_scores")
+      .eq("id", data.candidate_id)
+      .single();
+    if (error) throw new Error(error.message);
+    const cAny: any = cand;
+    const prev: any = cAny.disc_scores && typeof cAny.disc_scores === "object" ? cAny.disc_scores : {};
+    const num = (v: any) => (v === null || v === undefined || v === "" || isNaN(Number(v)) ? null : Number(v));
+    const raw = { D: num(prev.D), I: num(prev.I), S: num(prev.S), C: num(prev.C) };
+    if (raw.D === null && raw.I === null && raw.S === null && raw.C === null && !cAny.disc_raw) {
+      throw new Error("Cadastre os dados brutos de DISC (D, I, S, C) antes de gerar o resultado.");
+    }
+
+    const genderRule =
+      cAny.gender === "feminino"
+        ? 'Use concordância feminina ("a candidata", "ela").'
+        : cAny.gender === "masculino"
+          ? 'Use concordância masculina ("o candidato", "ele").'
+          : "Use linguagem neutra, sem marcar gênero; prefira o nome da pessoa.";
+
+    const gateway = createLovableAiGateway(requireApiKey());
+    const model = gateway(AI_MODEL);
+    const { text } = await generateText({
+      model,
+      prompt: `Você é um especialista em avaliação comportamental DISC. Interprete SOMENTE os dados abaixo e produza o resultado DISC. Não invente dados de currículo nem fale de experiência profissional.
+
+Pessoa: ${cAny.full_name}
+${genderRule}
+Pontuações brutas: D=${raw.D ?? "?"} I=${raw.I ?? "?"} S=${raw.S ?? "?"} C=${raw.C ?? "?"}
+Resultado bruto/relatório: ${cAny.disc_raw ?? "—"}
+
+Responda APENAS com JSON válido, sem markdown, com EXATAMENTE estas chaves:
+{
+  "D": number, "I": number, "S": number, "C": number,
+  "dominant": string,            // fator predominante: "Dominância" | "Influência" | "Estabilidade" | "Conformidade"
+  "secondary": string,           // segundo fator, ou ""
+  "behavior_summary": string,    // resumo do resultado, 3-5 linhas
+  "strengths": string[],         // 4-6 pontos fortes
+  "attention_points": string[],  // 3-5 pontos de atenção
+  "communication_style": string, // forma de comunicação
+  "work_style": string,          // estilo de trabalho
+  "leadership_style": string,    // estilo de liderança
+  "motivators": string[],        // 3-5 motivadores
+  "ideal_environment": string    // ambiente de melhor desempenho
+}`,
+    });
+    const output = extractJson(text);
+    const scores = {
+      ...prev,
+      D: raw.D ?? num(output.D),
+      I: raw.I ?? num(output.I),
+      S: raw.S ?? num(output.S),
+      C: raw.C ?? num(output.C),
+      dominant: output.dominant ?? "",
+      secondary: output.secondary ?? "",
+      behavior_summary: output.behavior_summary ?? "",
+      strengths: Array.isArray(output.strengths) ? output.strengths : [],
+      attention_points: Array.isArray(output.attention_points) ? output.attention_points : [],
+      communication_style: output.communication_style ?? "",
+      work_style: output.work_style ?? "",
+      leadership_style: output.leadership_style ?? "",
+      motivators: Array.isArray(output.motivators) ? output.motivators : [],
+      ideal_environment: output.ideal_environment ?? "",
+      generated_at: new Date().toISOString(),
+    };
+    const profile = scores.dominant ? `${scores.dominant}${scores.secondary ? " / " + scores.secondary : ""}` : cAny.disc_profile;
+    const { error: upErr } = await context.supabase
+      .from("candidates")
+      .update({ disc_scores: scores, disc_profile: profile })
+      .eq("id", data.candidate_id);
+    if (upErr) throw new Error(upErr.message);
+    return scores;
+  });
