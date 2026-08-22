@@ -28,7 +28,7 @@ export function FlashcardDeck({
   shortlistId, jobId, links, evaluations, initialCandidateId, readOnly, onReorder,
   analysisBasePath, profileBasePath, returnTo, actionsSlot, onCurrentChange,
 }: Props) {
-  const navigate = useNavigate();
+  
 
   const ordered = useMemo(() => {
     const byId = new Map(evaluations.map((e) => [e.candidate_id, e]));
