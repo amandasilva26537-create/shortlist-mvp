@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
@@ -61,17 +61,21 @@ export function ClientEvaluationPanel({ token, candidateId, candidateName, ident
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
+  const hydratedFor = useRef<string | null>(null);
   useEffect(() => {
-    const existing = (rows as any[] | undefined)?.find((r) => r.candidate_id === candidateId);
+    if (!rows) return;
+    if (hydratedFor.current === candidateId) return;
+    hydratedFor.current = candidateId;
+    const existing = (rows as any[]).find((r) => r.candidate_id === candidateId);
     setDecision(existing?.decision ?? null);
     setFavorite(!!existing?.favorite);
     setComment(existing?.comment ?? "");
     setSavedAt(existing ? "saved" : null);
   }, [candidateId, rows]);
 
-  const save = async (overrides?: { decision?: string | null; favorite?: boolean }) => {
-    const nextDecision = overrides && "decision" in overrides ? overrides.decision! : decision;
-    const nextFavorite = overrides && "favorite" in overrides ? overrides.favorite! : favorite;
+  const save = async () => {
+    const nextDecision = decision;
+    const nextFavorite = favorite;
     setSaving(true);
     try {
       await sendFn({
@@ -96,15 +100,13 @@ export function ClientEvaluationPanel({ token, candidateId, candidateName, ident
   };
 
   const pickDecision = (key: string) => {
-    const next = decision === key ? null : key;
-    setDecision(next);
-    void save({ decision: next });
+    setDecision((d) => (d === key ? null : key));
+    setSavedAt(null);
   };
 
   const toggleFavorite = () => {
-    const next = !favorite;
-    setFavorite(next);
-    void save({ favorite: next });
+    setFavorite((f) => !f);
+    setSavedAt(null);
   };
 
   return (
@@ -155,7 +157,7 @@ export function ClientEvaluationPanel({ token, candidateId, candidateName, ident
         <Textarea
           rows={5}
           value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          onChange={(e) => { setComment(e.target.value); setSavedAt(null); }}
           placeholder="Conte o que você achou do perfil, quais pontos chamaram sua atenção e o que gostaria de aprofundar."
         />
         <p className="mt-2 text-xs text-muted-foreground">
