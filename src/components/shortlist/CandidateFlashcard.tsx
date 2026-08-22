@@ -1,6 +1,8 @@
 import { MatchRing } from "@/components/candidate/MatchRing";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, MapPin, Building2, DollarSign, Clock, Star } from "lucide-react";
+import { salaryLabel } from "@/lib/format";
+
 
 interface Props {
   candidate: any;
