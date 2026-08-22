@@ -248,3 +248,18 @@ function Tags({ items }: { items: string[] }) {
 function Empty() {
   return <div className="text-sm text-muted-foreground">Sem informações disponíveis.</div>;
 }
+
+function ClampText({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 420;
+  return (
+    <div>
+      <div className={`whitespace-pre-wrap text-sm ${!open && long ? "line-clamp-6" : ""}`}>{text}</div>
+      {long && (
+        <button type="button" onClick={() => setOpen((v) => !v)} className="mt-1 text-xs font-medium text-primary hover:underline">
+          {open ? "Ver menos" : "Ver mais"}
+        </button>
+      )}
+    </div>
+  );
+}
