@@ -231,6 +231,9 @@ function CandidatePage() {
                 <DropdownMenuItem onClick={() => setTab("shortlists")}>
                   Vagas e shortlists{shortlistLinks.length > 0 && ` (${shortlistLinks.length})`}
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTab("feedbacks")}>
+                  <Lock className="mr-2 h-3.5 w-3.5" />Feedbacks de clientes{clientFeedback.length > 0 && ` (${clientFeedback.length})`}
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTab("internal")}>
                   <Lock className="mr-2 h-3.5 w-3.5" />Anotações internas
                 </DropdownMenuItem>
