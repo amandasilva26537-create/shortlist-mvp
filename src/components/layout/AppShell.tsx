@@ -37,47 +37,30 @@ const navItems: { to: string; label: string; icon: typeof LayoutDashboard; exact
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
+  // Acesso aberto: o sistema não exige login. Se houver uma sessão ativa,
+  // usamos os dados dela apenas para exibir nome e iniciais.
   const accessFn = useServerFn(getMyAccess);
   const access = useQuery({
     queryKey: ["my-access"],
     queryFn: () => accessFn(),
-    enabled: !!user,
   });
 
-  useEffect(() => {
-    if (!loading && user === null) navigate({ to: "/auth" });
-  }, [loading, user, navigate]);
-
-  useEffect(() => {
-    if (access.data && !access.data.isActive) {
-      toast.error("Seu acesso foi desativado. Fale com um administrador.");
-      supabase.auth.signOut().then(() => navigate({ to: "/auth", replace: true }));
-    }
-  }, [access.data, navigate]);
-
-  if (loading || !user) {
-    return <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">Carregando…</div>;
-  }
-
-  const showTeam = access.data?.isAdmin;
+  const showTeam = access.data?.isAdmin ?? true;
   const visibleNav = showTeam
     ? [...navItems, { to: "/team", label: "Equipe", icon: Users2 }]
     : navItems;
 
-  const initials = (user.user_metadata?.full_name || user.email || "US")
+  const displayName = user?.user_metadata?.full_name || user?.email || "Convidado";
+
+  const initials = String(displayName)
     .split(" ")
     .map((s: string) => s[0])
     .slice(0, 2)
     .join("")
     .toUpperCase();
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  };
 
   return (
     <div className="flex min-h-screen bg-background">
