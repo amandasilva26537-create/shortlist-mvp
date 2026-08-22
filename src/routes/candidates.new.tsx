@@ -84,7 +84,14 @@ function NewCandidate() {
 
   useEffect(() => {
     if (existing) {
-      setF((p: any) => ({ ...p, ...existing, salary_expectation: existing.salary_expectation ?? "" }));
+      setF((p: any) => ({
+        ...p,
+        ...existing,
+        salary_expectation: existing.salary_expectation ?? "",
+        salary_min: (existing as any).salary_min ?? "",
+        salary_max: (existing as any).salary_max ?? "",
+      }));
+
       setCandId(existing.id);
       setDocs(existing.documents ?? []);
     }
