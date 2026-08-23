@@ -13,6 +13,7 @@ export const CandidateInput = z.object({
   country: z.string().nullable().optional(),
   work_model: z.string().nullable().optional(),
   gender: z.string().nullable().optional(),
+  age: z.number().nullable().optional(),
   salary_expectation: z.number().nullable().optional(),
   salary_min: z.number().nullable().optional(),
   salary_max: z.number().nullable().optional(),

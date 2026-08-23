@@ -60,7 +60,7 @@ function NewCandidate() {
   const [docs, setDocs] = useState<any[]>([]);
   const [f, setF] = useState<any>({
     full_name: "", photo_url: "", current_position: "", current_company: "", area: "", seniority: "",
-    city: "", state: "", country: "Brasil", work_model: "Não informado", salary_expectation: "",
+    city: "", state: "", country: "Brasil", work_model: "Não informado", age: "", salary_expectation: "",
     salary_min: "", salary_max: "",
 
     gender: "Prefere não identificar",
@@ -87,6 +87,7 @@ function NewCandidate() {
       setF((p: any) => ({
         ...p,
         ...existing,
+        age: (existing as any).age ?? "",
         salary_expectation: existing.salary_expectation ?? "",
         salary_min: (existing as any).salary_min ?? "",
         salary_max: (existing as any).salary_max ?? "",
@@ -107,6 +108,7 @@ function NewCandidate() {
     city: f.city || null, state: f.state || null, country: f.country || null,
     work_model: f.work_model || null,
     gender: f.gender || null,
+    age: f.age ? Number(f.age) : null,
     salary_expectation: f.salary_expectation ? Number(f.salary_expectation) : null,
     salary_min: f.salary_min ? Number(f.salary_min) : null,
     salary_max: f.salary_max ? Number(f.salary_max) : null,
@@ -133,6 +135,7 @@ function NewCandidate() {
     setF((p: any) => ({
       ...p,
       ...row,
+      age: row.age ?? "",
       salary_expectation: row.salary_expectation ?? "",
       salary_min: row.salary_min ?? "",
       salary_max: row.salary_max ?? "",
@@ -198,6 +201,7 @@ function NewCandidate() {
         setF((p: any) => ({
           ...p,
           ...fresh,
+          age: fresh.age ?? p.age ?? "",
           salary_expectation: fresh.salary_expectation ?? p.salary_expectation ?? "",
           salary_min: fresh.salary_min ?? p.salary_min ?? "",
           salary_max: fresh.salary_max ?? p.salary_max ?? "",
@@ -278,15 +282,22 @@ function NewCandidate() {
               <div className="text-[11px] text-muted-foreground">Preencha o que já souber. A IA tentará completar o restante a partir dos arquivos anexados.</div>
               <div><Label>Nome completo *</Label><Input value={f.full_name} onChange={set("full_name")} /></div>
               <div><Label>Cargo atual</Label><Input value={f.current_position} onChange={set("current_position")} /></div>
-              <div><Label>Gênero</Label>
-                <Select value={f.gender || "Prefere não identificar"} onValueChange={set("gender")}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {["Masculino","Feminino","Prefere não identificar"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <div className="mt-1 text-[11px] text-muted-foreground">Usado para a concordância dos textos do perfil.</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Gênero</Label>
+                  <Select value={f.gender || "Prefere não identificar"} onValueChange={set("gender")}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {["Masculino","Feminino","Prefere não identificar"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Idade</Label>
+                  <Input type="number" min="14" max="100" value={f.age} onChange={set("age")} placeholder="Ex: 32" />
+                </div>
               </div>
+              <div className="text-[11px] text-muted-foreground">Gênero é usado para a concordância dos textos do perfil.</div>
               <div><Label>Área profissional</Label><Input value={f.area} onChange={set("area")} /></div>
               <div><Label>Cidade</Label><Input value={f.city} onChange={set("city")} /></div>
               <div><Label>Modelo de trabalho</Label>

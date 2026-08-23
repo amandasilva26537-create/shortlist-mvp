@@ -1,6 +1,6 @@
 import { MatchRing } from "@/components/candidate/MatchRing";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, MapPin, Building2, DollarSign, Clock, Star } from "lucide-react";
+import { Briefcase, MapPin, Building2, DollarSign, Clock, Star, User } from "lucide-react";
 import { salaryLabel } from "@/lib/format";
 
 
@@ -64,6 +64,7 @@ export function CandidateFlashcard({ candidate, evaluation }: Props) {
               {c.area && <Chip icon={Building2} label="Área" value={c.area} />}
               {c.city && <Chip icon={MapPin} label="Cidade" value={c.city} />}
               {c.work_model && <Chip icon={Clock} label="Modelo" value={c.work_model} />}
+              {c.age && <Chip icon={User} label="Idade" value={`${c.age} anos`} />}
               {salary && <Chip icon={DollarSign} label="Pretensão salarial" value={salary} />}
 
               {c.professional_moment?.availability && (

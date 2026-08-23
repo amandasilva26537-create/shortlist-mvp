@@ -37,6 +37,7 @@ export interface Candidate {
   city: string;
   workModel: "Presencial" | "Híbrido" | "Remoto";
   salaryExpectation: number;
+  age?: number;
   availability: string;
   linkedin: string;
   disc: DiscType;

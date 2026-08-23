@@ -180,7 +180,7 @@ function CandidatesList() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-semibold">{c.full_name}</div>
                     <div className="truncate text-sm text-muted-foreground">{c.current_position || "—"}{c.area ? ` · ${c.area}` : ""}</div>
-                    <div className="truncate text-xs text-muted-foreground">{[c.city, c.work_model].filter(Boolean).join(" · ") || "—"}</div>
+                    <div className="truncate text-xs text-muted-foreground">{[c.city, c.work_model, c.age ? `${c.age} anos` : null].filter(Boolean).join(" · ") || "—"}</div>
                   </div>
                   <StatusBadge status={c.status} />
                 </div>

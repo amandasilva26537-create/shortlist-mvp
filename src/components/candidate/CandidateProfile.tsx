@@ -115,6 +115,7 @@ export function CandidateProfile({
               <div className="mt-4 flex flex-wrap gap-2">
                 <Chip icon={MapPin}>{c.city}</Chip>
                 <Chip icon={Briefcase}>{c.workModel}</Chip>
+                {c.age && <Chip icon={Calendar}>{c.age} anos</Chip>}
                 <Chip icon={Wallet}>{formatBRL(c.salaryExpectation)}</Chip>
                 <Chip icon={Calendar}>{c.availability}</Chip>
                 <a

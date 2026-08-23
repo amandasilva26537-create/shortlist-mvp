@@ -198,7 +198,7 @@ function CandidatePage() {
               </div>
               {c.headline && <div className="mt-1 text-sm font-medium text-primary">{c.headline}</div>}
               <div className="mt-1 text-sm text-muted-foreground">
-                {[c.current_position, c.current_company, c.area, c.city, c.work_model].filter(Boolean).join(" · ")}
+                {[c.current_position, c.current_company, c.area, c.city, c.work_model, c.age ? `${c.age} anos` : null].filter(Boolean).join(" · ")}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
                 {c.salary_expectation && <>Pretensão: R$ {Number(c.salary_expectation).toLocaleString("pt-BR")} · </>}

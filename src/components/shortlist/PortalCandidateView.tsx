@@ -5,7 +5,7 @@ import { DiscSection } from "@/components/candidate/DiscSection";
 import { ProfessionalProfileView } from "@/components/candidate/ProfessionalProfileView";
 import { AnalysisContent } from "@/components/shortlist/AnalysisContent";
 import { CandidateSectionMenu, type CandidateSection } from "@/components/shortlist/CandidateSectionMenu";
-import { Briefcase, MapPin, Clock, Linkedin, Star, DollarSign } from "lucide-react";
+import { Briefcase, MapPin, Clock, Linkedin, Star, DollarSign, User } from "lucide-react";
 import { salaryLabel } from "@/lib/format";
 
 
@@ -54,6 +54,7 @@ export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, short
                 {c.current_position && <Chip icon={Briefcase}>{c.current_position}</Chip>}
                 {c.city && <Chip icon={MapPin}>{c.city}</Chip>}
                 {c.work_model && <Chip icon={Clock}>{c.work_model}</Chip>}
+                {c.age && <Chip icon={User}>{c.age} anos</Chip>}
                 {salary && <Chip icon={DollarSign}>Pretensão: {salary}</Chip>}
                 {c.disc_profile && <Badge variant="secondary" className="rounded-full">DISC {c.disc_profile}</Badge>}
 

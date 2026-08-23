@@ -286,6 +286,7 @@ CONCORDÂNCIA DE GÊNERO (obrigatório em todos os textos gerados):
 CANDIDATO (dados manuais):
 Nome: ${cand.full_name}
 Gênero: ${(cand as any).gender ?? ""}
+Idade: ${(cand as any).age ?? ""}
 Cargo atual: ${cand.current_position ?? ""}
 Empresa atual: ${cand.current_company ?? ""}
 Área: ${cand.area ?? ""}
@@ -311,7 +312,7 @@ ${data.instruction ? `Instrução adicional do recrutador: ${data.instruction}` 
 
 Retorne um objeto JSON com EXATAMENTE estas chaves:
 {
-  "basic_info": { "full_name": string, "current_position": string, "current_company": string, "area": string, "city": string, "state": string, "country": string, "work_model": string, "salary_expectation": number|null, "linkedin_url": string, "email": string, "phone": string },
+  "basic_info": { "full_name": string, "current_position": string, "current_company": string, "area": string, "city": string, "state": string, "country": string, "work_model": string, "age": number|null, "salary_expectation": number|null, "linkedin_url": string, "email": string, "phone": string },
   "headline": string,
   "mini_bio": string,
   "full_bio": string,
@@ -335,7 +336,7 @@ Retorne um objeto JSON com EXATAMENTE estas chaves:
 
 Regras para basic_info:
 - Preencha somente com informações encontradas nos materiais. Não invente.
-- Use "" (string vazia) ou null (para salary_expectation) quando não encontrar.
+- Use "" (string vazia) ou null (para salary_expectation e age) quando não encontrar.
 - work_model deve ser um de: "Remoto", "Híbrido", "Presencial", "Flexível" ou "" se não souber.
 
 Regras de conteúdo:
@@ -376,6 +377,9 @@ Regras de conteúdo:
     maybeSet("linkedin_url", bi.linkedin_url);
     maybeSet("email", bi.email);
     maybeSet("phone", bi.phone);
+    if (emptyStr((cand as any).age) && typeof bi.age === "number" && !isNaN(bi.age)) {
+      basicPatch.age = bi.age;
+    }
     if (emptyStr(cand.salary_expectation) && typeof bi.salary_expectation === "number" && !isNaN(bi.salary_expectation)) {
       basicPatch.salary_expectation = bi.salary_expectation;
     }
