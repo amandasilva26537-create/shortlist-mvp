@@ -19,8 +19,13 @@ function publicClient(shareToken: string) {
   });
 }
 
+// Colunas do candidato liberadas para a visão do cliente (sem e-mail, telefone,
+// notas internas ou inconsistências).
+const CLIENT_SAFE_CANDIDATE_COLUMNS =
+  "id, full_name, photo_url, headline, current_position, current_company, area, seniority, city, state, country, work_model, linkedin_url, mini_bio, full_bio, executive_summary, specialties, main_results, achievements, main_case, strengths, work_style, professional_moment, motivators, trajectory, education, courses, languages, competencies, additional_info, gender, disc_profile, disc_scores, salary_expectation, salary_min, salary_max, status";
+
 export const getPortalShortlist = createServerFn({ method: "GET" })
-  .inputValidator((v: unknown) => z.object({ token: z.string().min(4) }).parse(v))
+  .inputValidator((v: unknown) => z.object({ token: z.string().min(16) }).parse(v))
   .handler(async ({ data }) => {
     const supabase = publicClient(data.token);
     const { data: sl, error } = await supabase
@@ -31,25 +36,36 @@ export const getPortalShortlist = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!sl) return null;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: links }, { data: feedback }] = await Promise.all([
-      supabase
+      supabaseAdmin
         .from("shortlist_candidates")
-        .select("*, candidates(id, full_name, photo_url, current_position, city, work_model, linkedin_url, disc_profile, disc_scores, salary_expectation, salary_min, salary_max, age)")
+        .select(
+          "shortlist_id, candidate_id, position, reviewed, status, visible_documents, candidates(id, full_name, photo_url, current_position, city, work_model, linkedin_url, disc_profile, disc_scores, salary_expectation, salary_min, salary_max)",
+        )
         .eq("shortlist_id", sl.id)
         .order("position"),
-      supabase.from("manager_feedback").select("*").eq("shortlist_id", sl.id),
+      supabaseAdmin
+        .from("manager_feedback")
+        .select("candidate_id, shortlist_id, decision, favorite, rating, comment, client_identifier, client_role, updated_at")
+        .eq("shortlist_id", sl.id),
     ]);
     const cids = (links ?? []).map((l: any) => l.candidate_id);
     const [{ data: evals }, { data: docs }] = await Promise.all([
-      supabase.from("candidate_job_evaluations").select("*").in("candidate_id", cids).eq("job_id", sl.job_id),
-      supabase.from("candidate_documents").select("*").in("candidate_id", cids).eq("visible_to_client", true),
+      supabaseAdmin.from("candidate_job_evaluations").select("*").in("candidate_id", cids).eq("job_id", sl.job_id),
+      supabaseAdmin
+        .from("candidate_documents")
+        .select("id, candidate_id, kind, label, url, visible_to_client")
+        .in("candidate_id", cids)
+        .eq("visible_to_client", true),
     ]);
-    return { shortlist: sl, candidates: links ?? [], evaluations: evals ?? [], documents: docs ?? [], feedback: feedback ?? [] };
+    const safeEvals = (evals ?? []).map(({ recruiter_opinion: _ro, inconsistencies: _inc, ...rest }: any) => rest);
+    return { shortlist: sl, candidates: links ?? [], evaluations: safeEvals, documents: docs ?? [], feedback: feedback ?? [] };
   });
 
 export const getPortalCandidate = createServerFn({ method: "GET" })
   .inputValidator((v: unknown) =>
-    z.object({ token: z.string().min(4), candidate_id: z.string().uuid() }).parse(v),
+    z.object({ token: z.string().min(16), candidate_id: z.string().uuid() }).parse(v),
   )
   .handler(async ({ data }) => {
     const supabase = publicClient(data.token);
@@ -60,42 +76,38 @@ export const getPortalCandidate = createServerFn({ method: "GET" })
       .eq("status", "sent")
       .maybeSingle();
     if (!sl) return null;
-    const { data: link } = await supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: link } = await supabaseAdmin
       .from("shortlist_candidates")
       .select("candidate_id")
       .eq("shortlist_id", sl.id)
       .eq("candidate_id", data.candidate_id)
       .maybeSingle();
     if (!link) return null;
-    const { data: candidate, error } = await supabase
+    const { data: candidate, error } = await supabaseAdmin
       .from("candidates")
-      .select("*")
+      .select(CLIENT_SAFE_CANDIDATE_COLUMNS)
       .eq("id", data.candidate_id)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!candidate) return null;
-    const {
-      internal_notes,
-      recruiter_note,
-      inconsistencies,
-      email,
-      phone,
-      ...safe
-    } = candidate as any;
     const [{ data: docs }, { data: evaluation }] = await Promise.all([
-      supabase
+      supabaseAdmin
         .from("candidate_documents")
-        .select("*")
+        .select("id, candidate_id, kind, label, url, visible_to_client")
         .eq("candidate_id", data.candidate_id)
         .eq("visible_to_client", true),
-      supabase
+      supabaseAdmin
         .from("candidate_job_evaluations")
         .select("*")
         .eq("candidate_id", data.candidate_id)
         .eq("job_id", sl.job_id)
         .maybeSingle(),
     ]);
-    return { candidate: { ...safe, documents: docs ?? [] }, evaluation: evaluation ?? null, shortlist_id: sl.id };
+    const safeEvaluation = evaluation
+      ? (({ recruiter_opinion: _ro, inconsistencies: _inc, ...rest }: any) => rest)(evaluation)
+      : null;
+    return { candidate: { ...(candidate as any), documents: docs ?? [] }, evaluation: safeEvaluation, shortlist_id: sl.id };
   });
 
 export const getPortalFeedback = createServerFn({ method: "GET" })
