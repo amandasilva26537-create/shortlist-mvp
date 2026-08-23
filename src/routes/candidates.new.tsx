@@ -16,7 +16,6 @@ import { getCandidate, upsertCandidate, addCandidateDocument, deleteCandidateDoc
 import { generateCandidateProfile, refineText } from "@/lib/ai/ai.functions";
 import { listSkillSuggestions } from "@/lib/db/tags.functions";
 
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/candidates/new")({
   head: () => ({ meta: [{ title: "Novo candidato · Moove List" }] }),

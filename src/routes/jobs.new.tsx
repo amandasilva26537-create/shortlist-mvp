@@ -14,7 +14,6 @@ import { Sparkles, Loader2, Wand2, Paperclip, X, Plus, Trash2 } from "lucide-rea
 import { listClients } from "@/lib/db/clients.functions";
 import { upsertJob, getJob } from "@/lib/db/jobs.functions";
 import { structureJob, refineJobSection } from "@/lib/ai/ai.functions";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/jobs/new")({
   head: () => ({ meta: [{ title: "Nova vaga · Moove List" }] }),
