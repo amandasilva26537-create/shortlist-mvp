@@ -17,6 +17,7 @@ import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialo
 import { TagChips, TagPicker, BlockListWarning } from "@/components/candidate/CandidateTags";
 import { ExperienceItem, LanguageList } from "@/components/candidate/ProfileBits";
 import { DiscSection } from "@/components/candidate/DiscSection";
+import { salaryLabel } from "@/lib/format";
 import { toast } from "sonner";
 
 const SECONDARY_LABELS: Record<string, string> = {
@@ -201,7 +202,7 @@ function CandidatePage() {
                 {[c.current_position, c.current_company, c.area, c.city, c.work_model, c.age ? `${c.age} anos` : null].filter(Boolean).join(" · ")}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
-                {c.salary_expectation && <>Pretensão: R$ {Number(c.salary_expectation).toLocaleString("pt-BR")} · </>}
+                {salaryLabel(c) && <>Pretensão: {salaryLabel(c)} · </>}
                 Cadastrado em {new Date(c.created_at).toLocaleDateString("pt-BR")}
                 {c.linkedin_url && <> · <a href={c.linkedin_url} target="_blank" rel="noreferrer" className="text-primary hover:underline inline-flex items-center gap-1"><Linkedin className="h-3 w-3" />LinkedIn</a></>}
               </div>

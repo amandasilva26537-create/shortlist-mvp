@@ -15,6 +15,7 @@ import { listCandidateShortlistLinks } from "@/lib/db/shortlists.functions";
 import { listTags } from "@/lib/db/tags.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
 import { TagChips, tagDotClasses } from "@/components/candidate/CandidateTags";
+import { salaryLabel } from "@/lib/format";
 import { toast } from "sonner";
 
 
@@ -191,7 +192,7 @@ function CandidatesList() {
                   {c.photo_url && <ImageIcon className="h-3.5 w-3.5" />}
                   {c.resume_url && <FileText className="h-3.5 w-3.5" />}
                   {c.linkedin_url && <Linkedin className="h-3.5 w-3.5" />}
-                  {c.salary_expectation && <span>R$ {Number(c.salary_expectation).toLocaleString("pt-BR")}</span>}
+                  {salaryLabel(c) && <span>{salaryLabel(c)}</span>}
                   <span className="ml-auto">{new Date(c.created_at).toLocaleDateString("pt-BR")}</span>
                 </div>
                 <div className="flex flex-wrap gap-2 pt-1 border-t border-border">

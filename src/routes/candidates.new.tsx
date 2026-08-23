@@ -309,7 +309,6 @@ function NewCandidate() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Pretensão salarial (R$)</Label><Input type="number" value={f.salary_expectation} onChange={set("salary_expectation")} /></div>
               <div className="grid grid-cols-2 gap-3">
                 <div><Label>Pretensão mínima (R$)</Label><Input type="number" value={f.salary_min} onChange={set("salary_min")} /></div>
                 <div><Label>Pretensão máxima (R$)</Label><Input type="number" value={f.salary_max} onChange={set("salary_max")} /></div>
