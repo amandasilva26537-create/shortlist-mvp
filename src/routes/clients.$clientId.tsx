@@ -5,6 +5,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { getClient } from "@/lib/db/clients.functions";
 import { initials } from "@/lib/format";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Pencil, Globe, Instagram, Mail, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +13,12 @@ export const Route = createFileRoute("/clients/$clientId")({
   head: () => ({ meta: [{ title: "Cliente · Moove List" }] }),
   component: ClientDetail,
 });
+
+const brandLabel = (b?: string | null) => {
+  if (b === "portus") return "Portus";
+  if (b === "moove") return "Moove";
+  return "Marca não definida";
+};
 
 function ClientDetail() {
   const { clientId } = Route.useParams();
@@ -42,7 +49,12 @@ function ClientDetail() {
             )}
           </Avatar>
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-semibold tracking-tight">{c.name}</h1>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-2xl font-semibold tracking-tight">{c.name}</h1>
+              <Badge variant={c.brand ? "secondary" : "outline"} className="text-xs">
+                {brandLabel(c.brand)}
+              </Badge>
+            </div>
             {c.segment && <div className="mt-1 text-sm text-muted-foreground">{c.segment}</div>}
           </div>
           <Button variant="outline" onClick={() => navigate({ to: "/clients/new", search: { edit: c.id } as any })}>
@@ -50,7 +62,17 @@ function ClientDetail() {
           </Button>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="card-soft p-5">
+            <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Marca responsável</div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <Badge variant={c.brand ? "secondary" : "outline"} className="text-xs font-medium">
+                  {brandLabel(c.brand)}
+                </Badge>
+              </div>
+            </div>
+          </div>
           <div className="card-soft p-5">
             <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Responsável</div>
             <div className="space-y-2 text-sm">

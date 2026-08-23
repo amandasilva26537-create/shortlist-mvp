@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/layout/AppShell";
 import { listClients, deleteClient } from "@/lib/db/clients.functions";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Eye, Pencil, Trash2 } from "lucide-react";
 import { initials } from "@/lib/format";
@@ -23,6 +24,12 @@ export const Route = createFileRoute("/clients/")({
   }),
   component: ClientsPage,
 });
+
+const brandLabel = (b?: string | null) => {
+  if (b === "portus") return "Portus";
+  if (b === "moove") return "Moove";
+  return "Marca não definida";
+};
 
 function ClientsPage() {
   const fn = useServerFn(listClients);
@@ -72,6 +79,11 @@ function ClientsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-semibold">{c.name}</div>
                   <div className="truncate text-xs text-muted-foreground">{c.contact_name || c.segment || "—"}</div>
+                  <div className="mt-1">
+                    <Badge variant={c.brand ? "secondary" : "outline"} className="text-[10px] py-0 px-1.5 font-normal">
+                      {brandLabel(c.brand)}
+                    </Badge>
+                  </div>
                 </div>
               </div>
               {(c.city || c.state) && <div className="mt-3 text-xs text-muted-foreground">{[c.city, c.state, c.country].filter(Boolean).join(", ")}</div>}

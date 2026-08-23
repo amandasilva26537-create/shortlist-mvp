@@ -5,6 +5,7 @@ import { z } from "zod";
 const ClientInput = z.object({
   id: z.string().uuid().optional(),
   name: z.string().min(1),
+  brand: z.string().nullable().optional(),
   logo_url: z.string().nullable().optional(),
   segment: z.string().nullable().optional(),
   website: z.string().nullable().optional(),

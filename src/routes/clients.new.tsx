@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { upsertClient, getClient } from "@/lib/db/clients.functions";
 import { toast } from "sonner";
 
@@ -29,6 +30,7 @@ function NewClient() {
 
   const [form, setForm] = useState({
     name: "",
+    brand: "",
     contact_name: "",
     segment: "",
     contact_role: "",
@@ -51,6 +53,7 @@ function NewClient() {
     if (existing) {
       setForm({
         name: existing.name ?? "",
+        brand: (existing as any).brand ?? "",
         contact_name: existing.contact_name ?? "",
         segment: existing.segment ?? "",
         contact_role: existing.contact_role ?? "",
@@ -78,6 +81,7 @@ function NewClient() {
   const submit = (target?: "job" | "shortlist") => (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) { toast.error("Nome da empresa é obrigatório"); return; }
+    if (!form.brand) { toast.error("Marca responsável é obrigatória"); return; }
     if (!form.contact_name.trim()) { toast.error("Nome do responsável é obrigatório"); return; }
     if (!form.segment.trim()) { toast.error("Setor é obrigatório"); return; }
     setNext(target ?? "");
@@ -99,6 +103,18 @@ function NewClient() {
             <div className="sm:col-span-2">
               <Label>Nome da empresa *</Label>
               <Input value={form.name} onChange={set("name")} required />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Marca responsável *</Label>
+              <Select value={form.brand} onValueChange={(v) => setForm((f) => ({ ...f, brand: v }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a marca responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="portus">Portus</SelectItem>
+                  <SelectItem value="moove">Moove</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>Nome do responsável *</Label>

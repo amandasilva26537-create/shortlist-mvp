@@ -5,6 +5,7 @@ export type ChecklistStatus = "yes" | "partial" | "no";
 export interface Client {
   id: string;
   name: string;
+  brand?: "portus" | "moove";
   logo?: string;
   contactName: string;
   email: string;
