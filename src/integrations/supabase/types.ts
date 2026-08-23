@@ -225,7 +225,6 @@ export type Database = {
         Row: {
           achievements: Json | null
           additional_info: Json | null
-          age: number | null
           ai_profile: Json | null
           archived_at: string | null
           area: string | null
@@ -278,7 +277,6 @@ export type Database = {
         Insert: {
           achievements?: Json | null
           additional_info?: Json | null
-          age?: number | null
           ai_profile?: Json | null
           archived_at?: string | null
           area?: string | null
@@ -331,7 +329,6 @@ export type Database = {
         Update: {
           achievements?: Json | null
           additional_info?: Json | null
-          age?: number | null
           ai_profile?: Json | null
           archived_at?: string | null
           area?: string | null
