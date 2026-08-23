@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { uploadFileViaServer } from "@/lib/upload";
 import { Sparkles, Loader2, Wand2, Upload, Lock, FileText, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
 import { getCandidate, upsertCandidate, addCandidateDocument, deleteCandidateDocument } from "@/lib/db/candidates.functions";
 import { generateCandidateProfile, refineText } from "@/lib/ai/ai.functions";
@@ -173,14 +174,15 @@ function NewCandidate() {
     }
 
     const path = `${id}/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from("candidate-files").upload(path, file);
-    if (error) { toast.error(error.message); return null; }
-    const { data } = supabase.storage.from("candidate-files").getPublicUrl(path);
-    const doc: any = await docFn({ data: { candidate_id: id, kind, label: file.name, url: data.publicUrl, visible_to_client: visible } });
+    let url: string;
+    try {
+      url = await uploadFileViaServer("candidate-files", path, file);
+    } catch (e: any) { toast.error(e.message); return null; }
+    const doc: any = await docFn({ data: { candidate_id: id, kind, label: file.name, url, visible_to_client: visible } });
     setDocs((p) => [doc, ...p]);
-    if (kind === "resume") setF((p: any) => ({ ...p, resume_url: data.publicUrl }));
+    if (kind === "resume") setF((p: any) => ({ ...p, resume_url: url }));
     toast.success("Arquivo enviado");
-    return data.publicUrl;
+    return url;
   };
 
   const removeDoc = async (id: string) => {
