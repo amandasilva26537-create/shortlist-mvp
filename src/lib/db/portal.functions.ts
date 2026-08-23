@@ -59,8 +59,7 @@ export const getPortalShortlist = createServerFn({ method: "GET" })
         .in("candidate_id", cids)
         .eq("visible_to_client", true),
     ]);
-    const safeEvals = (evals ?? []).map(({ recruiter_opinion: _ro, inconsistencies: _inc, ...rest }: any) => rest);
-    return { shortlist: sl, candidates: links ?? [], evaluations: safeEvals, documents: docs ?? [], feedback: feedback ?? [] };
+    return { shortlist: sl, candidates: links ?? [], evaluations: evals ?? [], documents: docs ?? [], feedback: feedback ?? [] };
   });
 
 export const getPortalCandidate = createServerFn({ method: "GET" })
@@ -104,10 +103,7 @@ export const getPortalCandidate = createServerFn({ method: "GET" })
         .eq("job_id", sl.job_id)
         .maybeSingle(),
     ]);
-    const safeEvaluation = evaluation
-      ? (({ recruiter_opinion: _ro, inconsistencies: _inc, ...rest }: any) => rest)(evaluation)
-      : null;
-    return { candidate: { ...(candidate as any), documents: docs ?? [] }, evaluation: safeEvaluation, shortlist_id: sl.id };
+    return { candidate: { ...(candidate as any), documents: docs ?? [] }, evaluation: evaluation ?? null, shortlist_id: sl.id };
   });
 
 export const getPortalFeedback = createServerFn({ method: "GET" })
