@@ -9,11 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { uploadFileViaServer } from "@/lib/upload";
 import { Sparkles, Loader2, Wand2, Paperclip, X, Plus, Trash2 } from "lucide-react";
 import { listClients } from "@/lib/db/clients.functions";
 import { upsertJob, getJob } from "@/lib/db/jobs.functions";
 import { structureJob, refineJobSection } from "@/lib/ai/ai.functions";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/jobs/new")({
   head: () => ({ meta: [{ title: "Nova vaga · Moove List" }] }),
@@ -94,10 +94,11 @@ function NewJob() {
       const newDocs: DocRef[] = [];
       for (const file of Array.from(files)) {
         const path = `briefings/${Date.now()}-${file.name}`;
-        const { error } = await supabase.storage.from("job-briefings").upload(path, file);
-        if (error) { toast.error(`Falha ao enviar ${file.name}: ${error.message}`); continue; }
-        const { data } = supabase.storage.from("job-briefings").getPublicUrl(path);
-        newDocs.push({ label: file.name, url: data.publicUrl, mime: file.type || "" });
+        let url: string;
+        try {
+          url = await uploadFileViaServer("job-briefings", path, file);
+        } catch (e: any) { toast.error(`Falha ao enviar ${file.name}: ${e.message}`); continue; }
+        newDocs.push({ label: file.name, url, mime: file.type || "" });
       }
       if (newDocs.length) {
         setDocuments((prev) => [...prev, ...newDocs]);
