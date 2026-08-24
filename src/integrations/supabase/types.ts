@@ -103,6 +103,7 @@ export type Database = {
           radar: Json | null
           radar_scores: Json | null
           recruiter_opinion: string | null
+          recruiter_scores: Json
           risk_items: Json | null
           risks: string[] | null
           shortlist_id: string | null
@@ -130,6 +131,7 @@ export type Database = {
           radar?: Json | null
           radar_scores?: Json | null
           recruiter_opinion?: string | null
+          recruiter_scores?: Json
           risk_items?: Json | null
           risks?: string[] | null
           shortlist_id?: string | null
@@ -157,6 +159,7 @@ export type Database = {
           radar?: Json | null
           radar_scores?: Json | null
           recruiter_opinion?: string | null
+          recruiter_scores?: Json
           risk_items?: Json | null
           risks?: string[] | null
           shortlist_id?: string | null

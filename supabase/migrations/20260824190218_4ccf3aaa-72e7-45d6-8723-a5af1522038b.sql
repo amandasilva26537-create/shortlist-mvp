@@ -1,0 +1,1 @@
+ALTER TABLE public.candidate_job_evaluations ADD COLUMN IF NOT EXISTS recruiter_scores jsonb NOT NULL DEFAULT '{}'::jsonb;
