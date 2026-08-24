@@ -252,6 +252,7 @@ const EvaluationPatch = z.object({
   top_strengths: z.any().optional(),
   dimension_scores: z.any().optional(),
   radar_scores: z.any().optional(),
+  recruiter_scores: z.any().optional(),
   overall_match: z.number().nullable().optional(),
 });
 
