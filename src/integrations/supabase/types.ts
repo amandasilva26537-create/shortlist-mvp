@@ -385,6 +385,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          brand: string | null
           city: string | null
           contact: string | null
           contact_name: string | null
@@ -403,6 +404,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          brand?: string | null
           city?: string | null
           contact?: string | null
           contact_name?: string | null
@@ -421,6 +423,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          brand?: string | null
           city?: string | null
           contact?: string | null
           contact_name?: string | null
