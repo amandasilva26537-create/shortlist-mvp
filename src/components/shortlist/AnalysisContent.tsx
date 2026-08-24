@@ -4,7 +4,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MatchRing } from "@/components/candidate/MatchRing";
-import { MatchBar } from "./MatchBar";
 import { Loader2, Save, Plus, Trash2, Check, Minus, X, HelpCircle, RefreshCw } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -94,14 +93,18 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
   const recruiterScores: Record<string, number | null> = draft.recruiter_scores ?? {};
   const match = computeOverallMatch(recruiterScores);
   const hasAnyScore = Object.values(recruiterScores).some((v) => typeof v === "number");
+  const scoresDirty =
+    JSON.stringify(recruiterScores) !== JSON.stringify(evaluation?.recruiter_scores ?? {});
 
   const setScore = (key: string, raw: string) => {
     const value = raw.trim() === "" ? null : Math.max(0, Math.min(10, Math.round(Number(raw))));
     const nextScores = { ...recruiterScores, [key]: value };
-    const nextDraft = { ...draft, recruiter_scores: nextScores };
-    setDraft(nextDraft);
-    const nextOverall = computeOverallMatch(nextScores);
-    save.mutate({ recruiter_scores: nextScores, overall_match: nextOverall });
+    setDraft({ ...draft, recruiter_scores: nextScores });
+  };
+
+  const saveScores = () => {
+    const nextOverall = computeOverallMatch(recruiterScores);
+    save.mutate({ recruiter_scores: recruiterScores, overall_match: nextOverall });
   };
 
   const candidateSummary = buildCandidateSummary(candidate);
@@ -137,61 +140,110 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       {evaluation && (
         <section>
           <SectionTitle>1. Compatibilidade</SectionTitle>
-          <div className="flex flex-wrap items-start gap-6 rounded-xl border border-border bg-card p-5">
-            {match != null ? (
-              <MatchRing value={match} size={112} label="match" />
-            ) : (
-              <div className="grid h-[112px] w-[112px] shrink-0 place-items-center rounded-full border border-dashed border-border text-center text-[11px] text-muted-foreground">
-                Avaliação
-                <br />
-                incompleta
-              </div>
-            )}
-            <div className="flex-1 min-w-[240px] space-y-3">
-              {!hasAnyScore && (
-                <div className="text-xs text-muted-foreground">
-                  {readOnly
-                    ? "A recrutadora ainda não avaliou as competências desta vaga."
-                    : "Atribua uma nota de 0 a 10 para cada competência abaixo."}
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="flex flex-wrap items-start gap-6">
+              {match != null ? (
+                <MatchRing value={match} size={112} label="match" />
+              ) : (
+                <div className="grid h-[112px] w-[112px] shrink-0 place-items-center rounded-full border border-dashed border-border text-center text-[11px] text-muted-foreground">
+                  Avaliação
+                  <br />
+                  incompleta
                 </div>
               )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
-                {Object.entries(DIMENSION_LABELS).map(([k, label]) => {
-                  const score = recruiterScores[k];
-                  if (readOnly) {
-                    return score == null ? (
-                      <div key={k}>
-                        <div className="mb-1 flex items-baseline justify-between gap-2 text-xs">
-                          <span className="font-medium text-foreground">{label}</span>
-                          <span className="text-muted-foreground">Não avaliado</span>
+              <div className="flex-1 min-w-[240px] space-y-3">
+                {!hasAnyScore && (
+                  <div className="text-xs text-muted-foreground">
+                    {readOnly
+                      ? "A recrutadora ainda não avaliou as competências desta vaga."
+                      : "Atribua uma nota de 0 a 10 para cada competência abaixo."}
+                  </div>
+                )}
+
+                {readOnly ? (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {Object.entries(DIMENSION_LABELS).map(([k, label]) => {
+                      const score = recruiterScores[k];
+                      return (
+                        <div
+                          key={k}
+                          className="rounded-lg border border-border bg-gradient-to-br from-primary-soft/40 to-transparent p-3"
+                        >
+                          <div className="mb-1.5 flex items-baseline justify-between gap-2">
+                            <span className="text-sm font-medium text-foreground">{label}</span>
+                            <span
+                              className={
+                                score == null
+                                  ? "text-xs text-muted-foreground"
+                                  : "text-xs font-semibold tabular-nums text-primary"
+                              }
+                            >
+                              {score == null ? "Não avaliado" : `${score}/10`}
+                            </span>
+                          </div>
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                            {score != null && (
+                              <div
+                                className="h-full rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${score * 10}%`,
+                                  background:
+                                    score >= 8.5
+                                      ? "var(--success)"
+                                      : score >= 7
+                                        ? "var(--primary)"
+                                        : score >= 5
+                                          ? "var(--warning)"
+                                          : "var(--destructive)",
+                                }}
+                              />
+                            )}
+                          </div>
                         </div>
-                        <div className="h-2 w-full rounded-full bg-muted" />
-                      </div>
-                    ) : (
-                      <MatchBar
-                        key={k}
-                        label={label}
-                        value={score * 10}
-                        hint={`Nota: ${score}/10`}
-                      />
-                    );
-                  }
-                  return (
-                    <div key={k} className="flex items-center justify-between gap-3">
-                      <span className="text-sm font-medium text-foreground">{label}</span>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={10}
-                        step={1}
-                        placeholder="–"
-                        value={score ?? ""}
-                        onChange={(e) => setScore(k, e.target.value)}
-                        className="h-8 w-16 text-center print:hidden"
-                      />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+                      {Object.entries(DIMENSION_LABELS).map(([k, label]) => {
+                        const score = recruiterScores[k];
+                        return (
+                          <div key={k} className="flex items-center justify-between gap-3">
+                            <span className="text-sm font-medium text-foreground">{label}</span>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={10}
+                              step={1}
+                              placeholder="–"
+                              value={score ?? ""}
+                              onChange={(e) => setScore(k, e.target.value)}
+                              className="h-8 w-16 text-center print:hidden"
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                    <div className="flex items-center justify-end gap-2 border-t border-border pt-3 print:hidden">
+                      {scoresDirty && (
+                        <span className="text-xs text-muted-foreground">Alterações não salvas</span>
+                      )}
+                      <Button
+                        size="sm"
+                        onClick={saveScores}
+                        disabled={save.isPending || !scoresDirty}
+                      >
+                        {save.isPending ? (
+                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Save className="mr-1.5 h-3.5 w-3.5" />
+                        )}
+                        Salvar avaliação
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
