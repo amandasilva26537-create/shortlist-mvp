@@ -58,6 +58,19 @@ function NewCandidate() {
   });
 
   const [candId, setCandId] = useState<string | undefined>(editId);
+  /**
+   * Guarda o id do registro em uma ref para evitar inserções duplicadas: o estado
+   * do React é assíncrono e chamadas em sequência (upload de foto, IA) acabavam
+   * criando um segundo candidato "provisório".
+   */
+  const candIdRef = useRef<string | undefined>(editId);
+  /** Registro provisório criado apenas para permitir upload/IA e que deve ser removido se o cadastro for cancelado. */
+  const provisionalRef = useRef(false);
+  const savingRef = useRef<Promise<string | null> | null>(null);
+  const setCandidateId = (id: string | undefined) => {
+    candIdRef.current = id;
+    setCandId(id);
+  };
   const [docs, setDocs] = useState<any[]>([]);
   const [f, setF] = useState<any>({
     full_name: "", photo_url: "", current_position: "", current_company: "", area: "", seniority: "",
