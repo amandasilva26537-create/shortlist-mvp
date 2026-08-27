@@ -5,6 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, Pencil, Save } from "lucide-react";
 import { experienceDuration, experiencePeriod, isCurrentExperience } from "@/lib/experience";
+import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { updateCandidateExperience } from "@/lib/db/candidates.functions";
+import { toast } from "sonner";
 
 const YES_NO = /^(sim|não|nao|n\/a|na|validado|true|false)$/i;
 
@@ -281,6 +285,32 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div className="space-y-1">
       <div className="text-xs font-medium text-muted-foreground">{label}</div>
       {children}
+    </div>
+  );
+}
+
+/** Lista de experiências com edição salva no banco (uso do recrutador). */
+export function EditableExperienceList({ candidate }: { candidate: any }) {
+  const qc = useQueryClient();
+  const saveExp = useServerFn(updateCandidateExperience);
+  const list: any[] = Array.isArray(candidate?.trajectory) ? candidate.trajectory : [];
+
+  const save = async (index: number, next: any) => {
+    try {
+      await saveExp({ data: { id: candidate.id, index, experience: next } });
+      qc.invalidateQueries({ queryKey: ["candidate", candidate.id] });
+      toast.success("Experiência atualizada");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao salvar experiência");
+      throw e;
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {list.map((t, i) => (
+        <ExperienceItem key={i} exp={t} defaultOpen compact={false} editable onSave={(next) => save(i, next)} />
+      ))}
     </div>
   );
 }

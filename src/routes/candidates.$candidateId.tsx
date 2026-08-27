@@ -15,7 +15,7 @@ import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candid
 import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus, listCandidateClientFeedback } from "@/lib/db/shortlists.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
 import { TagChips, TagPicker, BlockListWarning } from "@/components/candidate/CandidateTags";
-import { ExperienceItem, LanguageList } from "@/components/candidate/ProfileBits";
+import { EditableExperienceList, LanguageList } from "@/components/candidate/ProfileBits";
 import { DiscSection } from "@/components/candidate/DiscSection";
 import { salaryLabel } from "@/lib/format";
 import { toast } from "sonner";
@@ -304,11 +304,7 @@ function CandidatePage() {
             <section>
               <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">Experiência profissional</h2>
               {c.trajectory?.length > 0 ? (
-                <div className="space-y-3">
-                  {c.trajectory.map((t: any, i: number) => (
-                    <ExperienceItem key={i} exp={t} defaultOpen={true} compact={false} />
-                  ))}
-                </div>
+                <EditableExperienceList candidate={c} />
               ) : <Empty />}
             </section>
 
