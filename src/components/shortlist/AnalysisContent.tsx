@@ -271,22 +271,14 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
         rows={9}
       />
 
-      {evaluation?.main_case && (
-        <section>
-          <SectionTitle>4. Principal case relacionado à vaga</SectionTitle>
-          <div className="rounded-xl border border-border bg-card p-5 space-y-3 text-sm">
-            <CaseField label="Contexto" value={evaluation.main_case.context} />
-            <CaseField label="Desafio" value={evaluation.main_case.challenge} />
-            <CaseField label="Ação" value={evaluation.main_case.action} />
-            <CaseField label="Resultado" value={evaluation.main_case.result} />
-            <CaseField
-              label="Relação com a vaga"
-              value={evaluation.main_case.relation_to_job}
-              highlight
-            />
-          </div>
-        </section>
-      )}
+      <section>
+        <SectionTitle>4. Principal case relacionado à vaga</SectionTitle>
+        <MainCaseBlock
+          value={evaluation?.main_case}
+          readOnly={readOnly}
+          onSave={(v) => persist("main_case", v)}
+        />
+      </section>
 
       <section>
         <SectionTitle>5. Riscos &amp; Trade-offs</SectionTitle>
@@ -310,32 +302,46 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
         rows={4}
       />
 
-      {(evaluation?.eliminatory_checklist?.length ?? 0) > 0 && (
-        <section>
-          <SectionTitle>7. Critérios eliminatórios</SectionTitle>
+      <section>
+        <SectionTitle>7. Critérios eliminatórios</SectionTitle>
+        <EditableBlock
+          title="Critérios avaliados"
+          editable={!readOnly}
+          isEmpty={!((evaluation?.eliminatory_checklist?.length ?? 0) > 0)}
+          toDraft={() => objectsToLines(evaluation?.eliminatory_checklist ?? [], CHECKLIST_FIELDS)}
+          fromDraft={(v) => linesToObjects(v, CHECKLIST_FIELDS)}
+          hint="Um critério por linha: critério | situação (yes, partial, no, unknown) | evidência"
+          onSave={(items) => persist("eliminatory_checklist", items)}
+        >
           <div className="space-y-2">
-            {(evaluation.eliminatory_checklist as any[]).map((item, i) => (
+            {(evaluation?.eliminatory_checklist ?? []).map((item: any, i: number) => (
               <ChecklistRow key={i} item={item} />
             ))}
           </div>
-        </section>
-      )}
+        </EditableBlock>
+      </section>
 
-      {(evaluation?.top_strengths?.length ?? 0) > 0 && (
-        <section>
-          <SectionTitle>8. Principais pontos fortes para esta vaga</SectionTitle>
+      <section>
+        <SectionTitle>8. Principais pontos fortes para esta vaga</SectionTitle>
+        <EditableBlock
+          title="Pontos fortes"
+          editable={!readOnly}
+          isEmpty={!((evaluation?.top_strengths?.length ?? 0) > 0)}
+          toDraft={() => objectsToLines(evaluation?.top_strengths ?? [], STRENGTH_FIELDS)}
+          fromDraft={(v) => linesToObjects(v, STRENGTH_FIELDS)}
+          hint="Um ponto forte por linha: título | evidência"
+          onSave={(items) => persist("top_strengths", items)}
+        >
           <div className="space-y-2">
-            {(evaluation.top_strengths as any[]).map((s, i) => (
+            {(evaluation?.top_strengths ?? []).map((s: any, i: number) => (
               <div key={i} className="rounded-lg border border-border bg-card p-3">
                 <div className="text-sm font-semibold">{s.title}</div>
-                {s.evidence && (
-                  <div className="mt-1 text-xs text-muted-foreground">{s.evidence}</div>
-                )}
+                {s.evidence && <div className="mt-1 text-xs text-muted-foreground">{s.evidence}</div>}
               </div>
             ))}
           </div>
-        </section>
-      )}
+        </EditableBlock>
+      </section>
     </div>
   );
 }
