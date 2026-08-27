@@ -236,7 +236,7 @@ function NewCandidate() {
     setAiBusy(true); setAiStep(0);
     const interval = setInterval(() => setAiStep((s) => Math.min(s + 1, AI_STEPS.length - 1)), 900);
     try {
-      const id = await ensureSaved({ status: "em_processamento" });
+      const id = await ensureProvisional();
       if (!id) return;
       const out: any = await aiFn({ data: { candidate_id: id, instruction: refineInstr || undefined } });
       // Recarrega o candidato para pegar tanto o perfil estruturado quanto os campos básicos preenchidos pela IA.
