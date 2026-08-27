@@ -115,7 +115,7 @@ function NewCandidate() {
   const set = (k: string) => (e: any) => setF((p: any) => ({ ...p, [k]: e?.target?.value ?? e }));
 
   const buildPayload = (extra: any = {}) => ({
-    id: candId,
+    id: candIdRef.current,
     full_name: f.full_name, photo_url: f.photo_url || null,
     current_position: f.current_position || null, current_company: f.current_company || null,
     area: f.area || null, seniority: f.seniority || null,
