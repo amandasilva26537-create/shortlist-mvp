@@ -106,20 +106,45 @@ function NewShortlist() {
       toast.error("Escolha a marca desta shortlist (Moove Talent ou Portus)");
       return null;
     }
-    const row: any = await saveFn({
-      data: {
-        id: shortlistId,
-        client_id: clientId,
-        job_id: jobId,
-        number: meta.number,
-        title: meta.title,
-        message: meta.message,
-        send_date: meta.send_date || null,
-        responsible: meta.responsible,
-        status: "draft",
-        brand,
-      },
-    });
+    const payload: any = {
+      id: shortlistId,
+      client_id: clientId,
+      job_id: jobId,
+      number: meta.number,
+      title: meta.title,
+      message: meta.message,
+      send_date: meta.send_date || null,
+      responsible: meta.responsible,
+      status: "draft",
+      brand,
+    };
+    let row: any;
+    try {
+      row = await saveFn({ data: payload });
+    } catch (err: any) {
+      // Se a coluna "brand" ainda não existir no banco (migração pendente),
+      // salva do mesmo jeito sem ela, pra não travar a shortlist inteira.
+      const msg = String(err?.message ?? err ?? "");
+      const missing = msg.match(/could not find the '(\w+)' column/i)?.[1];
+      if (missing && missing in payload) {
+        const retryPayload = { ...payload };
+        delete retryPayload[missing];
+        try {
+          row = await saveFn({ data: retryPayload });
+          toast.warning(
+            `Shortlist salva, mas "${missing}" ainda não foi ativado no banco de dados.`,
+          );
+        } catch (err2: any) {
+          toast.error(
+            err2?.message ? `Erro ao salvar: ${err2.message}` : "Erro ao salvar a shortlist",
+          );
+          return null;
+        }
+      } else {
+        toast.error(err?.message ? `Erro ao salvar: ${err.message}` : "Erro ao salvar a shortlist");
+        return null;
+      }
+    }
     setShortlistId(row.id);
     if (selected.length > 0)
       await setCandsFn({ data: { shortlist_id: row.id, candidate_ids: selected } });
