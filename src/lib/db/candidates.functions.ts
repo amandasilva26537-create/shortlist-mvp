@@ -204,3 +204,63 @@ export const updateCandidateExperience = createServerFn({ method: "POST" })
     if (upErr) throw new Error(upErr.message);
     return row;
   });
+
+/** Campos do cadastro que a recrutadora pode editar direto na shortlist. */
+const EDITABLE_CANDIDATE_FIELDS = [
+  "headline",
+  "mini_bio",
+  "full_bio",
+  "executive_summary",
+  "specialties",
+  "main_results",
+  "achievements",
+  "main_case",
+  "strengths",
+  "work_style",
+  "professional_moment",
+  "motivators",
+  "trajectory",
+  "education",
+  "courses",
+  "languages",
+  "competencies",
+  "additional_info",
+  "recruiter_note",
+  "internal_notes",
+  "current_position",
+  "current_company",
+  "area",
+  "seniority",
+  "city",
+  "state",
+  "country",
+  "work_model",
+  "salary_expectation",
+  "salary_min",
+  "salary_max",
+  "linkedin_url",
+  "email",
+  "phone",
+] as const;
+
+/** Atualização parcial do candidato (edições manuais da recrutadora). */
+export const patchCandidate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z.object({ id: z.string().uuid(), patch: z.record(z.string(), z.any()) }).parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const patch: Record<string, any> = {};
+    for (const key of EDITABLE_CANDIDATE_FIELDS) {
+      if (key in data.patch) patch[key] = data.patch[key];
+    }
+    if (Object.keys(patch).length === 0) throw new Error("Nenhum campo editável informado.");
+    const { data: row, error } = await context.supabase
+      .from("candidates")
+      .update(patch as any)
+      .eq("id", data.id)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });

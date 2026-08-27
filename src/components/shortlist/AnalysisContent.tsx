@@ -4,13 +4,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MatchRing } from "@/components/candidate/MatchRing";
-import { Loader2, Save, Plus, Trash2, Check, Minus, X, HelpCircle, RefreshCw } from "lucide-react";
+import { Loader2, Save, Plus, Trash2, Check, Minus, X, HelpCircle, RefreshCw, Pencil } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { upsertEvaluation } from "@/lib/db/shortlists.functions";
 import { evaluateCandidateForJob } from "@/lib/ai/ai.functions";
 import { buildCandidateSummary } from "@/lib/candidate-summary";
+import { EditableBlock, linesToObjects, objectsToLines } from "@/components/candidate/EditableField";
 import { toast } from "sonner";
+
+const CHECKLIST_FIELDS = ["criterion", "status", "evidence"];
+const STRENGTH_FIELDS = ["title", "evidence"];
+const CASE_FIELDS: { key: string; label: string }[] = [
+  { key: "context", label: "Contexto" },
+  { key: "challenge", label: "Desafio" },
+  { key: "action", label: "Ação" },
+  { key: "result", label: "Resultado" },
+  { key: "relation_to_job", label: "Relação com a vaga" },
+];
 
 interface Props {
   candidate: any;
@@ -271,22 +282,14 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
         rows={9}
       />
 
-      {evaluation?.main_case && (
-        <section>
-          <SectionTitle>4. Principal case relacionado à vaga</SectionTitle>
-          <div className="rounded-xl border border-border bg-card p-5 space-y-3 text-sm">
-            <CaseField label="Contexto" value={evaluation.main_case.context} />
-            <CaseField label="Desafio" value={evaluation.main_case.challenge} />
-            <CaseField label="Ação" value={evaluation.main_case.action} />
-            <CaseField label="Resultado" value={evaluation.main_case.result} />
-            <CaseField
-              label="Relação com a vaga"
-              value={evaluation.main_case.relation_to_job}
-              highlight
-            />
-          </div>
-        </section>
-      )}
+      <section>
+        <SectionTitle>4. Principal case relacionado à vaga</SectionTitle>
+        <MainCaseBlock
+          value={evaluation?.main_case}
+          readOnly={readOnly}
+          onSave={(v: any) => persist("main_case", v)}
+        />
+      </section>
 
       <section>
         <SectionTitle>5. Riscos &amp; Trade-offs</SectionTitle>
@@ -310,32 +313,46 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
         rows={4}
       />
 
-      {(evaluation?.eliminatory_checklist?.length ?? 0) > 0 && (
-        <section>
-          <SectionTitle>7. Critérios eliminatórios</SectionTitle>
+      <section>
+        <SectionTitle>7. Critérios eliminatórios</SectionTitle>
+        <EditableBlock
+          title="Critérios avaliados"
+          editable={!readOnly}
+          isEmpty={!((evaluation?.eliminatory_checklist?.length ?? 0) > 0)}
+          toDraft={() => objectsToLines(evaluation?.eliminatory_checklist ?? [], CHECKLIST_FIELDS)}
+          fromDraft={(v) => linesToObjects(v, CHECKLIST_FIELDS)}
+          hint="Um critério por linha: critério | situação (yes, partial, no, unknown) | evidência"
+          onSave={(items) => persist("eliminatory_checklist", items)}
+        >
           <div className="space-y-2">
-            {(evaluation.eliminatory_checklist as any[]).map((item, i) => (
+            {(evaluation?.eliminatory_checklist ?? []).map((item: any, i: number) => (
               <ChecklistRow key={i} item={item} />
             ))}
           </div>
-        </section>
-      )}
+        </EditableBlock>
+      </section>
 
-      {(evaluation?.top_strengths?.length ?? 0) > 0 && (
-        <section>
-          <SectionTitle>8. Principais pontos fortes para esta vaga</SectionTitle>
+      <section>
+        <SectionTitle>8. Principais pontos fortes para esta vaga</SectionTitle>
+        <EditableBlock
+          title="Pontos fortes"
+          editable={!readOnly}
+          isEmpty={!((evaluation?.top_strengths?.length ?? 0) > 0)}
+          toDraft={() => objectsToLines(evaluation?.top_strengths ?? [], STRENGTH_FIELDS)}
+          fromDraft={(v) => linesToObjects(v, STRENGTH_FIELDS)}
+          hint="Um ponto forte por linha: título | evidência"
+          onSave={(items) => persist("top_strengths", items)}
+        >
           <div className="space-y-2">
-            {(evaluation.top_strengths as any[]).map((s, i) => (
+            {(evaluation?.top_strengths ?? []).map((s: any, i: number) => (
               <div key={i} className="rounded-lg border border-border bg-card p-3">
                 <div className="text-sm font-semibold">{s.title}</div>
-                {s.evidence && (
-                  <div className="mt-1 text-xs text-muted-foreground">{s.evidence}</div>
-                )}
+                {s.evidence && <div className="mt-1 text-xs text-muted-foreground">{s.evidence}</div>}
               </div>
             ))}
           </div>
-        </section>
-      )}
+        </EditableBlock>
+      </section>
     </div>
   );
 }
@@ -527,6 +544,98 @@ function RiskEditor({
         <Button variant="outline" size="sm" onClick={add} className="print:hidden">
           <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar risco
         </Button>
+      )}
+    </div>
+  );
+}
+
+/** Case principal com edição campo a campo pela recrutadora. */
+function MainCaseBlock({
+  value,
+  readOnly,
+  onSave,
+}: {
+  value: any;
+  readOnly?: boolean;
+  onSave: (v: any) => void;
+}) {
+  const data = value && typeof value === "object" ? value : {};
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const isEmpty = !CASE_FIELDS.some((f) => String(data[f.key] ?? "").trim());
+
+  if (readOnly && isEmpty) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
+        Sem informações nesta seção.
+      </div>
+    );
+  }
+
+  if (editing) {
+    return (
+      <div className="space-y-3 rounded-xl border border-border bg-card p-5">
+        {CASE_FIELDS.map((f) => (
+          <div key={f.key} className="space-y-1">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {f.label}
+            </div>
+            <Textarea
+              rows={3}
+              value={draft[f.key] ?? ""}
+              onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+            />
+          </div>
+        ))}
+        <div className="flex justify-end gap-2">
+          <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+            Cancelar
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              const next: Record<string, string> = {};
+              CASE_FIELDS.forEach((f) => (next[f.key] = (draft[f.key] ?? "").trim()));
+              onSave(next);
+              setEditing(false);
+            }}
+          >
+            <Save className="mr-1.5 h-3.5 w-3.5" /> Salvar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 rounded-xl border border-border bg-card p-5 text-sm">
+      {!readOnly && (
+        <div className="flex justify-end print:hidden">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              const d: Record<string, string> = {};
+              CASE_FIELDS.forEach((f) => (d[f.key] = String(data[f.key] ?? "")));
+              setDraft(d);
+              setEditing(true);
+            }}
+          >
+            <Pencil className="mr-1.5 h-3.5 w-3.5" /> Editar
+          </Button>
+        </div>
+      )}
+      {isEmpty ? (
+        <div className="text-muted-foreground">Sem informações nesta seção.</div>
+      ) : (
+        CASE_FIELDS.map((f) => (
+          <CaseField
+            key={f.key}
+            label={f.label}
+            value={data[f.key]}
+            highlight={f.key === "relation_to_job"}
+          />
+        ))
       )}
     </div>
   );
