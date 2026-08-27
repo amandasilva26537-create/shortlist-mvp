@@ -2,25 +2,30 @@ import { createServerFn } from "@tanstack/react-start";
 import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-access";
 import { z } from "zod";
 
-// Acesso aberto: o sistema funciona sem login, então não há papéis a validar.
-// A função é mantida para não alterar os handlers que já a chamam.
-async function assertAdmin(_supabase: any, _userId: string) {
-  return;
+// Somente administradores podem gerenciar a equipe.
+async function assertAdmin(_supabase: any, _userId: string, roles?: string[]) {
+  if (!roles?.includes("admin")) {
+    throw new Error("Apenas administradores podem gerenciar a equipe.");
+  }
 }
 
 export const getMyAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    // Modo aberto: todo visitante tem acesso total de recrutador e administrador.
+    const roles = (context as any).roles as string[] | undefined;
+    const profile = (context as any).profile as
+      | { full_name?: string; email?: string; role_title?: string; status?: string }
+      | null;
     return {
       userId: context.userId,
-      isAdmin: true,
-      isRecruiter: true,
+      isAdmin: !!roles?.includes("admin"),
+      isRecruiter: !!roles?.includes("recruiter") || !!roles?.includes("admin"),
       isActive: true,
-      status: "active",
-      profile: null as { full_name?: string; email?: string; role_title?: string; status?: string } | null,
+      status: profile?.status ?? "active",
+      profile: profile ?? null,
     };
   });
+
 
 export const listTeamMembers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
