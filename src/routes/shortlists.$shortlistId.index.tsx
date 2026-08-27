@@ -6,16 +6,18 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 
 import { toast } from "sonner";
-import { Copy, ExternalLink, Send, Trash2, Loader2, Wand2 } from "lucide-react";
+import { Copy, ExternalLink, Send, Trash2, Loader2, Wand2, UserMinus } from "lucide-react";
 import {
   getShortlist,
   publishShortlist,
   deleteShortlist,
   updateShortlistOrder,
   listEvaluationsForShortlist,
+  removeCandidateFromShortlist,
 } from "@/lib/db/shortlists.functions";
 import { evaluateCandidateForJob } from "@/lib/ai/ai.functions";
 import { FlashcardDeck } from "@/components/shortlist/FlashcardDeck";
+import { AddCandidateDialog } from "@/components/shortlist/AddCandidateDialog";
 
 export const Route = createFileRoute("/shortlists/$shortlistId/")({
   head: () => ({ meta: [{ title: "Shortlist · Moove List" }] }),
@@ -34,6 +36,8 @@ function ShortlistDetail() {
   const delFn = useServerFn(deleteShortlist);
   const reorderFn = useServerFn(updateShortlistOrder);
   const evaluateFn = useServerFn(evaluateCandidateForJob);
+  const removeFn = useServerFn(removeCandidateFromShortlist);
+
 
   const { data, refetch } = useQuery({
     queryKey: ["shortlist", shortlistId],
@@ -88,6 +92,25 @@ function ShortlistDetail() {
     finally { setBatchBusy(false); }
   };
 
+  /** Retira o candidato apenas desta shortlist — o cadastro permanece no sistema. */
+  const removeFromShortlist = async (candidateId: string, name?: string) => {
+    if (!confirm(`Remover ${name || "o candidato"} desta shortlist? O cadastro continua no sistema.`)) return;
+    try {
+      await removeFn({ data: { shortlist_id: shortlistId, candidate_id: candidateId } });
+      toast.success("Candidato removido da shortlist");
+      refetch();
+      qc.invalidateQueries({ queryKey: ["shortlists"] });
+      qc.invalidateQueries({ queryKey: ["shortlist-evaluations", shortlistId] });
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  const candidateIds = ((data as any).candidates ?? []).map((c: any) => c.candidate_id);
+
+  const refreshCandidates = () => {
+    refetch();
+    qc.invalidateQueries({ queryKey: ["shortlists"] });
+  };
+
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl">
@@ -97,7 +120,12 @@ function ShortlistDetail() {
             <h1 className="mt-1 text-3xl font-semibold tracking-tight">{data.title || (data as any).jobs?.title}</h1>
             <p className="mt-1 text-sm text-muted-foreground">{(data as any).clients?.name} · {(data as any).jobs?.title}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <AddCandidateDialog
+              shortlistId={shortlistId}
+              existingIds={candidateIds}
+              onAdded={refreshCandidates}
+            />
             <Button variant="outline" onClick={analyzeAll} disabled={batchBusy}>
               {batchBusy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Wand2 className="mr-1.5 h-4 w-4" />}
               Analisar todos
@@ -133,6 +161,18 @@ function ShortlistDetail() {
           evaluations={evaluations as any[]}
           initialCandidateId={search.cursor}
           onReorder={reorder}
+          actionsSlot={(candidate) => (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={() => removeFromShortlist(candidate.id, candidate.full_name)}
+              >
+                <UserMinus className="mr-1.5 h-4 w-4" /> Remover da shortlist
+              </Button>
+            </div>
+          )}
         />
 
       </div>
