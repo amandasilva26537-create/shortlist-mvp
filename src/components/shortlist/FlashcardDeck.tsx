@@ -159,6 +159,8 @@ export function FlashcardDeck({
               candidate={candidate}
               evaluation={evaluation}
               readOnly={readOnly}
+              jobId={jobId}
+              shortlistId={shortlistId}
             />
             {actionsSlot && (
               <div className="mt-4">{actionsSlot(candidate, evaluation)}</div>
