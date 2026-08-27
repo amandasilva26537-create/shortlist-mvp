@@ -261,16 +261,18 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
         </section>
       )}
 
-      <section>
-        <SectionTitle>2. Resumo do candidato</SectionTitle>
-        <div className="rounded-xl border border-border bg-card p-4 text-sm whitespace-pre-wrap">
-          {candidateSummary || (
-            <span className="text-muted-foreground">
-              Sem informações suficientes no cadastro para gerar o resumo.
-            </span>
-          )}
-        </div>
-      </section>
+      <EditableSection
+        title="2. Resumo do candidato"
+        value={draft.job_specific_summary || candidateSummary}
+        onChange={(v) => setDraft({ ...draft, job_specific_summary: v })}
+        onSave={() =>
+          persist("job_specific_summary", draft.job_specific_summary || candidateSummary)
+        }
+        placeholder="Resumo do candidato para esta vaga."
+        readOnly={readOnly}
+        rows={8}
+      />
+
 
       <EditableSection
         title="3. Parecer do recrutador"
