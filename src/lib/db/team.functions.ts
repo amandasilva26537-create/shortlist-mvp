@@ -30,7 +30,7 @@ export const getMyAccess = createServerFn({ method: "GET" })
 export const listTeamMembers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    await assertAdmin(context.supabase, context.userId, (context as any).roles);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: profiles, error } = await supabaseAdmin
       .from("profiles")
@@ -59,7 +59,7 @@ export const inviteRecruiter = createServerFn({ method: "POST" })
     }).parse(v),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    await assertAdmin(context.supabase, context.userId, (context as any).roles);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Check if user already exists
@@ -124,7 +124,7 @@ export const updateMember = createServerFn({ method: "POST" })
     }).parse(v),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    await assertAdmin(context.supabase, context.userId, (context as any).roles);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const patch: any = {};
     if (data.full_name !== undefined) patch.full_name = data.full_name;
@@ -141,7 +141,7 @@ export const setMemberAdmin = createServerFn({ method: "POST" })
     z.object({ id: z.string().uuid(), makeAdmin: z.boolean() }).parse(v),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    await assertAdmin(context.supabase, context.userId, (context as any).roles);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.makeAdmin) {
       await supabaseAdmin
