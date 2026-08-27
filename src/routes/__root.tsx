@@ -129,7 +129,7 @@ function RootShell({ children }: { children: ReactNode }) {
 const PUBLIC_PREFIXES = ["/auth", "/s/", "/pdf/", "/sitemap"];
 
 function InternalGate({ children }: { children: ReactNode }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({ select: (s: any) => s.location.pathname as string });
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const isPublic = PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
