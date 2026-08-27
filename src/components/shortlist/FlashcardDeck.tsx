@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from "lucide-react";
 import { CandidateFlashcard } from "./CandidateFlashcard";
@@ -7,7 +9,8 @@ import { AnalysisContent } from "./AnalysisContent";
 import { CandidateSectionMenu, type CandidateSection } from "./CandidateSectionMenu";
 import { ProfessionalProfileView } from "@/components/candidate/ProfessionalProfileView";
 import { DiscSection } from "@/components/candidate/DiscSection";
-
+import { TestResultsSection } from "@/components/candidate/TestResultsSection";
+import { listCandidateTestResults } from "@/lib/db/candidates.functions";
 
 interface Props {
   shortlistId: string;
@@ -18,18 +21,26 @@ interface Props {
   readOnly?: boolean;
   onReorder?: (orderedIds: string[]) => void;
   analysisBasePath?: string; // e.g. "/shortlists/{id}/analysis" or "/s/{token}/analysis"
-  profileBasePath?: string;  // e.g. "/candidates" or "/s/{token}/c"
+  profileBasePath?: string; // e.g. "/candidates" or "/s/{token}/c"
   returnTo?: string;
   actionsSlot?: (candidate: any, evaluation: any) => React.ReactNode;
   onCurrentChange?: (candidate: any) => void;
 }
 
 export function FlashcardDeck({
-  shortlistId, jobId, links, evaluations, initialCandidateId, readOnly, onReorder,
-  analysisBasePath, profileBasePath, returnTo, actionsSlot, onCurrentChange,
+  shortlistId,
+  jobId,
+  links,
+  evaluations,
+  initialCandidateId,
+  readOnly,
+  onReorder,
+  analysisBasePath,
+  profileBasePath,
+  returnTo,
+  actionsSlot,
+  onCurrentChange,
 }: Props) {
-  
-
   const ordered = useMemo(() => {
     const byId = new Map(evaluations.map((e) => [e.candidate_id, e]));
     return [...links].sort((a, b) => {
@@ -103,20 +114,39 @@ export function FlashcardDeck({
 
   const [section, setSection] = useState<CandidateSection | null>(null);
 
+  const testResultsFn = useServerFn(listCandidateTestResults);
+  const { data: candidateTestResults } = useQuery({
+    queryKey: ["candidate-test-results", candidate.id],
+    queryFn: () => testResultsFn({ data: { candidate_id: candidate.id } }),
+  });
+  const testResultsForJob = (candidateTestResults ?? []).filter((t: any) => t.job_id === jobId);
 
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="text-sm text-muted-foreground">
-          Candidato <b className="text-foreground">{safeIdx + 1}</b> de <b className="text-foreground">{ordered.length}</b>
+          Candidato <b className="text-foreground">{safeIdx + 1}</b> de{" "}
+          <b className="text-foreground">{ordered.length}</b>
         </div>
         <div className="flex items-center gap-1">
           {!readOnly && onReorder && (
             <>
-              <Button variant="ghost" size="sm" onClick={moveUp} disabled={safeIdx === 0} title="Mover para cima">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={moveUp}
+                disabled={safeIdx === 0}
+                title="Mover para cima"
+              >
                 <ArrowUp className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={moveDown} disabled={safeIdx === ordered.length - 1} title="Mover para baixo">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={moveDown}
+                disabled={safeIdx === ordered.length - 1}
+                title="Mover para baixo"
+              >
                 <ArrowDown className="h-4 w-4" />
               </Button>
               <div className="mx-1 h-5 w-px bg-border" />
@@ -125,21 +155,32 @@ export function FlashcardDeck({
           <Button variant="outline" size="sm" onClick={prev} disabled={safeIdx === 0}>
             <ChevronLeft className="mr-1 h-4 w-4" /> Anterior
           </Button>
-          <Button variant="outline" size="sm" onClick={next} disabled={safeIdx === ordered.length - 1}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={next}
+            disabled={safeIdx === ordered.length - 1}
+          >
             Próximo <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
         </div>
       </div>
 
       <div className="relative">
-        <button onClick={prev} disabled={safeIdx === 0}
+        <button
+          onClick={prev}
+          disabled={safeIdx === 0}
           className="hidden lg:grid absolute -left-14 top-1/2 -translate-y-1/2 h-12 w-12 place-items-center rounded-full border border-border bg-card shadow-sm transition hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-          aria-label="Anterior">
+          aria-label="Anterior"
+        >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <button onClick={next} disabled={safeIdx === ordered.length - 1}
+        <button
+          onClick={next}
+          disabled={safeIdx === ordered.length - 1}
           className="hidden lg:grid absolute -right-14 top-1/2 -translate-y-1/2 h-12 w-12 place-items-center rounded-full border border-border bg-card shadow-sm transition hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-          aria-label="Próximo">
+          aria-label="Próximo"
+        >
           <ChevronRight className="h-5 w-5" />
         </button>
 
@@ -162,9 +203,7 @@ export function FlashcardDeck({
               jobId={jobId}
               shortlistId={shortlistId}
             />
-            {actionsSlot && (
-              <div className="mt-4">{actionsSlot(candidate, evaluation)}</div>
-            )}
+            {actionsSlot && <div className="mt-4">{actionsSlot(candidate, evaluation)}</div>}
           </motion.div>
         </AnimatePresence>
 
@@ -182,7 +221,11 @@ export function FlashcardDeck({
 
       {/* Menu com os três botões — abre o conteúdo na mesma tela */}
       <div className="mt-4 space-y-4">
-        <CandidateSectionMenu value={section} onChange={setSection} />
+        <CandidateSectionMenu
+          value={section}
+          onChange={setSection}
+          hasTestResults={testResultsForJob.length > 0}
+        />
 
         {section === "analysis" && (
           <div className="rounded-2xl border border-border bg-card p-4 md:p-6">
@@ -196,11 +239,18 @@ export function FlashcardDeck({
           </div>
         )}
 
-        {section === "profile" && <ProfessionalProfileView candidate={candidate} editable={!readOnly} />}
+        {section === "profile" && (
+          <ProfessionalProfileView candidate={candidate} editable={!readOnly} />
+        )}
 
         {section === "behavior" && <DiscSection candidate={candidate} readOnly={readOnly} />}
-      </div>
 
+        {section === "test_results" && (
+          <div className="rounded-2xl border border-border bg-card p-4 md:p-6">
+            <TestResultsSection items={testResultsForJob} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
