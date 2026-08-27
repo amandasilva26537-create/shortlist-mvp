@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { uploadFileViaServer } from "@/lib/upload";
 import { Sparkles, Loader2, Wand2, Upload, Lock, FileText, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
-import { getCandidate, upsertCandidate, addCandidateDocument, deleteCandidateDocument } from "@/lib/db/candidates.functions";
+import { getCandidate, upsertCandidate, addCandidateDocument, deleteCandidateDocument, deleteCandidate } from "@/lib/db/candidates.functions";
 import { generateCandidateProfile, refineText } from "@/lib/ai/ai.functions";
 import { listSkillSuggestions } from "@/lib/db/tags.functions";
 
@@ -47,6 +47,7 @@ function NewCandidate() {
   const getFn = useServerFn(getCandidate);
   const docFn = useServerFn(addCandidateDocument);
   const delDocFn = useServerFn(deleteCandidateDocument);
+  const delCandFn = useServerFn(deleteCandidate);
   const aiFn = useServerFn(generateCandidateProfile);
   const refineFn = useServerFn(refineText);
 
@@ -57,6 +58,19 @@ function NewCandidate() {
   });
 
   const [candId, setCandId] = useState<string | undefined>(editId);
+  /**
+   * Guarda o id do registro em uma ref para evitar inserções duplicadas: o estado
+   * do React é assíncrono e chamadas em sequência (upload de foto, IA) acabavam
+   * criando um segundo candidato "provisório".
+   */
+  const candIdRef = useRef<string | undefined>(editId);
+  /** Registro provisório criado apenas para permitir upload/IA e que deve ser removido se o cadastro for cancelado. */
+  const provisionalRef = useRef(false);
+  const savingRef = useRef<Promise<string | null> | null>(null);
+  const setCandidateId = (id: string | undefined) => {
+    candIdRef.current = id;
+    setCandId(id);
+  };
   const [docs, setDocs] = useState<any[]>([]);
   const [f, setF] = useState<any>({
     full_name: "", photo_url: "", current_position: "", current_company: "", area: "", seniority: "",
@@ -93,7 +107,7 @@ function NewCandidate() {
         salary_max: (existing as any).salary_max ?? "",
       }));
 
-      setCandId(existing.id);
+      setCandidateId(existing.id);
       setDocs(existing.documents ?? []);
     }
   }, [existing]);
@@ -101,7 +115,7 @@ function NewCandidate() {
   const set = (k: string) => (e: any) => setF((p: any) => ({ ...p, [k]: e?.target?.value ?? e }));
 
   const buildPayload = (extra: any = {}) => ({
-    id: candId,
+    id: candIdRef.current,
     full_name: f.full_name, photo_url: f.photo_url || null,
     current_position: f.current_position || null, current_company: f.current_company || null,
     area: f.area || null, seniority: f.seniority || null,
@@ -128,26 +142,49 @@ function NewCandidate() {
     ...extra,
   });
 
+  /**
+   * Cria/atualiza SEMPRE o mesmo registro. Chamadas concorrentes compartilham a
+   * mesma promise para nunca gerar dois candidatos.
+   */
   const ensureSaved = async (extra: any = {}) => {
     if (!f.full_name.trim()) { toast.error("Nome é obrigatório"); return null; }
-    const row: any = await saveFn({ data: buildPayload(extra) });
-    setCandId(row.id);
-    setF((p: any) => ({
-      ...p,
-      ...row,
-      age: row.age ?? "",
-      salary_expectation: row.salary_expectation ?? "",
-      salary_min: row.salary_min ?? "",
-      salary_max: row.salary_max ?? "",
-    }));
+    if (savingRef.current) {
+      const pending = await savingRef.current;
+      if (pending && Object.keys(extra).length === 0) return pending;
+    }
+    const run = (async () => {
+      const row: any = await saveFn({ data: buildPayload(extra) });
+      setCandidateId(row.id);
+      setF((p: any) => ({
+        ...p,
+        ...row,
+        age: row.age ?? "",
+        salary_expectation: row.salary_expectation ?? "",
+        salary_min: row.salary_min ?? "",
+        salary_max: row.salary_max ?? "",
+      }));
+      qc.invalidateQueries({ queryKey: ["candidates"] });
+      return row.id as string;
+    })();
+    savingRef.current = run;
+    try {
+      return await run;
+    } finally {
+      if (savingRef.current === run) savingRef.current = null;
+    }
+  };
 
-    qc.invalidateQueries({ queryKey: ["candidates"] });
-    return row.id as string;
+  /** Registro temporário exigido por upload de arquivos e pela geração de perfil. */
+  const ensureProvisional = async () => {
+    if (candIdRef.current) return candIdRef.current;
+    const id = await ensureSaved({ status: "em_processamento" });
+    if (id && !editId) provisionalRef.current = true;
+    return id;
   };
 
   const uploadTo = async (kind: string, file: File, visible: boolean) => {
     try {
-      const id = candId ?? await ensureSaved();
+      const id = await ensureProvisional();
       if (!id) return null;
 
       // Photos: convert to base64 data URL so they display everywhere without a public bucket.
@@ -163,8 +200,8 @@ function NewCandidate() {
           reader.readAsDataURL(file);
         });
         setF((p: any) => ({ ...p, photo_url: dataUrl }));
-        const row: any = await saveFn({ data: { ...buildPayload(), photo_url: dataUrl } });
-        setCandId(row.id);
+        const row: any = await saveFn({ data: { ...buildPayload(), id, photo_url: dataUrl } });
+        setCandidateId(row.id);
         qc.invalidateQueries({ queryKey: ["candidates"] });
         qc.invalidateQueries({ queryKey: ["candidate", row.id] });
         toast.success("Foto salva");
@@ -199,7 +236,7 @@ function NewCandidate() {
     setAiBusy(true); setAiStep(0);
     const interval = setInterval(() => setAiStep((s) => Math.min(s + 1, AI_STEPS.length - 1)), 900);
     try {
-      const id = await ensureSaved({ status: "em_processamento" });
+      const id = await ensureProvisional();
       if (!id) return;
       const out: any = await aiFn({ data: { candidate_id: id, instruction: refineInstr || undefined } });
       // Recarrega o candidato para pegar tanto o perfil estruturado quanto os campos básicos preenchidos pela IA.
@@ -251,14 +288,38 @@ function NewCandidate() {
   const save = async (status?: string) => {
     const id = await ensureSaved(status ? { status } : {});
     if (!id) return;
+    provisionalRef.current = false;
     toast.success("Candidato salvo");
     navigate({ to: "/candidates/$candidateId", params: { candidateId: id } });
   };
 
-  const saveDraft = async () => {
-    const id = await ensureSaved({ status: "rascunho" });
-    if (id) toast.success("Rascunho salvo");
+  /** Cancelar: descarta o registro provisório para não deixar rascunho no banco. */
+  const discardProvisional = async () => {
+    const id = candIdRef.current;
+    if (!provisionalRef.current || !id) return;
+    provisionalRef.current = false;
+    try {
+      await delCandFn({ data: { id } });
+      qc.invalidateQueries({ queryKey: ["candidates"] });
+    } catch {
+      /* silencioso: cancelar não deve bloquear a navegação */
+    }
   };
+
+  const cancel = async () => {
+    await discardProvisional();
+    navigate({ to: "/candidates" });
+  };
+
+  // Se a recrutadora sair da tela sem concluir, o registro provisório é removido.
+  useEffect(() => {
+    return () => {
+      if (provisionalRef.current && candIdRef.current) {
+        void delCandFn({ data: { id: candIdRef.current } }).catch(() => {});
+      }
+    };
+  }, []);
+
 
   return (
     <AppShell>
@@ -274,9 +335,7 @@ function NewCandidate() {
             <h1 className="mt-1 text-3xl font-semibold tracking-tight">{editId ? "Editar candidato" : "Novo candidato"}</h1>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => navigate({ to: "/candidates" })}>Cancelar</Button>
-            <Button variant="outline" onClick={saveDraft}>Salvar rascunho</Button>
-            <Button variant="outline" onClick={() => ensureSaved().then((id) => id && toast.success("Salvo"))}>Salvar e continuar</Button>
+            <Button variant="ghost" onClick={cancel}>Cancelar</Button>
             <Button onClick={() => save("ativo")}>Salvar candidato</Button>
           </div>
         </div>
@@ -530,9 +589,7 @@ function NewCandidate() {
             )}
 
             <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
-              <Button variant="ghost" onClick={() => navigate({ to: "/candidates" })}>Cancelar</Button>
-              <Button variant="outline" onClick={saveDraft}>Salvar rascunho</Button>
-              <Button variant="outline" onClick={() => ensureSaved().then((id) => id && toast.success("Salvo"))}>Salvar e continuar</Button>
+              <Button variant="ghost" onClick={cancel}>Cancelar</Button>
               <Button onClick={() => save("ativo")}>Salvar candidato</Button>
             </div>
 
