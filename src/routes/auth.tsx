@@ -107,35 +107,81 @@ function AuthPage() {
         </div>
 
         <div className="card-elevated p-6">
-          <Button type="button" variant="outline" className="w-full mb-4" onClick={google} disabled={loading}>
-            Continuar com Google
-          </Button>
-          <div className="relative my-4 text-center text-xs text-muted-foreground">
-            <span className="bg-card px-2 relative z-10">ou com e-mail</span>
-            <div className="absolute inset-x-0 top-1/2 h-px bg-border" />
-          </div>
-          <form onSubmit={submit} className="space-y-3">
-            {mode === "signup" && (
-              <div>
-                <Label htmlFor="name">Nome completo</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+          {forgot ? (
+            <>
+              {sent ? (
+                <p className="text-sm text-muted-foreground">
+                  Se este e-mail estiver cadastrado, você receberá em instantes um link para criar
+                  uma nova senha. Verifique também a caixa de spam.
+                </p>
+              ) : (
+                <form onSubmit={sendReset} className="space-y-3">
+                  <div>
+                    <Label htmlFor="reset-email">E-mail</Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    Enviar link para criar nova senha
+                  </Button>
+                </form>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setForgot(false);
+                  setSent(false);
+                }}
+                className="mt-4 w-full text-center text-xs text-muted-foreground underline"
+              >
+                Voltar para o login
+              </button>
+            </>
+          ) : (
+            <>
+              <Button type="button" variant="outline" className="w-full mb-4" onClick={google} disabled={loading}>
+                Continuar com Google
+              </Button>
+              <div className="relative my-4 text-center text-xs text-muted-foreground">
+                <span className="bg-card px-2 relative z-10">ou com e-mail</span>
+                <div className="absolute inset-x-0 top-1/2 h-px bg-border" />
               </div>
-            )}
-            <div>
-              <Label htmlFor="email">E-mail</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div>
-              <Label htmlFor="password">Senha</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {mode === "signin" ? "Entrar" : "Criar conta"}
-            </Button>
-          </form>
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Acesso restrito à equipe. Novos recrutadores são incluídos por um administrador.
-          </p>
+              <form onSubmit={submit} className="space-y-3">
+                {mode === "signup" && (
+                  <div>
+                    <Label htmlFor="name">Nome completo</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+                  </div>
+                )}
+                <div>
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                </div>
+                <div>
+                  <Label htmlFor="password">Senha</Label>
+                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {mode === "signin" ? "Entrar" : "Criar conta"}
+                </Button>
+              </form>
+              <button
+                type="button"
+                onClick={() => setForgot(true)}
+                className="mt-3 w-full text-center text-xs text-primary underline"
+              >
+                Esqueci minha senha
+              </button>
+              <p className="mt-4 text-center text-xs text-muted-foreground">
+                Acesso restrito à equipe. Novos recrutadores são incluídos por um administrador.
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>
