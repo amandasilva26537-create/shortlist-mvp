@@ -1,18 +1,15 @@
 import { createMiddleware } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
 /**
- * Acesso aberto: o sistema opera sem login.
- *
- * Este middleware substitui a verificação de sessão. Todas as operações de
- * dados passam a rodar com a chave de serviço do backend, ignorando as
- * políticas de acesso por usuário. Mantém a mesma forma de contexto
- * (`supabase`, `userId`, `claims`) para não alterar os handlers existentes.
+ * Acesso restrito à equipe: exige uma sessão válida (e-mail e senha) de um
+ * recrutador ativo. Depois de validar o usuário, as operações de dados rodam
+ * com a chave de serviço do backend (os dados são compartilhados por toda a
+ * equipe). Mantém a mesma forma de contexto (`supabase`, `userId`, `claims`)
+ * para não alterar os handlers existentes.
  */
-
-/** Identidade única usada como autor de todos os registros no modo aberto. */
-export const OPEN_ACCESS_USER_ID = "00000000-0000-0000-0000-000000000001";
 
 function isOpaqueKey(value: string): boolean {
   return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
@@ -40,8 +37,24 @@ export const openAccess = createMiddleware({ type: "function" }).server(async ({
   const PUBLISHABLE_KEY = process.env["SUPABASE_PUBLISHABLE_KEY"];
 
   const key = SERVICE_KEY || PUBLISHABLE_KEY;
-  if (!SUPABASE_URL || !key) {
+  if (!SUPABASE_URL || !key || !PUBLISHABLE_KEY) {
     throw new Error("Backend não configurado: SUPABASE_URL / chave ausente.");
+  }
+
+  const authHeader = getRequest()?.headers?.get("authorization") ?? "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  if (!token) {
+    throw new Error("Não autorizado: faça login para acessar o sistema.");
+  }
+
+  const authClient = createClient<Database>(SUPABASE_URL, PUBLISHABLE_KEY, {
+    global: { fetch: createServiceFetch(PUBLISHABLE_KEY) },
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+  const { data: userData, error: userError } = await authClient.auth.getUser(token);
+  const user = userData?.user;
+  if (userError || !user) {
+    throw new Error("Sessão inválida ou expirada. Faça login novamente.");
   }
 
   const supabase = createClient<Database>(SUPABASE_URL, key, {
@@ -49,11 +62,24 @@ export const openAccess = createMiddleware({ type: "function" }).server(async ({
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
 
+  const [{ data: profile }, { data: roles }] = await Promise.all([
+    supabase.from("profiles").select("status, full_name, email, role_title").eq("id", user.id).maybeSingle(),
+    supabase.from("user_roles").select("role").eq("user_id", user.id),
+  ]);
+
+  const roleList = (roles ?? []).map((r: any) => String(r.role));
+  const isMember = roleList.length > 0 && (profile?.status ?? "active") === "active";
+  if (!isMember) {
+    throw new Error("Acesso não liberado. Solicite ao administrador que inclua seu e-mail na equipe.");
+  }
+
   return next({
     context: {
       supabase,
-      userId: OPEN_ACCESS_USER_ID,
-      claims: { sub: OPEN_ACCESS_USER_ID, role: "open_access" } as Record<string, unknown>,
+      userId: user.id,
+      roles: roleList,
+      profile: profile ?? null,
+      claims: { sub: user.id, email: user.email, roles: roleList } as Record<string, unknown>,
     },
   });
 });

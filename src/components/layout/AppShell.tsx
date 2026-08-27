@@ -23,7 +23,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyAccess } from "@/lib/db/team.functions";
 import { toast } from "sonner";
@@ -41,22 +41,30 @@ const navItems: { to: string; label: string; icon: typeof LayoutDashboard; exact
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { user, loading } = useAuth();
 
-  // Acesso aberto: o sistema não exige login. Se houver uma sessão ativa,
-  // usamos os dados dela apenas para exibir nome e iniciais.
+  // Acesso restrito: apenas recrutadores autenticados usam o painel interno.
+  useEffect(() => {
+    if (!loading && !user) navigate({ to: "/auth", replace: true });
+  }, [loading, user, navigate]);
+
   const accessFn = useServerFn(getMyAccess);
   const access = useQuery({
     queryKey: ["my-access"],
     queryFn: () => accessFn(),
+    enabled: !!user,
+    retry: false,
   });
 
-  const showTeam = access.data?.isAdmin ?? true;
+  const showTeam = access.data?.isAdmin ?? false;
   const visibleNav = showTeam
     ? [...navItems, { to: "/team", label: "Equipe", icon: Users2 }]
     : navItems;
 
-  const displayName = user?.user_metadata?.full_name || user?.email || "Convidado";
+  const displayName =
+    access.data?.profile?.full_name || user?.user_metadata?.full_name || user?.email || "Recrutador";
 
   const initials = String(displayName)
     .split(" ")
@@ -65,6 +73,37 @@ export function AppShell({ children }: { children: ReactNode }) {
     .join("")
     .toUpperCase();
 
+  if (loading || !user) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
+        Carregando…
+      </div>
+    );
+  }
+
+  const signOut = async () => {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
+
+  if (access.isError) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background px-4">
+        <div className="card-soft max-w-md p-8 text-center">
+          <h1 className="text-xl font-semibold">Acesso não liberado</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {(access.error as any)?.message ??
+              "Solicite ao administrador que inclua seu e-mail na equipe."}
+          </p>
+          <Button className="mt-4" variant="outline" onClick={signOut}>
+            <LogOut className="mr-2 h-4 w-4" /> Sair
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -110,7 +149,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => supabase.auth.signOut()}>
+                <DropdownMenuItem onClick={signOut}>
                   <LogOut className="mr-2 h-4 w-4" /> Sair
                 </DropdownMenuItem>
               </DropdownMenuContent>
