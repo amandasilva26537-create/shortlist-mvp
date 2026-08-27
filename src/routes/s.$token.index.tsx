@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getPortalShortlist, getPortalCandidate } from "@/lib/db/portal.functions";
-import { PortusWordmark } from "@/components/shortlist/PortusBrand";
+import { PortalWordmark } from "@/components/shortlist/PortusBrand";
 import { PortalCandidateView } from "@/components/shortlist/PortalCandidateView";
 import {
   ClientEvaluationPanel,
