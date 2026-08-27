@@ -122,11 +122,37 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/** Rotas públicas: login, portal do cliente (link com token), PDF e sitemap. */
+const PUBLIC_PREFIXES = ["/auth", "/s/", "/pdf/", "/sitemap"];
+
+function InternalGate({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  const isPublic = PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
+
+  useEffect(() => {
+    if (!isPublic && !loading && !user) navigate({ to: "/auth", replace: true });
+  }, [isPublic, loading, user, navigate]);
+
+  if (!isPublic && (loading || !user)) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
+        Carregando…
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <InternalGate>
+        <Outlet />
+      </InternalGate>
       <Toaster position="top-right" />
     </QueryClientProvider>
   );
