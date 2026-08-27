@@ -161,6 +161,18 @@ function ShortlistDetail() {
           evaluations={evaluations as any[]}
           initialCandidateId={search.cursor}
           onReorder={reorder}
+          actionsSlot={(candidate) => (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={() => removeFromShortlist(candidate.id, candidate.full_name)}
+              >
+                <UserMinus className="mr-1.5 h-4 w-4" /> Remover da shortlist
+              </Button>
+            </div>
+          )}
         />
 
       </div>
