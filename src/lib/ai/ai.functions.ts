@@ -728,8 +728,18 @@ Responda APENAS com JSON válido, sem markdown, com EXATAMENTE estas chaves:
       motivators: Array.isArray(output.motivators) ? output.motivators : [],
       ideal_environment: output.ideal_environment ?? "",
       generated_at: new Date().toISOString(),
-    };
-    const profile = scores.dominant ? `${scores.dominant}${scores.secondary ? " / " + scores.secondary : ""}` : cAny.disc_profile;
+    } as Record<string, any>;
+    // Edições manuais da recrutadora prevalecem sobre a regeneração.
+    const edited: string[] = Array.isArray(prev.manual_edits) ? prev.manual_edits : [];
+    for (const key of edited) {
+      if (key !== "disc_profile" && key in prev) scores[key] = prev[key];
+    }
+    scores.manual_edits = edited;
+    const profile = edited.includes("disc_profile")
+      ? cAny.disc_profile
+      : scores.dominant
+        ? `${scores.dominant}${scores.secondary ? " / " + scores.secondary : ""}`
+        : cAny.disc_profile;
     const { error: upErr } = await context.supabase
       .from("candidates")
       .update({ disc_scores: scores, disc_profile: profile })

@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { ChevronDown, Pencil, Save } from "lucide-react";
+import { experienceDuration, experiencePeriod, isCurrentExperience } from "@/lib/experience";
+import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { updateCandidateExperience } from "@/lib/db/candidates.functions";
+import { toast } from "sonner";
 
 const YES_NO = /^(sim|não|nao|n\/a|na|validado|true|false)$/i;
 
@@ -82,34 +90,64 @@ export function ExperienceItem({
   exp,
   defaultOpen,
   compact,
+  editable,
+  onSave,
 }: {
   exp: any;
   defaultOpen?: boolean;
   compact?: boolean;
+  editable?: boolean;
+  onSave?: (next: any) => Promise<any> | any;
 }) {
   const [open, setOpen] = useState(!!defaultOpen);
+  const [editing, setEditing] = useState(false);
   const bullets = experienceBullets(exp, compact ? 3 : 6);
   const meta = compact
     ? []
     : [exp.segment, exp.location, exp.work_model].map(cleanValue).filter(Boolean);
-  const period = [cleanValue(exp.start), cleanValue(exp.end)].filter(Boolean).join(" — ");
-  const duration = cleanValue(exp.duration);
+  const period = experiencePeriod(exp);
+  const duration = experienceDuration(exp);
+
+  if (editing) {
+    return (
+      <ExperienceEditor
+        exp={exp}
+        onCancel={() => setEditing(false)}
+        onSave={async (next) => {
+          await onSave?.(next);
+          setEditing(false);
+          setOpen(true);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="card-elevated p-5">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-start justify-between gap-3 text-left">
-        <div className="min-w-0">
-          <div className="font-semibold">{[cleanValue(exp.role), cleanValue(exp.company)].filter(Boolean).join(" — ")}</div>
-          {meta.length > 0 && <div className="text-xs text-muted-foreground">{meta.join(" · ")}</div>}
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-muted-foreground">
-            {period}
-            {duration ? ` (${duration})` : ""}
-          </span>
-          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-        </div>
-      </button>
+      <div className="flex items-start justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex min-w-0 flex-1 items-start justify-between gap-3 text-left"
+        >
+          <div className="min-w-0">
+            <div className="font-semibold">{[cleanValue(exp.role), cleanValue(exp.company)].filter(Boolean).join(" — ")}</div>
+            {meta.length > 0 && <div className="text-xs text-muted-foreground">{meta.join(" · ")}</div>}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs text-muted-foreground">
+              {period}
+              {duration ? ` (${duration})` : ""}
+            </span>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+          </div>
+        </button>
+        {editable && onSave && (
+          <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+            <Pencil className="mr-1.5 h-3.5 w-3.5" /> Editar
+          </Button>
+        )}
+      </div>
       {open && (
         <div className="mt-3 border-t border-border pt-3">
           {cleanValue(exp.scope) && <div className="text-sm">{cleanValue(exp.scope)}</div>}
@@ -125,6 +163,154 @@ export function ExperienceItem({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+const linesToArray = (v: string) =>
+  v
+    .split("\n")
+    .map((s) => s.replace(/^[-•*]\s*/, "").trim())
+    .filter(Boolean);
+
+const arrayToLines = (v: any) => (Array.isArray(v) ? v.map((s: any) => String(s ?? "")).join("\n") : String(v ?? ""));
+
+function ExperienceEditor({
+  exp,
+  onCancel,
+  onSave,
+}: {
+  exp: any;
+  onCancel: () => void;
+  onSave: (next: any) => Promise<void> | void;
+}) {
+  const [form, setForm] = useState({
+    role: String(exp.role ?? ""),
+    company: String(exp.company ?? ""),
+    segment: String(exp.segment ?? ""),
+    location: String(exp.location ?? ""),
+    work_model: String(exp.work_model ?? ""),
+    start: String(exp.start ?? ""),
+    end: isCurrentExperience(exp) ? "" : String(exp.end ?? ""),
+    current: isCurrentExperience(exp),
+    team_size: String(exp.team_size ?? ""),
+    scope: String(exp.scope ?? ""),
+    responsibilities: arrayToLines(exp.responsibilities),
+    deliveries: arrayToLines(exp.deliveries),
+    results: arrayToLines(exp.results),
+  });
+  const [saving, setSaving] = useState(false);
+  const set = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
+
+  const preview = experienceDuration({ start: form.start, end: form.end, current: form.current });
+
+  const submit = async () => {
+    setSaving(true);
+    try {
+      await onSave({
+        role: form.role,
+        company: form.company,
+        segment: form.segment,
+        location: form.location,
+        work_model: form.work_model,
+        start: form.start,
+        end: form.current ? "Atual" : form.end,
+        current: form.current,
+        team_size: form.team_size,
+        scope: form.scope,
+        responsibilities: linesToArray(form.responsibilities),
+        deliveries: linesToArray(form.deliveries),
+        results: linesToArray(form.results),
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="card-elevated space-y-3 p-5">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Cargo"><Input value={form.role} onChange={(e) => set("role", e.target.value)} /></Field>
+        <Field label="Empresa"><Input value={form.company} onChange={(e) => set("company", e.target.value)} /></Field>
+        <Field label="Segmento da empresa"><Input value={form.segment} onChange={(e) => set("segment", e.target.value)} /></Field>
+        <Field label="Localização"><Input value={form.location} onChange={(e) => set("location", e.target.value)} /></Field>
+        <Field label="Modelo de trabalho"><Input value={form.work_model} onChange={(e) => set("work_model", e.target.value)} /></Field>
+        <Field label="Tamanho da equipe"><Input value={form.team_size} onChange={(e) => set("team_size", e.target.value)} /></Field>
+        <Field label="Data de entrada (ex: março de 2022 ou 03/2022)">
+          <Input value={form.start} onChange={(e) => set("start", e.target.value)} placeholder="março de 2022" />
+        </Field>
+        <Field label="Data de saída">
+          <Input
+            value={form.end}
+            onChange={(e) => set("end", e.target.value)}
+            placeholder="agosto de 2024"
+            disabled={form.current}
+          />
+        </Field>
+      </div>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={form.current}
+          onChange={(e) => set("current", e.target.checked)}
+          className="h-4 w-4 rounded border-border"
+        />
+        Emprego atual
+      </label>
+      {preview && <div className="text-xs text-muted-foreground">Tempo nesta empresa: {preview}</div>}
+      <Field label="Descrição / escopo">
+        <Textarea rows={3} value={form.scope} onChange={(e) => set("scope", e.target.value)} />
+      </Field>
+      <Field label="Atividades (uma por linha)">
+        <Textarea rows={4} value={form.responsibilities} onChange={(e) => set("responsibilities", e.target.value)} />
+      </Field>
+      <Field label="Entregas (uma por linha)">
+        <Textarea rows={3} value={form.deliveries} onChange={(e) => set("deliveries", e.target.value)} />
+      </Field>
+      <Field label="Resultados (um por linha)">
+        <Textarea rows={3} value={form.results} onChange={(e) => set("results", e.target.value)} />
+      </Field>
+      <div className="flex justify-end gap-2">
+        <Button size="sm" variant="ghost" onClick={onCancel} disabled={saving}>Cancelar</Button>
+        <Button size="sm" onClick={submit} disabled={saving}>
+          <Save className="mr-1.5 h-3.5 w-3.5" /> {saving ? "Salvando…" : "Salvar"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      {children}
+    </div>
+  );
+}
+
+/** Lista de experiências com edição salva no banco (uso do recrutador). */
+export function EditableExperienceList({ candidate }: { candidate: any }) {
+  const qc = useQueryClient();
+  const saveExp = useServerFn(updateCandidateExperience);
+  const list: any[] = Array.isArray(candidate?.trajectory) ? candidate.trajectory : [];
+
+  const save = async (index: number, next: any) => {
+    try {
+      await saveExp({ data: { id: candidate.id, index, experience: next } });
+      qc.invalidateQueries({ queryKey: ["candidate", candidate.id] });
+      toast.success("Experiência atualizada");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao salvar experiência");
+      throw e;
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {list.map((t, i) => (
+        <ExperienceItem key={i} exp={t} defaultOpen compact={false} editable onSave={(next) => save(i, next)} />
+      ))}
     </div>
   );
 }

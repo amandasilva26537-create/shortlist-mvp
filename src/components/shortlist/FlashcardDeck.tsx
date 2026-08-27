@@ -194,7 +194,7 @@ export function FlashcardDeck({
           </div>
         )}
 
-        {section === "profile" && <ProfessionalProfileView candidate={candidate} />}
+        {section === "profile" && <ProfessionalProfileView candidate={candidate} editable={!readOnly} />}
 
         {section === "behavior" && <DiscSection candidate={candidate} readOnly={readOnly} />}
       </div>

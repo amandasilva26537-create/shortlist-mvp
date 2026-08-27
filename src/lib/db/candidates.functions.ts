@@ -130,3 +130,77 @@ export const deleteCandidate = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/** Salva a edição manual de um bloco do perfil comportamental (DISC). */
+export const updateCandidateDisc = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        patch: z.record(z.string(), z.any()),
+      })
+      .parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: cand, error } = await context.supabase
+      .from("candidates")
+      .select("disc_scores, disc_profile")
+      .eq("id", data.id)
+      .single();
+    if (error) throw new Error(error.message);
+    const prev: any =
+      (cand as any)?.disc_scores && typeof (cand as any).disc_scores === "object" ? (cand as any).disc_scores : {};
+    const patch = { ...data.patch };
+    const nextProfile =
+      typeof patch.disc_profile === "string" ? patch.disc_profile : ((cand as any)?.disc_profile ?? null);
+    const profileEdited = typeof patch.disc_profile === "string";
+    delete patch.disc_profile;
+
+    const editedBefore: string[] = Array.isArray(prev.manual_edits) ? prev.manual_edits : [];
+    const manual_edits = Array.from(
+      new Set([...editedBefore, ...Object.keys(patch), ...(profileEdited ? ["disc_profile"] : [])]),
+    );
+    const scores = { ...prev, ...patch, manual_edits, edited_at: new Date().toISOString() };
+
+    const { data: row, error: upErr } = await context.supabase
+      .from("candidates")
+      .update({ disc_scores: scores, disc_profile: nextProfile })
+      .eq("id", data.id)
+      .select("id, disc_scores, disc_profile")
+      .single();
+    if (upErr) throw new Error(upErr.message);
+    return row;
+  });
+
+/** Salva a edição manual de uma experiência profissional (trajectory[index]). */
+export const updateCandidateExperience = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        index: z.number().int().min(0),
+        experience: z.record(z.string(), z.any()),
+      })
+      .parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: cand, error } = await context.supabase
+      .from("candidates")
+      .select("trajectory")
+      .eq("id", data.id)
+      .single();
+    if (error) throw new Error(error.message);
+    const list: any[] = Array.isArray((cand as any)?.trajectory) ? [...(cand as any).trajectory] : [];
+    if (data.index >= list.length) list.length = data.index + 1;
+    list[data.index] = { ...(list[data.index] ?? {}), ...data.experience, manually_edited: true };
+    const { data: row, error: upErr } = await context.supabase
+      .from("candidates")
+      .update({ trajectory: list })
+      .eq("id", data.id)
+      .select("id, trajectory")
+      .single();
+    if (upErr) throw new Error(upErr.message);
+    return row;
+  });
