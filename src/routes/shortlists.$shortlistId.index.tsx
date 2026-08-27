@@ -92,6 +92,25 @@ function ShortlistDetail() {
     finally { setBatchBusy(false); }
   };
 
+  /** Retira o candidato apenas desta shortlist — o cadastro permanece no sistema. */
+  const removeFromShortlist = async (candidateId: string, name?: string) => {
+    if (!confirm(`Remover ${name || "o candidato"} desta shortlist? O cadastro continua no sistema.`)) return;
+    try {
+      await removeFn({ data: { shortlist_id: shortlistId, candidate_id: candidateId } });
+      toast.success("Candidato removido da shortlist");
+      refetch();
+      qc.invalidateQueries({ queryKey: ["shortlists"] });
+      qc.invalidateQueries({ queryKey: ["shortlist-evaluations", shortlistId] });
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  const candidateIds = ((data as any).candidates ?? []).map((c: any) => c.candidate_id);
+
+  const refreshCandidates = () => {
+    refetch();
+    qc.invalidateQueries({ queryKey: ["shortlists"] });
+  };
+
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl">
