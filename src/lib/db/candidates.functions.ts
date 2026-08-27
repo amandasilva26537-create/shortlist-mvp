@@ -257,7 +257,7 @@ export const patchCandidate = createServerFn({ method: "POST" })
     if (Object.keys(patch).length === 0) throw new Error("Nenhum campo editável informado.");
     const { data: row, error } = await context.supabase
       .from("candidates")
-      .update(patch)
+      .update(patch as any)
       .eq("id", data.id)
       .select("*")
       .single();
