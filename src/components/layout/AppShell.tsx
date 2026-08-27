@@ -80,7 +80,29 @@ export function AppShell({ children }: { children: ReactNode }) {
     );
   }
 
+  const signOut = async () => {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
 
+  if (access.isError) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background px-4">
+        <div className="card-soft max-w-md p-8 text-center">
+          <h1 className="text-xl font-semibold">Acesso não liberado</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {(access.error as any)?.message ??
+              "Solicite ao administrador que inclua seu e-mail na equipe."}
+          </p>
+          <Button className="mt-4" variant="outline" onClick={signOut}>
+            <LogOut className="mr-2 h-4 w-4" /> Sair
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
