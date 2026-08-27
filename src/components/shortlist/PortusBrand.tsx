@@ -33,25 +33,14 @@ export function PortusLogo({ size = 40 }: { size?: number }) {
 
 export function MooveLogo({ size = 40 }: { size?: number }) {
   return (
-    <svg
+    <img
+      src="/brand/moove-logo.png"
       width={size}
       height={size}
-      viewBox="0 0 48 48"
-      role="img"
-      aria-label="Moove Talent"
-      className="shrink-0"
-    >
-      <rect x="0" y="0" width="48" height="48" rx="14" fill="#7412DE" />
-      <path
-        d="M13 33V17l7 9 7-9v16"
-        fill="none"
-        stroke="#FFFFFF"
-        strokeWidth="3.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="34" cy="31" r="3" fill="#FFE667" />
-    </svg>
+      alt="Moove Talent"
+      className="shrink-0 rounded-full"
+      style={{ width: size, height: size }}
+    />
   );
 }
 
