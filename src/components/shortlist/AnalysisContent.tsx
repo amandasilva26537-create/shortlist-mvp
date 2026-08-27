@@ -10,7 +10,18 @@ import { useServerFn } from "@tanstack/react-start";
 import { upsertEvaluation } from "@/lib/db/shortlists.functions";
 import { evaluateCandidateForJob } from "@/lib/ai/ai.functions";
 import { buildCandidateSummary } from "@/lib/candidate-summary";
+import { EditableBlock, linesToObjects, objectsToLines } from "@/components/candidate/EditableField";
 import { toast } from "sonner";
+
+const CHECKLIST_FIELDS = ["criterion", "status", "evidence"];
+const STRENGTH_FIELDS = ["title", "evidence"];
+const CASE_FIELDS: { key: string; label: string }[] = [
+  { key: "context", label: "Contexto" },
+  { key: "challenge", label: "Desafio" },
+  { key: "action", label: "Ação" },
+  { key: "result", label: "Resultado" },
+  { key: "relation_to_job", label: "Relação com a vaga" },
+];
 
 interface Props {
   candidate: any;
