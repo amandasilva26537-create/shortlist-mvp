@@ -28,6 +28,7 @@ export function ProfessionalProfileView({ candidate: c, editable }: { candidate:
     qc.invalidateQueries({ queryKey: ["candidate", c.id] });
     qc.invalidateQueries({ queryKey: ["portal-candidate"] });
     qc.invalidateQueries({ queryKey: ["candidates"] });
+    qc.invalidateQueries({ queryKey: ["shortlist"] });
   };
 
   const onSaveExperience = async (index: number, next: any) => {
