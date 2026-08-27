@@ -1,4 +1,6 @@
-/** Marca visual da Portus usada no portal do cliente (apresentação apenas). */
+/** Marcas visuais usadas no portal do cliente (apresentação apenas). */
+export type PortalBrand = "portus" | "moove";
+
 export function PortusLogo({ size = 40 }: { size?: number }) {
   return (
     <svg
@@ -29,6 +31,30 @@ export function PortusLogo({ size = 40 }: { size?: number }) {
   );
 }
 
+export function MooveLogo({ size = 40 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      role="img"
+      aria-label="Moove Talent"
+      className="shrink-0"
+    >
+      <rect x="0" y="0" width="48" height="48" rx="14" fill="#7412DE" />
+      <path
+        d="M13 33V17l7 9 7-9v16"
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth="3.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="34" cy="31" r="3" fill="#FFE667" />
+    </svg>
+  );
+}
+
 export function PortusWordmark() {
   return (
     <div className="flex min-w-0 items-center gap-3">
@@ -43,4 +69,24 @@ export function PortusWordmark() {
       </div>
     </div>
   );
+}
+
+export function MooveWordmark() {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <MooveLogo />
+      <div className="min-w-0 leading-tight">
+        <div className="truncate text-base font-semibold tracking-tight text-foreground">
+          ShortList <span className="text-primary">Moove Talent</span>
+        </div>
+        <div className="truncate text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          Seleção executiva
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function PortalWordmark({ brand }: { brand?: string | null }) {
+  return brand === "moove" ? <MooveWordmark /> : <PortusWordmark />;
 }

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getPortalShortlist, getPortalCandidate } from "@/lib/db/portal.functions";
-import { PortusWordmark } from "@/components/shortlist/PortusBrand";
+import { PortalWordmark } from "@/components/shortlist/PortusBrand";
 import { PortalCandidateView } from "@/components/shortlist/PortalCandidateView";
 import {
   ClientEvaluationPanel,
@@ -65,10 +65,13 @@ function Portal() {
     );
   }
 
+  const brand = (data.shortlist.clients as any)?.brand ?? "portus";
+  const themeClass = brand === "moove" ? "moove-theme" : "portus-theme";
+
   const header = (
     <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 md:px-6">
-        <PortusWordmark />
+        <PortalWordmark brand={brand} />
         <div className="min-w-0 text-right">
           <div className="truncate text-xs font-medium text-muted-foreground">
             {data.shortlist.clients?.name}
@@ -89,7 +92,7 @@ function Portal() {
       setIdentity(id);
     };
     return (
-      <div className="portus-theme min-h-screen">
+      <div className={`${themeClass} min-h-screen`}>
         {header}
         <div className="mx-auto max-w-md px-4 py-10">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -127,13 +130,16 @@ function Portal() {
     detail?.evaluation ?? (data.evaluations as any[]).find((e: any) => e.candidate_id === currentId) ?? null;
 
   return (
-    <div className="portus-theme min-h-screen overflow-x-hidden pb-12">
+    <div className={`${themeClass} min-h-screen overflow-x-hidden pb-12`}>
       {header}
 
       {/* 1. Cabeçalho da shortlist */}
       <div className="border-b border-border bg-primary-soft/60">
         <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#007A5E]">
+          <div
+            className="text-[11px] font-semibold uppercase tracking-[0.18em]"
+            style={{ color: "var(--portal-strong)" }}
+          >
             Shortlist executiva
           </div>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">

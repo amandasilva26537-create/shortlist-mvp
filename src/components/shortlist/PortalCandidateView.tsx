@@ -33,7 +33,7 @@ export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, short
     <div className="space-y-4">
       {/* Resumo principal do candidato */}
       <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <div className="h-1.5 bg-gradient-to-r from-[#00D6A3] via-[#009B76] to-[#007A5E]" />
+        <div className="h-1.5" style={{ background: "var(--portal-gradient)" }} />
         <div className="p-5 md:p-6">
           <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 sm:flex sm:items-start">
             {c.photo_url ? (
@@ -79,7 +79,10 @@ export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, short
 
           {ev?.key_differentiator && (
             <div className="mt-5 rounded-xl border border-primary/30 bg-primary-soft p-4">
-              <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#007A5E]">
+              <div
+                className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider"
+                style={{ color: "var(--portal-strong)" }}
+              >
                 <Star className="h-3 w-3" /> Principal diferencial para a vaga
               </div>
               <p className="text-sm">{ev.key_differentiator}</p>
