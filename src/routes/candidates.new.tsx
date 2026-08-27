@@ -47,6 +47,7 @@ function NewCandidate() {
   const getFn = useServerFn(getCandidate);
   const docFn = useServerFn(addCandidateDocument);
   const delDocFn = useServerFn(deleteCandidateDocument);
+  const delCandFn = useServerFn(deleteCandidate);
   const aiFn = useServerFn(generateCandidateProfile);
   const refineFn = useServerFn(refineText);
 
