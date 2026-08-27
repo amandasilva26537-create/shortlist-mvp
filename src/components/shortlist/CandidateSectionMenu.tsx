@@ -10,12 +10,12 @@ const BASE_ITEMS: { key: CandidateSection; label: string; icon: any }[] = [
 
 const TEST_RESULTS_ITEM = {
   key: "test_results" as const,
-  label: "Resultados de testes",
+  label: "Testes e avaliações",
   icon: ClipboardList,
 };
 
 /** Menu de botões que alterna o conteúdo detalhado do candidato na mesma tela.
- * O item "Resultados de testes" só aparece quando `hasTestResults` é true. */
+ * O item "Testes e avaliações" só aparece quando `hasTestResults` é true. */
 export function CandidateSectionMenu({
   value,
   onChange,

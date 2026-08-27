@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getPortalShortlist, getPortalCandidate } from "@/lib/db/portal.functions";
 import { PortalWordmark } from "@/components/shortlist/PortusBrand";
 import { PortalCandidateView } from "@/components/shortlist/PortalCandidateView";
+import { TestResultsSidebarCard } from "@/components/shortlist/TestResultsSidebarCard";
 import {
   ClientEvaluationPanel,
   loadIdentity,
@@ -24,7 +25,10 @@ export const Route = createFileRoute("/s/$token/")({
 function Portal() {
   const { token } = Route.useParams();
   const getFn = useServerFn(getPortalShortlist);
-  const { data } = useQuery({ queryKey: ["portal", token], queryFn: () => getFn({ data: { token } }) });
+  const { data } = useQuery({
+    queryKey: ["portal", token],
+    queryFn: () => getFn({ data: { token } }),
+  });
 
   const [identity, setIdentity] = useState<PortalIdentity | null>(null);
   const [name, setName] = useState("");
@@ -101,7 +105,11 @@ function Portal() {
               Suas avaliações e comentários ficarão vinculados a estes dados.
             </p>
             <div className="mt-4 space-y-3">
-              <Input placeholder="Seu nome — Ex: João Silva" value={name} onChange={(e) => setName(e.target.value)} />
+              <Input
+                placeholder="Seu nome — Ex: João Silva"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
               <Input
                 placeholder="Cargo e empresa — Ex: Diretor de Operações, Acme"
                 value={role}
@@ -122,12 +130,14 @@ function Portal() {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-
-
-
   const candidate = detail?.candidate ?? currentLink?.candidates;
   const evaluation =
-    detail?.evaluation ?? (data.evaluations as any[]).find((e: any) => e.candidate_id === currentId) ?? null;
+    detail?.evaluation ??
+    (data.evaluations as any[]).find((e: any) => e.candidate_id === currentId) ??
+    null;
+  const testResults: any[] =
+    detail?.test_results ??
+    (data.test_results as any[]).filter((t: any) => t.candidate_id === currentId);
 
   return (
     <div className={`${themeClass} min-h-screen overflow-x-hidden pb-12`}>
@@ -149,7 +159,9 @@ function Portal() {
             {data.shortlist.jobs?.title} · {ordered.length} candidatos apresentados
           </p>
           {data.shortlist.message && (
-            <p className="mt-3 rounded-xl border border-border bg-card p-3 text-sm">{data.shortlist.message}</p>
+            <p className="mt-3 rounded-xl border border-border bg-card p-3 text-sm">
+              {data.shortlist.message}
+            </p>
           )}
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>
@@ -188,7 +200,12 @@ function Portal() {
                     <b className="text-foreground">{ordered.length}</b>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => goto(safeIdx - 1)} disabled={safeIdx === 0}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goto(safeIdx - 1)}
+                      disabled={safeIdx === 0}
+                    >
                       <ChevronLeft className="h-4 w-4" />
                       <span className="ml-1 hidden sm:inline">Anterior</span>
                     </Button>
@@ -220,20 +237,21 @@ function Portal() {
               <PortalCandidateView
                 candidate={candidate}
                 evaluation={evaluation}
+                testResults={testResults}
                 jobId={data.shortlist.job_id}
                 shortlistId={data.shortlist.id}
               />
-
             </div>
 
             {/* 6. Painel de avaliação */}
-            <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+            <div className="min-w-0 space-y-4 lg:sticky lg:top-24 lg:self-start">
               <ClientEvaluationPanel
                 token={token}
                 candidateId={candidate.id}
                 candidateName={candidate.full_name}
                 identity={identity}
               />
+              {testResults.length > 0 && <TestResultsSidebarCard items={testResults} />}
             </div>
           </div>
         )}

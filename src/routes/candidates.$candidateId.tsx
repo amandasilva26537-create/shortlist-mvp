@@ -44,7 +44,12 @@ import {
   Archive,
   ChevronDown,
 } from "lucide-react";
-import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
+import {
+  getCandidate,
+  archiveCandidate,
+  deleteCandidate,
+  listCandidateTestResults,
+} from "@/lib/db/candidates.functions";
 import {
   listCandidateShortlistLinks,
   removeCandidateFromShortlist,
@@ -98,6 +103,7 @@ function CandidatePage() {
   const qc = useQueryClient();
   const getFn = useServerFn(getCandidate);
   const linksFn = useServerFn(listCandidateShortlistLinks);
+  const testResultsFn = useServerFn(listCandidateTestResults);
   const archFn = useServerFn(archiveCandidate);
   const delFn = useServerFn(deleteCandidate);
   const removeLinkFn = useServerFn(removeCandidateFromShortlist);
@@ -110,6 +116,11 @@ function CandidatePage() {
   const { data, isLoading } = useQuery({
     queryKey: ["candidate", candidateId],
     queryFn: () => getFn({ data: { id: candidateId } }),
+    enabled: isUuid,
+  });
+  const { data: testResults = [] } = useQuery({
+    queryKey: ["candidate-test-results", candidateId],
+    queryFn: () => testResultsFn({ data: { candidate_id: candidateId } }),
     enabled: isUuid,
   });
   const { data: shortlistLinks = [] } = useQuery({
@@ -355,8 +366,8 @@ function CandidatePage() {
               <TabsTrigger value="experience">Experiência e Formação</TabsTrigger>
               <TabsTrigger value="skills">Competências</TabsTrigger>
               <TabsTrigger value="disc">Perfil comportamental</TabsTrigger>
-              {c.test_results?.length > 0 && (
-                <TabsTrigger value="test_results">Resultados de testes</TabsTrigger>
+              {testResults.length > 0 && (
+                <TabsTrigger value="test_results">Testes e avaliações</TabsTrigger>
               )}
             </TabsList>
             <DropdownMenu>
@@ -592,9 +603,26 @@ function CandidatePage() {
             <DiscSection candidate={c} />
           </TabsContent>
 
-          {c.test_results?.length > 0 && (
-            <TabsContent value="test_results" className="mt-4">
-              <TestResultsSection items={c.test_results} />
+          {testResults.length > 0 && (
+            <TabsContent value="test_results" className="mt-4 space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Resultados de teste cadastrados para este candidato, por vaga. Para adicionar,
+                editar ou excluir, use a tela de edição do candidato.
+              </p>
+              {Object.entries(
+                (testResults as any[]).reduce((acc: Record<string, any[]>, t: any) => {
+                  const label = t.jobs?.title ?? "Sem vaga";
+                  (acc[label] ??= []).push(t);
+                  return acc;
+                }, {}),
+              ).map(([jobTitle, items]) => (
+                <div key={jobTitle}>
+                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                    {jobTitle}
+                  </h3>
+                  <TestResultsSection items={items} />
+                </div>
+              ))}
             </TabsContent>
           )}
 

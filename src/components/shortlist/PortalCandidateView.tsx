@@ -15,12 +15,19 @@ import { salaryLabel } from "@/lib/format";
 interface Props {
   candidate: any;
   evaluation: any | null;
+  testResults?: any[];
   jobId: string;
   shortlistId: string;
 }
 
 /** Resumo do candidato + menu de três botões que abre o conteúdo detalhado na mesma tela. */
-export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, shortlistId }: Props) {
+export function PortalCandidateView({
+  candidate: c,
+  evaluation: ev,
+  testResults = [],
+  jobId,
+  shortlistId,
+}: Props) {
   const [section, setSection] = useState<CandidateSection | null>(null);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
   const salary = salaryLabel(c);
@@ -104,7 +111,7 @@ export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, short
       <CandidateSectionMenu
         value={section}
         onChange={setSection}
-        hasTestResults={c.test_results?.length > 0}
+        hasTestResults={testResults.length > 0}
       />
 
       {/* Conteúdo selecionado (um por vez, na mesma tela) */}
@@ -126,7 +133,7 @@ export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, short
 
       {section === "test_results" && (
         <div className="rounded-2xl border border-border bg-card p-4 md:p-5">
-          <TestResultsSection items={c.test_results} />
+          <TestResultsSection items={testResults} />
         </div>
       )}
 

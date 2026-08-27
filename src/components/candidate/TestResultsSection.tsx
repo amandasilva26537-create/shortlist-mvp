@@ -5,12 +5,14 @@ import {
   Link as LinkIcon,
   FileType,
   ExternalLink,
+  Sheet,
+  Paperclip,
 } from "lucide-react";
 
 export interface TestResultItem {
   id: string;
   title: string;
-  format: "pdf" | "image" | "video" | "link" | "text" | "docx";
+  format: "pdf" | "image" | "video" | "link" | "text" | "docx" | "spreadsheet" | "other";
   url?: string | null;
   content?: string | null;
 }
@@ -18,6 +20,8 @@ export interface TestResultItem {
 const FORMAT_META: Record<TestResultItem["format"], { label: string; icon: any }> = {
   pdf: { label: "PDF", icon: FileText },
   docx: { label: "Word", icon: FileType },
+  spreadsheet: { label: "Planilha", icon: Sheet },
+  other: { label: "Arquivo", icon: Paperclip },
   image: { label: "Imagem", icon: ImageIcon },
   video: { label: "Vídeo", icon: Video },
   link: { label: "Link", icon: LinkIcon },
@@ -48,11 +52,19 @@ function embeddableVideoUrl(url: string): string | null {
  * técnico, redação, vídeo de apresentação etc). Só deve ser renderizada
  * quando `items` tiver ao menos um item — quem chama decide isso.
  */
-export function TestResultsSection({ items }: { items: TestResultItem[] }) {
+export function TestResultsSection({
+  items,
+  singleColumn,
+}: {
+  items: TestResultItem[];
+  singleColumn?: boolean;
+}) {
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div
+      className={singleColumn ? "grid grid-cols-1 gap-3" : "grid grid-cols-1 gap-3 sm:grid-cols-2"}
+    >
       {items.map((item) => {
         const meta = FORMAT_META[item.format] ?? FORMAT_META.link;
         const Icon = meta.icon;

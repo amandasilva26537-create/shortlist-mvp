@@ -3,7 +3,6 @@ import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-
 import { z } from "zod";
 import { CandidateInput } from "./candidates.schema";
 
-
 export const listCandidates = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -53,7 +52,6 @@ export const getCandidate = createServerFn({ method: "GET" })
     };
   });
 
-
 export const upsertCandidate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => CandidateInput.parse(v))
@@ -71,13 +69,15 @@ export const upsertCandidate = createServerFn({ method: "POST" })
 export const addCandidateDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) =>
-    z.object({
-      candidate_id: z.string().uuid(),
-      kind: z.string(),
-      label: z.string().nullable().optional(),
-      url: z.string(),
-      visible_to_client: z.boolean().optional(),
-    }).parse(v),
+    z
+      .object({
+        candidate_id: z.string().uuid(),
+        kind: z.string(),
+        label: z.string().nullable().optional(),
+        url: z.string(),
+        visible_to_client: z.boolean().optional(),
+      })
+      .parse(v),
   )
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
@@ -98,9 +98,78 @@ export const deleteCandidateDocument = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Resultados de teste, vinculados a candidato + vaga (não apenas ao
+ * candidato) — o mesmo candidato pode ter resultado numa vaga e não ter em
+ * outra. Somente recrutadores autenticados chegam aqui (middleware); o
+ * portal do cliente lê através de portal.functions.ts, que valida o token.
+ */
+export const listCandidateTestResults = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => z.object({ candidate_id: z.string().uuid() }).parse(v))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("candidate_test_results")
+      .select("*, jobs(id, title)")
+      .eq("candidate_id", data.candidate_id)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const upsertCandidateTestResult = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        candidate_id: z.string().uuid(),
+        job_id: z.string().uuid(),
+        title: z.string().min(1),
+        format: z.enum(["link", "pdf", "docx", "image", "spreadsheet", "video", "text", "other"]),
+        url: z.string().nullable().optional(),
+        content: z.string().nullable().optional(),
+      })
+      .parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const { id, ...rest } = data;
+    const payload: any = { ...rest, updated_at: new Date().toISOString() };
+    if (!id) payload.created_by = context.userId;
+    const query = id
+      ? context.supabase
+          .from("candidate_test_results")
+          .update(payload)
+          .eq("id", id)
+          .select("*, jobs(id, title)")
+          .single()
+      : context.supabase
+          .from("candidate_test_results")
+          .insert(payload)
+          .select("*, jobs(id, title)")
+          .single();
+    const { data: row, error } = await query;
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const deleteCandidateTestResult = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => z.object({ id: z.string().uuid() }).parse(v))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("candidate_test_results")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const setDocumentVisibility = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((v: unknown) => z.object({ id: z.string().uuid(), visible_to_client: z.boolean() }).parse(v))
+  .inputValidator((v: unknown) =>
+    z.object({ id: z.string().uuid(), visible_to_client: z.boolean() }).parse(v),
+  )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("candidate_documents")
@@ -112,11 +181,16 @@ export const setDocumentVisibility = createServerFn({ method: "POST" })
 
 export const archiveCandidate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((v: unknown) => z.object({ id: z.string().uuid(), archive: z.boolean() }).parse(v))
+  .inputValidator((v: unknown) =>
+    z.object({ id: z.string().uuid(), archive: z.boolean() }).parse(v),
+  )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("candidates")
-      .update({ status: data.archive ? "arquivado" : "ativo", archived_at: data.archive ? new Date().toISOString() : null })
+      .update({
+        status: data.archive ? "arquivado" : "ativo",
+        archived_at: data.archive ? new Date().toISOString() : null,
+      })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -150,10 +224,14 @@ export const updateCandidateDisc = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     const prev: any =
-      (cand as any)?.disc_scores && typeof (cand as any).disc_scores === "object" ? (cand as any).disc_scores : {};
+      (cand as any)?.disc_scores && typeof (cand as any).disc_scores === "object"
+        ? (cand as any).disc_scores
+        : {};
     const patch = { ...data.patch };
     const nextProfile =
-      typeof patch.disc_profile === "string" ? patch.disc_profile : ((cand as any)?.disc_profile ?? null);
+      typeof patch.disc_profile === "string"
+        ? patch.disc_profile
+        : ((cand as any)?.disc_profile ?? null);
     const profileEdited = typeof patch.disc_profile === "string";
     delete patch.disc_profile;
 
@@ -192,7 +270,9 @@ export const updateCandidateExperience = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .single();
     if (error) throw new Error(error.message);
-    const list: any[] = Array.isArray((cand as any)?.trajectory) ? [...(cand as any).trajectory] : [];
+    const list: any[] = Array.isArray((cand as any)?.trajectory)
+      ? [...(cand as any).trajectory]
+      : [];
     if (data.index >= list.length) list.length = data.index + 1;
     list[data.index] = { ...(list[data.index] ?? {}), ...data.experience, manually_edited: true };
     const { data: row, error: upErr } = await context.supabase

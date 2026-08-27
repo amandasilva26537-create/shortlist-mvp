@@ -34,9 +34,13 @@ import {
   addCandidateDocument,
   deleteCandidateDocument,
   deleteCandidate,
+  listCandidateTestResults,
+  upsertCandidateTestResult,
+  deleteCandidateTestResult,
 } from "@/lib/db/candidates.functions";
 import { generateCandidateProfile, refineText } from "@/lib/ai/ai.functions";
 import { listSkillSuggestions } from "@/lib/db/tags.functions";
+import { listJobs } from "@/lib/db/jobs.functions";
 
 export const Route = createFileRoute("/candidates/new")({
   head: () => ({ meta: [{ title: "Novo candidato · Moove List" }] }),
@@ -142,7 +146,6 @@ function NewCandidate() {
     additional_info: null,
     inconsistencies: [],
     status: "rascunho",
-    test_results: [],
   });
   const suggestionsFn = useServerFn(listSkillSuggestions);
   const { data: skillSuggestions } = useQuery({
@@ -219,7 +222,6 @@ function NewCandidate() {
     competencies: f.competencies,
     additional_info: f.additional_info,
     inconsistencies: f.inconsistencies,
-    test_results: f.test_results,
     status: f.status,
     ...extra,
   });
@@ -611,13 +613,11 @@ function NewCandidate() {
                   Resultados de testes (opcional)
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Só aparece pro cliente e na aba do candidato quando tiver pelo menos um item aqui.
+                  Vincule cada resultado a uma vaga específica. Só aparece pro cliente daquela vaga
+                  quando houver pelo menos um item vinculado a ela.
                 </div>
               </div>
-              <TestResultsEditor
-                items={f.test_results ?? []}
-                onChange={(v) => setF((p: any) => ({ ...p, test_results: v }))}
-              />
+              <TestResultsEditor candidateId={candId} ensureCandidateSaved={ensureProvisional} />
             </div>
           </aside>
 
@@ -1371,76 +1371,238 @@ function TagInput({
   );
 }
 
-function TestResultsEditor({ items, onChange }: { items: any[]; onChange: (v: any[]) => void }) {
-  const FORMATS: { value: string; label: string }[] = [
-    { value: "link", label: "Link" },
-    { value: "pdf", label: "PDF" },
-    { value: "docx", label: "Word" },
-    { value: "image", label: "Imagem" },
-    { value: "video", label: "Vídeo" },
-    { value: "text", label: "Texto" },
-  ];
-  const update = (i: number, patch: any) => {
-    const a = [...items];
-    a[i] = { ...a[i], ...patch };
-    onChange(a);
+const TEST_RESULT_FORMATS: { value: string; label: string }[] = [
+  { value: "link", label: "Link" },
+  { value: "pdf", label: "PDF" },
+  { value: "docx", label: "Word" },
+  { value: "image", label: "Imagem" },
+  { value: "spreadsheet", label: "Planilha" },
+  { value: "video", label: "Vídeo" },
+  { value: "text", label: "Texto" },
+  { value: "other", label: "Outro arquivo" },
+];
+
+/**
+ * Resultados de teste do candidato, vinculados a uma vaga específica.
+ * Cada item é salvo/editado/excluído direto no servidor (não faz parte do
+ * salvamento geral do candidato) — por isso precisa que o candidato já
+ * tenha um id (ensureCandidateSaved cria um registro provisório se preciso).
+ */
+function TestResultsEditor({
+  candidateId,
+  ensureCandidateSaved,
+}: {
+  candidateId?: string;
+  ensureCandidateSaved: () => Promise<string | null>;
+}) {
+  const qc = useQueryClient();
+  const listFn = useServerFn(listCandidateTestResults);
+  const upsertFn = useServerFn(upsertCandidateTestResult);
+  const deleteFn = useServerFn(deleteCandidateTestResult);
+  const jobsFn = useServerFn(listJobs);
+
+  const { data: jobs } = useQuery({ queryKey: ["jobs-picker"], queryFn: () => jobsFn() });
+  const { data: results, isLoading } = useQuery({
+    queryKey: ["candidate-test-results", candidateId],
+    queryFn: () => listFn({ data: { candidate_id: candidateId! } }),
+    enabled: !!candidateId,
+  });
+
+  const [draft, setDraft] = useState<any | null>(null); // item sendo criado/editado
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const startNew = () => setDraft({ title: "", format: "link", job_id: "", url: "", content: "" });
+  const startEdit = (item: any) =>
+    setDraft({
+      id: item.id,
+      title: item.title,
+      format: item.format,
+      job_id: item.job_id,
+      url: item.url ?? "",
+      content: item.content ?? "",
+    });
+
+  const save = async () => {
+    if (!draft?.title?.trim()) return toast.error("Dê um título pro resultado");
+    if (!draft?.job_id) return toast.error("Escolha a vaga/shortlist relacionada");
+    const cid = candidateId ?? (await ensureCandidateSaved());
+    if (!cid) return;
+    setBusyId(draft.id ?? "new");
+    try {
+      await upsertFn({
+        data: {
+          id: draft.id,
+          candidate_id: cid,
+          job_id: draft.job_id,
+          title: draft.title.trim(),
+          format: draft.format,
+          url: draft.format === "text" ? null : draft.url || null,
+          content: draft.format === "text" ? draft.content || null : null,
+        },
+      });
+      toast.success("Resultado salvo");
+      setDraft(null);
+      qc.invalidateQueries({ queryKey: ["candidate-test-results", cid] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao salvar o resultado");
+    } finally {
+      setBusyId(null);
+    }
   };
+
+  const remove = async (id: string) => {
+    setBusyId(id);
+    try {
+      await deleteFn({ data: { id } });
+      toast.success("Resultado excluído");
+      qc.invalidateQueries({ queryKey: ["candidate-test-results", candidateId] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao excluir");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <div className="space-y-2">
-      {items.map((item, i) => (
-        <div key={item.id ?? i} className="space-y-2 rounded-lg border border-border p-3">
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Título (ex: Teste de inglês)"
-              value={item.title ?? ""}
-              onChange={(e) => update(i, { title: e.target.value })}
-            />
-            <Select value={item.format ?? "link"} onValueChange={(v) => update(i, { format: v })}>
-              <SelectTrigger className="w-[110px] shrink-0">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {FORMATS.map((f) => (
-                  <SelectItem key={f.value} value={f.value}>
-                    {f.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onChange(items.filter((_, j) => j !== i))}
-              aria-label="Remover item"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-          {item.format === "text" ? (
-            <Textarea
-              rows={3}
-              placeholder="Cole o texto do resultado aqui"
-              value={item.content ?? ""}
-              onChange={(e) => update(i, { content: e.target.value })}
-            />
-          ) : (
-            <Input
-              placeholder="Cole o link (Google Drive, YouTube, etc.)"
-              value={item.url ?? ""}
-              onChange={(e) => update(i, { url: e.target.value })}
-            />
-          )}
+      {!candidateId && (
+        <div className="text-xs text-muted-foreground">
+          Salve o candidato (ou adicione o primeiro resultado) para começar.
         </div>
-      ))}
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() =>
-          onChange([...items, { id: crypto.randomUUID(), title: "", format: "link", url: "" }])
-        }
-      >
-        + Adicionar resultado
-      </Button>
+      )}
+      {isLoading && candidateId && <div className="text-xs text-muted-foreground">Carregando…</div>}
+
+      {(results ?? []).map((item: any) =>
+        draft?.id === item.id ? (
+          <TestResultDraftForm
+            key={item.id}
+            draft={draft}
+            setDraft={setDraft}
+            jobs={jobs}
+            onCancel={() => setDraft(null)}
+            onSave={save}
+            busy={busyId === item.id}
+          />
+        ) : (
+          <div
+            key={item.id}
+            className="flex items-start justify-between gap-2 rounded-lg border border-border p-3"
+          >
+            <div className="min-w-0">
+              <div className="text-sm font-medium">{item.title}</div>
+              <div className="text-xs text-muted-foreground">
+                {TEST_RESULT_FORMATS.find((f) => f.value === item.format)?.label ?? item.format}
+                {item.jobs?.title ? ` · ${item.jobs.title}` : ""}
+              </div>
+            </div>
+            <div className="flex shrink-0 gap-1">
+              <Button variant="ghost" size="sm" onClick={() => startEdit(item)} aria-label="Editar">
+                Editar
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => remove(item.id)}
+                disabled={busyId === item.id}
+                aria-label="Excluir"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        ),
+      )}
+
+      {draft && draft.id === undefined ? (
+        <TestResultDraftForm
+          draft={draft}
+          setDraft={setDraft}
+          jobs={jobs}
+          onCancel={() => setDraft(null)}
+          onSave={save}
+          busy={busyId === "new"}
+        />
+      ) : (
+        <Button size="sm" variant="outline" onClick={startNew}>
+          + Adicionar resultado
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function TestResultDraftForm({
+  draft,
+  setDraft,
+  jobs,
+  onCancel,
+  onSave,
+  busy,
+}: {
+  draft: any;
+  setDraft: (d: any) => void;
+  jobs?: any[];
+  onCancel: () => void;
+  onSave: () => void;
+  busy: boolean;
+}) {
+  const update = (patch: any) => setDraft((p: any) => ({ ...p, ...patch }));
+  return (
+    <div className="space-y-2 rounded-lg border border-primary/40 bg-primary-soft/20 p-3">
+      <div className="flex items-center gap-2">
+        <Input
+          placeholder="Título (ex: Teste de inglês)"
+          value={draft.title}
+          onChange={(e) => update({ title: e.target.value })}
+        />
+        <Select value={draft.format} onValueChange={(v) => update({ format: v })}>
+          <SelectTrigger className="w-[130px] shrink-0">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {TEST_RESULT_FORMATS.map((f) => (
+              <SelectItem key={f.value} value={f.value}>
+                {f.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Select value={draft.job_id || undefined} onValueChange={(v) => update({ job_id: v })}>
+        <SelectTrigger>
+          <SelectValue placeholder="Vaga/shortlist relacionada" />
+        </SelectTrigger>
+        <SelectContent>
+          {(jobs ?? []).map((j: any) => (
+            <SelectItem key={j.id} value={j.id}>
+              {j.title}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {draft.format === "text" ? (
+        <Textarea
+          rows={3}
+          placeholder="Cole o texto do resultado aqui"
+          value={draft.content}
+          onChange={(e) => update({ content: e.target.value })}
+        />
+      ) : (
+        <Input
+          placeholder="Cole o link (Google Drive, YouTube, etc.)"
+          value={draft.url}
+          onChange={(e) => update({ url: e.target.value })}
+        />
+      )}
+      <div className="flex justify-end gap-2">
+        <Button size="sm" variant="ghost" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button size="sm" onClick={onSave} disabled={busy}>
+          {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+          Salvar
+        </Button>
+      </div>
     </div>
   );
 }

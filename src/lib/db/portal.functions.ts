@@ -10,7 +10,8 @@ function publicClient(shareToken: string) {
       headers: { "x-share-token": shareToken },
       fetch: (input, init) => {
         const h = new Headers(init?.headers);
-        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization");
+        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`)
+          h.delete("Authorization");
         h.set("apikey", key);
         h.set("x-share-token", shareToken);
         return fetch(input, { ...init, headers: h });
@@ -47,19 +48,37 @@ export const getPortalShortlist = createServerFn({ method: "GET" })
         .order("position"),
       supabaseAdmin
         .from("manager_feedback")
-        .select("candidate_id, shortlist_id, decision, favorite, rating, comment, client_identifier, client_role, updated_at")
+        .select(
+          "candidate_id, shortlist_id, decision, favorite, rating, comment, client_identifier, client_role, updated_at",
+        )
         .eq("shortlist_id", sl.id),
     ]);
     const cids = (links ?? []).map((l: any) => l.candidate_id);
-    const [{ data: evals }, { data: docs }] = await Promise.all([
-      supabaseAdmin.from("candidate_job_evaluations").select("*").in("candidate_id", cids).eq("job_id", sl.job_id),
+    const [{ data: evals }, { data: docs }, { data: testResults }] = await Promise.all([
+      supabaseAdmin
+        .from("candidate_job_evaluations")
+        .select("*")
+        .in("candidate_id", cids)
+        .eq("job_id", sl.job_id),
       supabaseAdmin
         .from("candidate_documents")
         .select("id, candidate_id, kind, label, url, visible_to_client")
         .in("candidate_id", cids)
         .eq("visible_to_client", true),
+      supabaseAdmin
+        .from("candidate_test_results")
+        .select("id, candidate_id, job_id, title, format, url, content")
+        .in("candidate_id", cids)
+        .eq("job_id", sl.job_id),
     ]);
-    return { shortlist: sl, candidates: links ?? [], evaluations: evals ?? [], documents: docs ?? [], feedback: feedback ?? [] };
+    return {
+      shortlist: sl,
+      candidates: links ?? [],
+      evaluations: evals ?? [],
+      documents: docs ?? [],
+      feedback: feedback ?? [],
+      test_results: testResults ?? [],
+    };
   });
 
 export const getPortalCandidate = createServerFn({ method: "GET" })
@@ -90,7 +109,7 @@ export const getPortalCandidate = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!candidate) return null;
-    const [{ data: docs }, { data: evaluation }] = await Promise.all([
+    const [{ data: docs }, { data: evaluation }, { data: testResults }] = await Promise.all([
       supabaseAdmin
         .from("candidate_documents")
         .select("id, candidate_id, kind, label, url, visible_to_client")
@@ -102,8 +121,18 @@ export const getPortalCandidate = createServerFn({ method: "GET" })
         .eq("candidate_id", data.candidate_id)
         .eq("job_id", sl.job_id)
         .maybeSingle(),
+      supabaseAdmin
+        .from("candidate_test_results")
+        .select("id, candidate_id, job_id, title, format, url, content")
+        .eq("candidate_id", data.candidate_id)
+        .eq("job_id", sl.job_id),
     ]);
-    return { candidate: { ...(candidate as any), documents: docs ?? [] }, evaluation: evaluation ?? null, shortlist_id: sl.id };
+    return {
+      candidate: { ...(candidate as any), documents: docs ?? [] },
+      evaluation: evaluation ?? null,
+      shortlist_id: sl.id,
+      test_results: testResults ?? [],
+    };
   });
 
 export const getPortalFeedback = createServerFn({ method: "GET" })
@@ -131,16 +160,18 @@ export const getPortalFeedback = createServerFn({ method: "GET" })
 
 export const submitPortalFeedback = createServerFn({ method: "POST" })
   .inputValidator((v: unknown) =>
-    z.object({
-      token: z.string(),
-      candidate_id: z.string().uuid(),
-      client_identifier: z.string().min(1).max(200),
-      client_role: z.string().max(200).nullable().optional(),
-      rating: z.number().min(0).max(5).nullable().optional(),
-      favorite: z.boolean().optional(),
-      decision: z.string().max(60).nullable().optional(),
-      comment: z.string().max(4000).nullable().optional(),
-    }).parse(v),
+    z
+      .object({
+        token: z.string(),
+        candidate_id: z.string().uuid(),
+        client_identifier: z.string().min(1).max(200),
+        client_role: z.string().max(200).nullable().optional(),
+        rating: z.number().min(0).max(5).nullable().optional(),
+        favorite: z.boolean().optional(),
+        decision: z.string().max(60).nullable().optional(),
+        comment: z.string().max(4000).nullable().optional(),
+      })
+      .parse(v),
   )
   .handler(async ({ data }) => {
     const supabase = publicClient(data.token);
@@ -179,7 +210,10 @@ export const submitPortalFeedback = createServerFn({ method: "POST" })
       .ilike("client_identifier", data.client_identifier)
       .maybeSingle();
     if (existing) {
-      const { error } = await supabaseAdmin.from("manager_feedback").update(payload).eq("id", existing.id);
+      const { error } = await supabaseAdmin
+        .from("manager_feedback")
+        .update(payload)
+        .eq("id", existing.id);
       if (error) throw new Error(error.message);
     } else {
       const { error } = await supabaseAdmin.from("manager_feedback").insert(payload);
@@ -187,4 +221,3 @@ export const submitPortalFeedback = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
-
