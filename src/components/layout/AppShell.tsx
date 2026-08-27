@@ -41,22 +41,29 @@ const navItems: { to: string; label: string; icon: typeof LayoutDashboard; exact
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
-  // Acesso aberto: o sistema não exige login. Se houver uma sessão ativa,
-  // usamos os dados dela apenas para exibir nome e iniciais.
+  // Acesso restrito: apenas recrutadores autenticados usam o painel interno.
+  useEffect(() => {
+    if (!loading && !user) navigate({ to: "/auth", replace: true });
+  }, [loading, user, navigate]);
+
   const accessFn = useServerFn(getMyAccess);
   const access = useQuery({
     queryKey: ["my-access"],
     queryFn: () => accessFn(),
+    enabled: !!user,
+    retry: false,
   });
 
-  const showTeam = access.data?.isAdmin ?? true;
+  const showTeam = access.data?.isAdmin ?? false;
   const visibleNav = showTeam
     ? [...navItems, { to: "/team", label: "Equipe", icon: Users2 }]
     : navItems;
 
-  const displayName = user?.user_metadata?.full_name || user?.email || "Convidado";
+  const displayName =
+    access.data?.profile?.full_name || user?.user_metadata?.full_name || user?.email || "Recrutador";
 
   const initials = String(displayName)
     .split(" ")
@@ -64,6 +71,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+
+  if (loading || !user) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
+        Carregando…
+      </div>
+    );
+  }
+
 
 
   return (
