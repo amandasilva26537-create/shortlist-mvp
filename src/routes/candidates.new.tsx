@@ -589,9 +589,7 @@ function NewCandidate() {
             )}
 
             <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
-              <Button variant="ghost" onClick={() => navigate({ to: "/candidates" })}>Cancelar</Button>
-              <Button variant="outline" onClick={saveDraft}>Salvar rascunho</Button>
-              <Button variant="outline" onClick={() => ensureSaved().then((id) => id && toast.success("Salvo"))}>Salvar e continuar</Button>
+              <Button variant="ghost" onClick={cancel}>Cancelar</Button>
               <Button onClick={() => save("ativo")}>Salvar candidato</Button>
             </div>
 
