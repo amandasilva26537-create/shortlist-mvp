@@ -92,7 +92,7 @@ function Portal() {
       setIdentity(id);
     };
     return (
-      <div className="portus-theme min-h-screen">
+      <div className={`${themeClass} min-h-screen`}>
         {header}
         <div className="mx-auto max-w-md px-4 py-10">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -130,13 +130,16 @@ function Portal() {
     detail?.evaluation ?? (data.evaluations as any[]).find((e: any) => e.candidate_id === currentId) ?? null;
 
   return (
-    <div className="portus-theme min-h-screen overflow-x-hidden pb-12">
+    <div className={`${themeClass} min-h-screen overflow-x-hidden pb-12`}>
       {header}
 
       {/* 1. Cabeçalho da shortlist */}
       <div className="border-b border-border bg-primary-soft/60">
         <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#007A5E]">
+          <div
+            className="text-[11px] font-semibold uppercase tracking-[0.18em]"
+            style={{ color: "var(--portal-strong)" }}
+          >
             Shortlist executiva
           </div>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">
