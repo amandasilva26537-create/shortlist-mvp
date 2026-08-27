@@ -9,15 +9,25 @@ import {
   Paperclip,
 } from "lucide-react";
 
+export type TestResultFormat =
+  | "pdf"
+  | "image"
+  | "video"
+  | "link"
+  | "text"
+  | "docx"
+  | "spreadsheet"
+  | "other";
+
 export interface TestResultItem {
   id: string;
   title: string;
-  format: "pdf" | "image" | "video" | "link" | "text" | "docx" | "spreadsheet" | "other";
+  format: string;
   url?: string | null;
   content?: string | null;
 }
 
-const FORMAT_META: Record<TestResultItem["format"], { label: string; icon: any }> = {
+const FORMAT_META: Record<string, { label: string; icon: any }> = {
   pdf: { label: "PDF", icon: FileText },
   docx: { label: "Word", icon: FileType },
   spreadsheet: { label: "Planilha", icon: Sheet },
