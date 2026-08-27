@@ -65,10 +65,13 @@ function Portal() {
     );
   }
 
+  const brand = (data.shortlist.clients as any)?.brand ?? "portus";
+  const themeClass = brand === "moove" ? "moove-theme" : "portus-theme";
+
   const header = (
     <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 md:px-6">
-        <PortusWordmark />
+        <PortalWordmark brand={brand} />
         <div className="min-w-0 text-right">
           <div className="truncate text-xs font-medium text-muted-foreground">
             {data.shortlist.clients?.name}
