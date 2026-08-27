@@ -658,8 +658,8 @@ function UploadCard({ label, accept, onUpload }: { label: string; accept?: strin
       </div>
       <input type="file" className="hidden" accept={accept} onChange={async (e) => {
         const fl = e.target.files?.[0]; if (!fl) return;
-        setBusy(true); await onUpload(fl); setBusy(false);
-        e.target.value = "";
+        setBusy(true);
+        try { await onUpload(fl); } finally { setBusy(false); e.target.value = ""; }
       }} />
     </label>
   );
