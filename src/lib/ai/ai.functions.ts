@@ -217,10 +217,13 @@ function extractJson(text: string): any {
 }
 
 function pathFromPublicUrl(url: string, bucket: string): string | null {
-  const marker = `/object/public/${bucket}/`;
-  const i = url.indexOf(marker);
-  if (i === -1) return null;
-  return decodeURIComponent(url.slice(i + marker.length));
+  for (const marker of [`/object/public/${bucket}/`, `/object/sign/${bucket}/`]) {
+    const i = url.indexOf(marker);
+    if (i === -1) continue;
+    const rest = url.slice(i + marker.length).split("?")[0]!;
+    return decodeURIComponent(rest);
+  }
+  return null;
 }
 
 async function fileToBytes(blob: Blob): Promise<Uint8Array> {
