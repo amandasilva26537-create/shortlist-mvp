@@ -73,7 +73,7 @@ function AuthPage() {
             {mode === "signin" ? "Entrar" : "Criar conta"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Plataforma premium de apresentação inteligente de candidatos.
+            Acesso restrito à equipe de recrutamento.
           </p>
         </div>
 
@@ -104,17 +104,9 @@ function AuthPage() {
               {mode === "signin" ? "Entrar" : "Criar conta"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
-            {mode === "signin" ? (
-              <button className="text-primary hover:underline" onClick={() => setMode("signup")}>
-                Não tem conta? Criar agora
-              </button>
-            ) : (
-              <button className="text-primary hover:underline" onClick={() => setMode("signin")}>
-                Já tem conta? Entrar
-              </button>
-            )}
-          </div>
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Acesso restrito à equipe. Novos recrutadores são incluídos por um administrador.
+          </p>
         </div>
       </div>
     </div>
