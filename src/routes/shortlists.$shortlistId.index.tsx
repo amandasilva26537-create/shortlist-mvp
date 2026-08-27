@@ -6,16 +6,18 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 
 import { toast } from "sonner";
-import { Copy, ExternalLink, Send, Trash2, Loader2, Wand2 } from "lucide-react";
+import { Copy, ExternalLink, Send, Trash2, Loader2, Wand2, UserMinus } from "lucide-react";
 import {
   getShortlist,
   publishShortlist,
   deleteShortlist,
   updateShortlistOrder,
   listEvaluationsForShortlist,
+  removeCandidateFromShortlist,
 } from "@/lib/db/shortlists.functions";
 import { evaluateCandidateForJob } from "@/lib/ai/ai.functions";
 import { FlashcardDeck } from "@/components/shortlist/FlashcardDeck";
+import { AddCandidateDialog } from "@/components/shortlist/AddCandidateDialog";
 
 export const Route = createFileRoute("/shortlists/$shortlistId/")({
   head: () => ({ meta: [{ title: "Shortlist · Moove List" }] }),
