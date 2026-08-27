@@ -2,21 +2,38 @@ import { ExperienceItem, LanguageList, SkillTags } from "@/components/candidate/
 import { ExternalLink } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { updateCandidateExperience } from "@/lib/db/candidates.functions";
+import { patchCandidate, updateCandidateExperience } from "@/lib/db/candidates.functions";
+import {
+  EditableBlock,
+  arrayToLines,
+  linesToArray,
+  linesToObjects,
+  objectsToLines,
+} from "@/components/candidate/EditableField";
 import { toast } from "sonner";
+
+const EDU_FIELDS = ["course", "institution", "start", "end", "status"];
+const COURSE_FIELDS = ["name", "institution", "year", "workload"];
+const LANG_FIELDS = ["language", "level"];
 
 /** Informações profissionais do candidato (sem DISC), reutilizadas pelo recrutador e pelo cliente. */
 export function ProfessionalProfileView({ candidate: c, editable }: { candidate: any; editable?: boolean }) {
-  const comp = c.competencies ?? {};
+  const comp = c.competencies && typeof c.competencies === "object" ? c.competencies : {};
   const docs: any[] = Array.isArray(c.documents) ? c.documents : [];
   const qc = useQueryClient();
   const saveExp = useServerFn(updateCandidateExperience);
+  const savePatch = useServerFn(patchCandidate);
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["candidate", c.id] });
+    qc.invalidateQueries({ queryKey: ["portal-candidate"] });
+    qc.invalidateQueries({ queryKey: ["candidates"] });
+  };
 
   const onSaveExperience = async (index: number, next: any) => {
     try {
       await saveExp({ data: { id: c.id, index, experience: next } });
-      qc.invalidateQueries({ queryKey: ["candidate", c.id] });
-      qc.invalidateQueries({ queryKey: ["portal-candidate"] });
+      invalidate();
       toast.success("Experiência atualizada");
     } catch (e: any) {
       toast.error(e?.message ?? "Falha ao salvar experiência");
@@ -24,18 +41,56 @@ export function ProfessionalProfileView({ candidate: c, editable }: { candidate:
     }
   };
 
+  const patch = async (p: Record<string, any>) => {
+    try {
+      await savePatch({ data: { id: c.id, patch: p } });
+      invalidate();
+      toast.success("Alteração salva");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao salvar");
+      throw e;
+    }
+  };
+
+  const compBlock = (key: string, title: string) => (
+    <EditableBlock
+      title={title}
+      editable={editable}
+      isEmpty={!(comp[key]?.length > 0)}
+      toDraft={() => arrayToLines(comp[key])}
+      fromDraft={(v) => linesToArray(v)}
+      hint="Um item por linha."
+      onSave={(items) => patch({ competencies: { ...comp, [key]: items } })}
+    >
+      <SkillTags items={comp[key] ?? []} />
+    </EditableBlock>
+  );
+
   return (
     <div className="space-y-4">
-      {c.mini_bio && (
-        <Card title="Mini bio">
-          <Text value={c.mini_bio} />
-        </Card>
-      )}
-      {c.executive_summary && (
-        <Card title="Resumo executivo do perfil">
-          <Text value={c.executive_summary} />
-        </Card>
-      )}
+      <EditableBlock
+        title="Mini bio"
+        editable={editable}
+        isEmpty={!c.mini_bio}
+        toDraft={() => String(c.mini_bio ?? "")}
+        fromDraft={(v) => v.trim()}
+        rows={5}
+        onSave={(v) => patch({ mini_bio: v })}
+      >
+        <Text value={c.mini_bio} />
+      </EditableBlock>
+
+      <EditableBlock
+        title="Resumo executivo do perfil"
+        editable={editable}
+        isEmpty={!c.executive_summary}
+        toDraft={() => textOf(c.executive_summary)}
+        fromDraft={(v) => v.trim()}
+        rows={7}
+        onSave={(v) => patch({ executive_summary: v })}
+      >
+        <Text value={textOf(c.executive_summary)} />
+      </EditableBlock>
 
       <div>
         <SubHeading>Experiência e Formação</SubHeading>
@@ -56,74 +111,65 @@ export function ProfessionalProfileView({ candidate: c, editable }: { candidate:
               <Empty />
             </Card>
           )}
-          {c.education?.length > 0 && (
-            <Card title="Formação acadêmica">
-              {c.education.map((e: any, i: number) => (
-                <div key={i} className="mb-1 text-sm">
-                  •{" "}
-                  {[e.course, e.institution, [e.start, e.end].filter(Boolean).join("—"), e.status]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </div>
-              ))}
-            </Card>
-          )}
-          {c.courses?.length > 0 && (
-            <Card title="Cursos e certificações">
-              {c.courses.slice(0, 10).map((e: any, i: number) => (
-                <div key={i} className="mb-1 text-sm">
-                  • {[e.name, e.institution, e.year, e.workload].filter(Boolean).join(" · ")}
-                </div>
-              ))}
-            </Card>
-          )}
+
+          <EditableBlock
+            title="Formação acadêmica"
+            editable={editable}
+            isEmpty={!(c.education?.length > 0)}
+            toDraft={() => objectsToLines(c.education, EDU_FIELDS)}
+            fromDraft={(v) => linesToObjects(v, EDU_FIELDS)}
+            hint="Uma formação por linha: curso | instituição | início | fim | situação"
+            onSave={(items) => patch({ education: items })}
+          >
+            {(c.education ?? []).map((e: any, i: number) => (
+              <div key={i} className="mb-1 text-sm">
+                •{" "}
+                {[e.course, e.institution, [e.start, e.end].filter(Boolean).join("—"), e.status]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </div>
+            ))}
+          </EditableBlock>
+
+          <EditableBlock
+            title="Cursos e certificações"
+            editable={editable}
+            isEmpty={!(c.courses?.length > 0)}
+            toDraft={() => objectsToLines(c.courses, COURSE_FIELDS)}
+            fromDraft={(v) => linesToObjects(v, COURSE_FIELDS)}
+            hint="Um curso por linha: nome | instituição | ano | carga horária"
+            onSave={(items) => patch({ courses: items })}
+          >
+            {(c.courses ?? []).slice(0, 10).map((e: any, i: number) => (
+              <div key={i} className="mb-1 text-sm">
+                • {[e.name, e.institution, e.year, e.workload].filter(Boolean).join(" · ")}
+              </div>
+            ))}
+          </EditableBlock>
         </div>
       </div>
 
       <div>
         <SubHeading>Competências</SubHeading>
         <div className="grid gap-4 md:grid-cols-2">
-          {comp.technical?.length > 0 && (
-            <Card title="Conhecimentos complementares">
-              <SkillTags items={comp.technical} />
-            </Card>
-          )}
-          {comp.hard_skills?.length > 0 && (
-            <Card title="Habilidades técnicas">
-              <SkillTags items={comp.hard_skills} />
-            </Card>
-          )}
-          {comp.tools?.length > 0 && (
-            <Card title="Ferramentas">
-              <SkillTags items={comp.tools} />
-            </Card>
-          )}
-          {comp.soft_skills?.length > 0 && (
-            <Card title="Habilidades comportamentais">
-              <SkillTags items={comp.soft_skills} />
-            </Card>
-          )}
-          {comp.leadership?.length > 0 && (
-            <Card title="Habilidades de liderança">
-              <SkillTags items={comp.leadership} />
-            </Card>
-          )}
-          {c.languages?.length > 0 && (
-            <Card title="Idiomas">
-              <LanguageList items={c.languages} />
-            </Card>
-          )}
+          {compBlock("technical", "Conhecimentos complementares")}
+          {compBlock("hard_skills", "Habilidades técnicas")}
+          {compBlock("tools", "Ferramentas")}
+          {compBlock("soft_skills", "Habilidades comportamentais")}
+          {compBlock("leadership", "Habilidades de liderança")}
+
+          <EditableBlock
+            title="Idiomas"
+            editable={editable}
+            isEmpty={!(c.languages?.length > 0)}
+            toDraft={() => objectsToLines(c.languages, LANG_FIELDS)}
+            fromDraft={(v) => linesToObjects(v, LANG_FIELDS)}
+            hint="Um idioma por linha: idioma | nível (Básico, Intermediário, Avançado, Nativo)"
+            onSave={(items) => patch({ languages: items })}
+          >
+            <LanguageList items={c.languages ?? []} />
+          </EditableBlock>
         </div>
-        {!comp.technical?.length &&
-          !comp.hard_skills?.length &&
-          !comp.tools?.length &&
-          !comp.soft_skills?.length &&
-          !comp.leadership?.length &&
-          !c.languages?.length && (
-            <Card title="Competências">
-              <Empty />
-            </Card>
-          )}
       </div>
 
       {docs.length > 0 && (
@@ -152,6 +198,19 @@ export function ProfessionalProfileView({ candidate: c, editable }: { candidate:
   );
 }
 
+/** Aceita texto puro ou estruturas antigas (array/objeto) vindas da geração automática. */
+function textOf(value: any): string {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value.map((v) => (typeof v === "string" ? v : JSON.stringify(v))).join("\n");
+  if (typeof value === "object") {
+    return Object.values(value)
+      .map((v) => (typeof v === "string" ? v : JSON.stringify(v)))
+      .join("\n");
+  }
+  return String(value);
+}
+
 function SubHeading({ children }: { children: React.ReactNode }) {
   return <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">{children}</h3>;
 }
@@ -171,5 +230,5 @@ function Text({ value }: { value?: string | null }) {
 }
 
 function Empty() {
-  return <span className="text-sm text-muted-foreground">Sem informações disponíveis.</span>;
+  return <p className="text-sm text-muted-foreground">Sem informações nesta seção.</p>;
 }
