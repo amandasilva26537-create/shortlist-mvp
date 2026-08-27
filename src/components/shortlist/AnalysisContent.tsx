@@ -163,13 +163,21 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
                 </div>
               )}
               <div className="flex-1 min-w-[240px] space-y-3">
-                {!hasAnyScore && (
+                {!hasAnyScore ? (
                   <div className="text-xs text-muted-foreground">
                     {readOnly
                       ? "A recrutadora ainda não avaliou as competências desta vaga."
                       : "Atribua uma nota de 0 a 10 para cada competência abaixo."}
                   </div>
+                ) : (
+                  !readOnly && (
+                    <div className="text-xs text-muted-foreground print:hidden">
+                      As notas abaixo vêm sugeridas pela análise. Ajuste o que quiser e clique em
+                      Salvar avaliação.
+                    </div>
+                  )
                 )}
+
 
                 {readOnly ? (
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
