@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { uploadFileViaServer } from "@/lib/upload";
 import { Sparkles, Loader2, Wand2, Upload, Lock, FileText, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
-import { getCandidate, upsertCandidate, addCandidateDocument, deleteCandidateDocument } from "@/lib/db/candidates.functions";
+import { getCandidate, upsertCandidate, addCandidateDocument, deleteCandidateDocument, deleteCandidate } from "@/lib/db/candidates.functions";
 import { generateCandidateProfile, refineText } from "@/lib/ai/ai.functions";
 import { listSkillSuggestions } from "@/lib/db/tags.functions";
 
