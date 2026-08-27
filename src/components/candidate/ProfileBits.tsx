@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { ChevronDown, Pencil, Save } from "lucide-react";
+import { experienceDuration, experiencePeriod, isCurrentExperience } from "@/lib/experience";
 
 const YES_NO = /^(sim|não|nao|n\/a|na|validado|true|false)$/i;
 
