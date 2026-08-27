@@ -365,10 +365,34 @@ function hydrate(ev: any) {
     recruiter_opinion: ev?.recruiter_opinion ?? "",
     motivational_factor: ev?.motivational_factor ?? "",
     risk_items: Array.isArray(ev?.risk_items) ? ev.risk_items : [],
-    recruiter_scores:
-      ev?.recruiter_scores && typeof ev.recruiter_scores === "object" ? ev.recruiter_scores : {},
+    recruiter_scores: initialScores(ev),
   };
 }
+
+/** Notas de 0 a 10: usa as notas já salvas pela recrutadora e completa
+ * as demais com a sugestão do sistema (dimension_scores em escala 0-100). */
+function initialScores(ev: any): Record<string, number | null> {
+  const saved: Record<string, any> =
+    ev?.recruiter_scores && typeof ev.recruiter_scores === "object" ? ev.recruiter_scores : {};
+  const suggested: Record<string, any> =
+    ev?.dimension_scores && typeof ev.dimension_scores === "object" ? ev.dimension_scores : {};
+  const out: Record<string, number | null> = {};
+  for (const key of Object.keys(DIMENSION_LABELS)) {
+    if (typeof saved[key] === "number") {
+      out[key] = saved[key];
+      continue;
+    }
+    const raw = suggested[key];
+    if (typeof raw === "number" && !Number.isNaN(raw)) {
+      const value = raw > 10 ? raw / 10 : raw;
+      out[key] = Math.max(0, Math.min(10, Math.round(value)));
+    } else if (key in saved) {
+      out[key] = null;
+    }
+  }
+  return out;
+}
+
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
