@@ -200,8 +200,8 @@ function NewCandidate() {
           reader.readAsDataURL(file);
         });
         setF((p: any) => ({ ...p, photo_url: dataUrl }));
-        const row: any = await saveFn({ data: { ...buildPayload(), photo_url: dataUrl } });
-        setCandId(row.id);
+        const row: any = await saveFn({ data: { ...buildPayload(), id, photo_url: dataUrl } });
+        setCandidateId(row.id);
         qc.invalidateQueries({ queryKey: ["candidates"] });
         qc.invalidateQueries({ queryKey: ["candidate", row.id] });
         toast.success("Foto salva");
