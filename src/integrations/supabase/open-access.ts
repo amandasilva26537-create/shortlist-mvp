@@ -36,9 +36,11 @@ export const openAccess = createMiddleware({ type: "function" }).server(async ({
   const SERVICE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];
   const PUBLISHABLE_KEY = process.env["SUPABASE_PUBLISHABLE_KEY"];
 
-  const key = SERVICE_KEY || PUBLISHABLE_KEY;
+  // A checagem de equipe precisa da chave de serviço: com a chave pública as
+  // leituras de perfil/papéis voltam vazias e o acesso é negado por engano.
+  const key = SERVICE_KEY;
   if (!SUPABASE_URL || !key || !PUBLISHABLE_KEY) {
-    throw new Error("Backend não configurado: SUPABASE_URL / chave ausente.");
+    throw new Error("Backend indisponível no momento. Tente novamente em instantes.");
   }
 
   const authHeader = getRequest()?.headers?.get("authorization") ?? "";
@@ -62,10 +64,14 @@ export const openAccess = createMiddleware({ type: "function" }).server(async ({
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
 
-  const [{ data: profile }, { data: roles }] = await Promise.all([
+  const [{ data: profile, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
     supabase.from("profiles").select("status, full_name, email, role_title").eq("id", user.id).maybeSingle(),
     supabase.from("user_roles").select("role").eq("user_id", user.id),
   ]);
+  if (pErr || rErr) {
+    console.error("[open-access] read error", pErr?.message, rErr?.message);
+    throw new Error("Não foi possível verificar seu acesso agora. Tente novamente.");
+  }
 
   const roleList = (roles ?? []).map((r: any) => String(r.role));
   const isMember = roleList.length > 0 && (profile?.status ?? "active") === "active";

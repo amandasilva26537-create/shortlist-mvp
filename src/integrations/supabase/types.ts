@@ -224,6 +224,60 @@ export type Database = {
           },
         ]
       }
+      candidate_test_results: {
+        Row: {
+          candidate_id: string
+          content: string | null
+          created_at: string
+          created_by: string | null
+          format: string
+          id: string
+          job_id: string | null
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          candidate_id: string
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          format?: string
+          id?: string
+          job_id?: string | null
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          format?: string
+          id?: string
+          job_id?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_test_results_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_test_results_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           achievements: Json | null
