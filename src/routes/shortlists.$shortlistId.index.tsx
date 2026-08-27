@@ -120,7 +120,12 @@ function ShortlistDetail() {
             <h1 className="mt-1 text-3xl font-semibold tracking-tight">{data.title || (data as any).jobs?.title}</h1>
             <p className="mt-1 text-sm text-muted-foreground">{(data as any).clients?.name} · {(data as any).jobs?.title}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <AddCandidateDialog
+              shortlistId={shortlistId}
+              existingIds={candidateIds}
+              onAdded={refreshCandidates}
+            />
             <Button variant="outline" onClick={analyzeAll} disabled={batchBusy}>
               {batchBusy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Wand2 className="mr-1.5 h-4 w-4" />}
               Analisar todos
