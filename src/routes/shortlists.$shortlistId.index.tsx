@@ -36,6 +36,8 @@ function ShortlistDetail() {
   const delFn = useServerFn(deleteShortlist);
   const reorderFn = useServerFn(updateShortlistOrder);
   const evaluateFn = useServerFn(evaluateCandidateForJob);
+  const removeFn = useServerFn(removeCandidateFromShortlist);
+
 
   const { data, refetch } = useQuery({
     queryKey: ["shortlist", shortlistId],
