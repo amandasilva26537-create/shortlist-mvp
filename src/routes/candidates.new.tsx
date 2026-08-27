@@ -335,9 +335,7 @@ function NewCandidate() {
             <h1 className="mt-1 text-3xl font-semibold tracking-tight">{editId ? "Editar candidato" : "Novo candidato"}</h1>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => navigate({ to: "/candidates" })}>Cancelar</Button>
-            <Button variant="outline" onClick={saveDraft}>Salvar rascunho</Button>
-            <Button variant="outline" onClick={() => ensureSaved().then((id) => id && toast.success("Salvo"))}>Salvar e continuar</Button>
+            <Button variant="ghost" onClick={cancel}>Cancelar</Button>
             <Button onClick={() => save("ativo")}>Salvar candidato</Button>
           </div>
         </div>
