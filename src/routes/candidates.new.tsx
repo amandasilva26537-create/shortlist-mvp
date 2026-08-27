@@ -146,43 +146,49 @@ function NewCandidate() {
   };
 
   const uploadTo = async (kind: string, file: File, visible: boolean) => {
-    const id = candId ?? await ensureSaved();
-    if (!id) return null;
+    try {
+      const id = candId ?? await ensureSaved();
+      if (!id) return null;
 
-    // Photos: convert to base64 data URL so they display everywhere without a public bucket.
-    if (kind === "photo") {
-      if (file.size > 3 * 1024 * 1024) {
-        toast.error("Foto muito grande. Envie uma imagem de até 3MB.");
-        return null;
-      }
-      const dataUrl: string = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(file);
-      });
-      setF((p: any) => ({ ...p, photo_url: dataUrl }));
-      try {
+      // Photos: convert to base64 data URL so they display everywhere without a public bucket.
+      if (kind === "photo") {
+        if (file.size > 3 * 1024 * 1024) {
+          toast.error("Foto muito grande. Envie uma imagem de até 3MB.");
+          return null;
+        }
+        const dataUrl: string = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+        setF((p: any) => ({ ...p, photo_url: dataUrl }));
         const row: any = await saveFn({ data: { ...buildPayload(), photo_url: dataUrl } });
         setCandId(row.id);
         qc.invalidateQueries({ queryKey: ["candidates"] });
         qc.invalidateQueries({ queryKey: ["candidate", row.id] });
-      } catch (e: any) { toast.error(e.message); return null; }
-      toast.success("Foto salva");
-      return dataUrl;
-    }
+        toast.success("Foto salva");
+        return dataUrl;
+      }
 
-    const path = `${id}/${Date.now()}-${file.name}`;
-    let url: string;
-    try {
-      url = await uploadFileViaServer("candidate-files", path, file);
-    } catch (e: any) { toast.error(e.message); return null; }
-    const doc: any = await docFn({ data: { candidate_id: id, kind, label: file.name, url, visible_to_client: visible } });
-    setDocs((p) => [doc, ...p]);
-    if (kind === "resume") setF((p: any) => ({ ...p, resume_url: url }));
-    toast.success("Arquivo enviado");
-    return url;
+      if (file.size > 12 * 1024 * 1024) {
+        toast.error("Arquivo muito grande. Envie até 12MB.");
+        return null;
+      }
+
+      const path = `${id}/${Date.now()}-${file.name}`;
+      const url = await uploadFileViaServer("candidate-files", path, file);
+      const doc: any = await docFn({ data: { candidate_id: id, kind, label: file.name, url, visible_to_client: visible } });
+      setDocs((p) => [doc, ...p]);
+      if (kind === "resume") setF((p: any) => ({ ...p, resume_url: url }));
+      toast.success("Arquivo enviado");
+      return url;
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível enviar o arquivo.");
+      return null;
+    }
   };
+
 
   const removeDoc = async (id: string) => {
     await delDocFn({ data: { id } });
