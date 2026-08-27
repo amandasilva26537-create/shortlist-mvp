@@ -12,6 +12,7 @@ const ShortlistInput = z.object({
   status: z.enum(["draft", "sent", "closed"]).optional(),
   responsible: z.string().nullable().optional(),
   send_date: z.string().nullable().optional(),
+  brand: z.enum(["moove", "portus"]).optional(),
 });
 
 export const listShortlists = createServerFn({ method: "GET" })
@@ -74,13 +75,18 @@ export const upsertShortlist = createServerFn({ method: "POST" })
 export const setShortlistCandidates = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) =>
-    z.object({
-      shortlist_id: z.string().uuid(),
-      candidate_ids: z.array(z.string().uuid()),
-    }).parse(v),
+    z
+      .object({
+        shortlist_id: z.string().uuid(),
+        candidate_ids: z.array(z.string().uuid()),
+      })
+      .parse(v),
   )
   .handler(async ({ data, context }) => {
-    await context.supabase.from("shortlist_candidates").delete().eq("shortlist_id", data.shortlist_id);
+    await context.supabase
+      .from("shortlist_candidates")
+      .delete()
+      .eq("shortlist_id", data.shortlist_id);
     if (data.candidate_ids.length > 0) {
       const rows = data.candidate_ids.map((cid, i) => ({
         shortlist_id: data.shortlist_id,
@@ -101,7 +107,8 @@ export const publishShortlist = createServerFn({ method: "POST" })
       .from("shortlist_candidates")
       .select("candidate_id")
       .eq("shortlist_id", data.id);
-    if (!links || links.length === 0) throw new Error("Adicione ao menos um candidato antes de publicar");
+    if (!links || links.length === 0)
+      throw new Error("Adicione ao menos um candidato antes de publicar");
     const { data: row, error } = await context.supabase
       .from("shortlists")
       .update({ status: "sent", published_at: new Date().toISOString() })
@@ -133,17 +140,22 @@ export const listShortlistsByJob = createServerFn({ method: "GET" })
       .eq("job_id", data.job_id)
       .order("number", { ascending: true });
     if (error) throw new Error(error.message);
-    return (rows ?? []).map((r: any) => ({ ...r, candidate_count: r.shortlist_candidates?.length ?? 0 }));
+    return (rows ?? []).map((r: any) => ({
+      ...r,
+      candidate_count: r.shortlist_candidates?.length ?? 0,
+    }));
   });
 
 export const addCandidateToShortlist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) =>
-    z.object({
-      shortlist_id: z.string().uuid(),
-      candidate_id: z.string().uuid(),
-      status: z.string().optional(),
-    }).parse(v),
+    z
+      .object({
+        shortlist_id: z.string().uuid(),
+        candidate_id: z.string().uuid(),
+        status: z.string().optional(),
+      })
+      .parse(v),
   )
   .handler(async ({ data, context }) => {
     const { data: existing } = await context.supabase
@@ -188,11 +200,13 @@ export const removeCandidateFromShortlist = createServerFn({ method: "POST" })
 export const updateCandidateShortlistStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) =>
-    z.object({
-      shortlist_id: z.string().uuid(),
-      candidate_id: z.string().uuid(),
-      status: z.string(),
-    }).parse(v),
+    z
+      .object({
+        shortlist_id: z.string().uuid(),
+        candidate_id: z.string().uuid(),
+        status: z.string(),
+      })
+      .parse(v),
   )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
@@ -210,7 +224,9 @@ export const listCandidateShortlistLinks = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("shortlist_candidates")
-      .select("status, added_at, shortlist_id, shortlists(id, number, title, status, job_id, client_id, jobs(id, title), clients(id, name))")
+      .select(
+        "status, added_at, shortlist_id, shortlists(id, number, title, status, job_id, client_id, jobs(id, title), clients(id, name))",
+      )
       .eq("candidate_id", data.candidate_id)
       .order("added_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -221,10 +237,12 @@ export const listCandidateShortlistLinks = createServerFn({ method: "GET" })
 export const updateShortlistOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) =>
-    z.object({
-      shortlist_id: z.string().uuid(),
-      ordered_candidate_ids: z.array(z.string().uuid()),
-    }).parse(v),
+    z
+      .object({
+        shortlist_id: z.string().uuid(),
+        ordered_candidate_ids: z.array(z.string().uuid()),
+      })
+      .parse(v),
   )
   .handler(async ({ data, context }) => {
     for (let i = 0; i < data.ordered_candidate_ids.length; i++) {

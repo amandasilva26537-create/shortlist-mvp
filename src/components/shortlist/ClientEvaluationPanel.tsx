@@ -46,7 +46,13 @@ interface Props {
   className?: string;
 }
 
-export function ClientEvaluationPanel({ token, candidateId, candidateName, identity, className }: Props) {
+export function ClientEvaluationPanel({
+  token,
+  candidateId,
+  candidateName,
+  identity,
+  className,
+}: Props) {
   const getFn = useServerFn(getPortalFeedback);
   const sendFn = useServerFn(submitPortalFeedback);
 
@@ -110,7 +116,10 @@ export function ClientEvaluationPanel({ token, candidateId, candidateName, ident
   };
 
   return (
-    <section className={cn("rounded-xl border border-border bg-card p-4", className)} aria-label="Avaliação do candidato">
+    <section
+      className={cn("rounded-xl border border-border bg-card p-4", className)}
+      aria-label="Avaliação do candidato"
+    >
       <h2 className="text-base font-semibold">Qual é a sua opinião sobre este candidato?</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Avaliando <b className="text-foreground">{candidateName}</b>
@@ -143,8 +152,17 @@ export function ClientEvaluationPanel({ token, candidateId, candidateName, ident
           className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition"
           style={
             favorite
-              ? { backgroundColor: "#2563EB", borderColor: "#2563EB", color: "#fff" }
-              : { borderColor: "#2563EB", color: "#2563EB", backgroundColor: "#2563EB14" }
+              ? {
+                  backgroundColor: "var(--favorite-color, #2563EB)",
+                  borderColor: "var(--favorite-color, #2563EB)",
+                  color: "#fff",
+                }
+              : {
+                  borderColor: "var(--favorite-color, #2563EB)",
+                  color: "var(--favorite-color, #2563EB)",
+                  backgroundColor:
+                    "color-mix(in srgb, var(--favorite-color, #2563EB) 8%, transparent)",
+                }
           }
           aria-pressed={favorite}
         >
@@ -157,17 +175,23 @@ export function ClientEvaluationPanel({ token, candidateId, candidateName, ident
         <Textarea
           rows={5}
           value={comment}
-          onChange={(e) => { setComment(e.target.value); setSavedAt(null); }}
+          onChange={(e) => {
+            setComment(e.target.value);
+            setSavedAt(null);
+          }}
           placeholder="Conte o que você achou do perfil, quais pontos chamaram sua atenção e o que gostaria de aprofundar."
         />
         <p className="mt-2 text-xs text-muted-foreground">
-          Seu comentário nos ajuda a entender melhor sua avaliação e dar continuidade ao processo com mais agilidade.
+          Seu comentário nos ajuda a entender melhor sua avaliação e dar continuidade ao processo
+          com mais agilidade.
         </p>
         <Button className="mt-3 w-full" onClick={() => save()} disabled={saving}>
           {saving ? "Salvando…" : "Salvar avaliação"}
         </Button>
         {savedAt && !saving && (
-          <p className="mt-2 text-center text-xs text-[color:var(--success,#16A34A)]">Avaliação salva.</p>
+          <p className="mt-2 text-center text-xs text-[color:var(--success,#16A34A)]">
+            Avaliação salva.
+          </p>
         )}
       </div>
     </section>

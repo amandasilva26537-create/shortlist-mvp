@@ -18,7 +18,7 @@ import {
 
 export const Route = createFileRoute("/s/$token/")({
   ssr: false,
-  head: () => ({ meta: [{ title: "ShortList Portus" }] }),
+  head: () => ({ meta: [{ title: "Shortlist executiva" }] }),
   component: Portal,
 });
 
@@ -69,7 +69,8 @@ function Portal() {
     );
   }
 
-  const brand = (data.shortlist.clients as any)?.brand ?? "portus";
+  const brand =
+    (data.shortlist as any)?.brand ?? (data.shortlist.clients as any)?.brand ?? "portus";
   const themeClass = brand === "moove" ? "moove-theme" : "portus-theme";
 
   const header = (

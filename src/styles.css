@@ -203,6 +203,8 @@
     #ffffff 82%,
     rgba(0, 155, 118, 0.06)
   );
+  --highlight-bg: #ffffff;
+  --highlight-border: rgba(0, 155, 118, 0.2);
 
   font-family: "Poppins", var(--font-sans);
   background-color: var(--background);
@@ -236,8 +238,8 @@
   --success: #7412de;
   --warning: #b58900;
 
-  --border: #e8e6ee;
-  --input: #e8e6ee;
+  --border: #e8e8ec;
+  --input: #e8e8ec;
   --ring: #7412de;
 
   --chart-1: #7412de;
@@ -246,6 +248,7 @@
 
   --portal-strong: #7412de;
   --portal-highlight: #ffe667;
+  --favorite-color: #7412de;
   --portal-gradient: linear-gradient(to right, #7412de, #a05cf0, #ffe667);
   --portal-header-gradient: linear-gradient(
     to right,
@@ -254,6 +257,8 @@
     #ffffff 82%,
     rgba(116, 18, 222, 0.06)
   );
+  --highlight-bg: rgba(116, 18, 222, 0.05);
+  --highlight-border: rgba(116, 18, 222, 0.18);
 
   font-family: "Poppins", var(--font-sans);
   background-color: var(--background);
