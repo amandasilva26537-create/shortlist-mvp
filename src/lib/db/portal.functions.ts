@@ -30,7 +30,7 @@ export const getPortalShortlist = createServerFn({ method: "GET" })
     const supabase = publicClient(data.token);
     const { data: sl, error } = await supabase
       .from("shortlists")
-      .select("*, clients(name, logo_url), jobs(*)")
+      .select("*, clients(name, logo_url, brand), jobs(*)")
       .eq("share_token", data.token)
       .eq("status", "sent")
       .maybeSingle();
