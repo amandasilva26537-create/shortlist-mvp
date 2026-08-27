@@ -163,13 +163,21 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
                 </div>
               )}
               <div className="flex-1 min-w-[240px] space-y-3">
-                {!hasAnyScore && (
+                {!hasAnyScore ? (
                   <div className="text-xs text-muted-foreground">
                     {readOnly
                       ? "A recrutadora ainda não avaliou as competências desta vaga."
                       : "Atribua uma nota de 0 a 10 para cada competência abaixo."}
                   </div>
+                ) : (
+                  !readOnly && (
+                    <div className="text-xs text-muted-foreground print:hidden">
+                      As notas abaixo vêm sugeridas pela análise. Ajuste o que quiser e clique em
+                      Salvar avaliação.
+                    </div>
+                  )
                 )}
+
 
                 {readOnly ? (
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -261,16 +269,18 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
         </section>
       )}
 
-      <section>
-        <SectionTitle>2. Resumo do candidato</SectionTitle>
-        <div className="rounded-xl border border-border bg-card p-4 text-sm whitespace-pre-wrap">
-          {candidateSummary || (
-            <span className="text-muted-foreground">
-              Sem informações suficientes no cadastro para gerar o resumo.
-            </span>
-          )}
-        </div>
-      </section>
+      <EditableSection
+        title="2. Resumo do candidato"
+        value={draft.job_specific_summary || candidateSummary}
+        onChange={(v) => setDraft({ ...draft, job_specific_summary: v })}
+        onSave={() =>
+          persist("job_specific_summary", draft.job_specific_summary || candidateSummary)
+        }
+        placeholder="Resumo do candidato para esta vaga."
+        readOnly={readOnly}
+        rows={8}
+      />
+
 
       <EditableSection
         title="3. Parecer do recrutador"
@@ -363,10 +373,34 @@ function hydrate(ev: any) {
     recruiter_opinion: ev?.recruiter_opinion ?? "",
     motivational_factor: ev?.motivational_factor ?? "",
     risk_items: Array.isArray(ev?.risk_items) ? ev.risk_items : [],
-    recruiter_scores:
-      ev?.recruiter_scores && typeof ev.recruiter_scores === "object" ? ev.recruiter_scores : {},
+    recruiter_scores: initialScores(ev),
   };
 }
+
+/** Notas de 0 a 10: usa as notas já salvas pela recrutadora e completa
+ * as demais com a sugestão do sistema (dimension_scores em escala 0-100). */
+function initialScores(ev: any): Record<string, number | null> {
+  const saved: Record<string, any> =
+    ev?.recruiter_scores && typeof ev.recruiter_scores === "object" ? ev.recruiter_scores : {};
+  const suggested: Record<string, any> =
+    ev?.dimension_scores && typeof ev.dimension_scores === "object" ? ev.dimension_scores : {};
+  const out: Record<string, number | null> = {};
+  for (const key of Object.keys(DIMENSION_LABELS)) {
+    if (typeof saved[key] === "number") {
+      out[key] = saved[key];
+      continue;
+    }
+    const raw = suggested[key];
+    if (typeof raw === "number" && !Number.isNaN(raw)) {
+      const value = raw > 10 ? raw / 10 : raw;
+      out[key] = Math.max(0, Math.min(10, Math.round(value)));
+    } else if (key in saved) {
+      out[key] = null;
+    }
+  }
+  return out;
+}
+
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
