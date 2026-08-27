@@ -62,10 +62,12 @@ export const openAccess = createMiddleware({ type: "function" }).server(async ({
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
 
-  const [{ data: profile }, { data: roles }] = await Promise.all([
+  const [{ data: profile, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
     supabase.from("profiles").select("status, full_name, email, role_title").eq("id", user.id).maybeSingle(),
     supabase.from("user_roles").select("role").eq("user_id", user.id),
   ]);
+  if (pErr || rErr) console.error("[open-access] read error", pErr?.message, rErr?.message);
+  console.error("[open-access] user", user.id, "profile", JSON.stringify(profile), "roles", JSON.stringify(roles));
 
   const roleList = (roles ?? []).map((r: any) => String(r.role));
   const isMember = roleList.length > 0 && (profile?.status ?? "active") === "active";
