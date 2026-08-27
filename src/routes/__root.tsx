@@ -4,6 +4,8 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -12,6 +14,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 function NotFoundComponent() {
   return (
@@ -122,11 +125,37 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/** Rotas públicas: login, portal do cliente (link com token), PDF e sitemap. */
+const PUBLIC_PREFIXES = ["/auth", "/s/", "/pdf/", "/sitemap"];
+
+function InternalGate({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (s: any) => s.location.pathname as string });
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  const isPublic = PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
+
+  useEffect(() => {
+    if (!isPublic && !loading && !user) navigate({ to: "/auth", replace: true });
+  }, [isPublic, loading, user, navigate]);
+
+  if (!isPublic && (loading || !user)) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
+        Carregando…
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <InternalGate>
+        <Outlet />
+      </InternalGate>
       <Toaster position="top-right" />
     </QueryClientProvider>
   );
