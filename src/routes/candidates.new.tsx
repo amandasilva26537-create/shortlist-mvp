@@ -238,7 +238,26 @@ function NewCandidate() {
       if (pending && Object.keys(extra).length === 0) return pending;
     }
     const run = (async () => {
-      const row: any = await saveFn({ data: buildPayload(extra) });
+      const payload = buildPayload(extra);
+      let row: any;
+      try {
+        row = await saveFn({ data: payload });
+      } catch (err: any) {
+        // Se a coluna nova (ex: test_results) ainda não foi aplicada no banco,
+        // tenta salvar de novo sem ela, pra não travar o cadastro inteiro.
+        const msg = String(err?.message ?? err ?? "");
+        if (/could not find the '(\w+)' column/i.test(msg)) {
+          const missing = msg.match(/could not find the '(\w+)' column/i)?.[1];
+          const retryPayload = { ...payload };
+          if (missing && missing in retryPayload) delete (retryPayload as any)[missing];
+          row = await saveFn({ data: retryPayload });
+          toast.warning(
+            `Candidato salvo, mas "${missing}" ainda não foi ativado no banco de dados — essa parte não foi salva.`,
+          );
+        } else {
+          throw err;
+        }
+      }
       setCandidateId(row.id);
       setF((p: any) => ({
         ...p,
@@ -254,6 +273,9 @@ function NewCandidate() {
     savingRef.current = run;
     try {
       return await run;
+    } catch (err: any) {
+      toast.error(err?.message ? `Erro ao salvar: ${err.message}` : "Erro ao salvar o candidato");
+      return null;
     } finally {
       if (savingRef.current === run) savingRef.current = null;
     }
