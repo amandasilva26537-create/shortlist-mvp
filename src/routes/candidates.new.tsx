@@ -142,26 +142,49 @@ function NewCandidate() {
     ...extra,
   });
 
+  /**
+   * Cria/atualiza SEMPRE o mesmo registro. Chamadas concorrentes compartilham a
+   * mesma promise para nunca gerar dois candidatos.
+   */
   const ensureSaved = async (extra: any = {}) => {
     if (!f.full_name.trim()) { toast.error("Nome é obrigatório"); return null; }
-    const row: any = await saveFn({ data: buildPayload(extra) });
-    setCandId(row.id);
-    setF((p: any) => ({
-      ...p,
-      ...row,
-      age: row.age ?? "",
-      salary_expectation: row.salary_expectation ?? "",
-      salary_min: row.salary_min ?? "",
-      salary_max: row.salary_max ?? "",
-    }));
+    if (savingRef.current) {
+      const pending = await savingRef.current;
+      if (pending && Object.keys(extra).length === 0) return pending;
+    }
+    const run = (async () => {
+      const row: any = await saveFn({ data: buildPayload(extra) });
+      setCandidateId(row.id);
+      setF((p: any) => ({
+        ...p,
+        ...row,
+        age: row.age ?? "",
+        salary_expectation: row.salary_expectation ?? "",
+        salary_min: row.salary_min ?? "",
+        salary_max: row.salary_max ?? "",
+      }));
+      qc.invalidateQueries({ queryKey: ["candidates"] });
+      return row.id as string;
+    })();
+    savingRef.current = run;
+    try {
+      return await run;
+    } finally {
+      if (savingRef.current === run) savingRef.current = null;
+    }
+  };
 
-    qc.invalidateQueries({ queryKey: ["candidates"] });
-    return row.id as string;
+  /** Registro temporário exigido por upload de arquivos e pela geração de perfil. */
+  const ensureProvisional = async () => {
+    if (candIdRef.current) return candIdRef.current;
+    const id = await ensureSaved({ status: "em_processamento" });
+    if (id && !editId) provisionalRef.current = true;
+    return id;
   };
 
   const uploadTo = async (kind: string, file: File, visible: boolean) => {
     try {
-      const id = candId ?? await ensureSaved();
+      const id = await ensureProvisional();
       if (!id) return null;
 
       // Photos: convert to base64 data URL so they display everywhere without a public bucket.
