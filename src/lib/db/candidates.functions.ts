@@ -207,6 +207,9 @@ export const updateCandidateExperience = createServerFn({ method: "POST" })
 
 /** Campos do cadastro que a recrutadora pode editar direto na shortlist. */
 const EDITABLE_CANDIDATE_FIELDS = [
+  "full_name",
+  "age",
+  "disc_profile",
   "headline",
   "mini_bio",
   "full_bio",
