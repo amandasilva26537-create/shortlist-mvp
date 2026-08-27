@@ -190,6 +190,54 @@
   --chart-2: #00d6a3;
   --chart-3: #007a5e;
 
+  --portal-strong: #007a5e;
+  --portal-highlight: #00d6a3;
+  --portal-gradient: linear-gradient(to right, #00d6a3, #009b76, #007a5e);
+
+  font-family: "Poppins", var(--font-sans);
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Identidade visual Moove Talent — aplicada apenas ao portal do cliente Moove. */
+.moove-theme {
+  --background: #ffffff;
+  --foreground: #111114;
+
+  --card: #ffffff;
+  --card-foreground: #111114;
+
+  --popover: #ffffff;
+  --popover-foreground: #111114;
+
+  --primary: #7412de;
+  --primary-foreground: #ffffff;
+  --primary-soft: #f3ebfd;
+
+  --secondary: #f7f7f8;
+  --secondary-foreground: #7412de;
+
+  --muted: #f7f7f8;
+  --muted-foreground: #6b6b75;
+
+  --accent: #f3ebfd;
+  --accent-foreground: #7412de;
+
+  --success: #7412de;
+  --warning: #b58900;
+
+  --border: #e8e6ee;
+  --input: #e8e6ee;
+  --ring: #7412de;
+
+  --chart-1: #7412de;
+  --chart-2: #a05cf0;
+  --chart-3: #ffe667;
+
+  --portal-strong: #7412de;
+  --portal-highlight: #ffe667;
+  --portal-gradient: linear-gradient(to right, #7412de, #a05cf0, #ffe667);
+
   font-family: "Poppins", var(--font-sans);
   background-color: var(--background);
   color: var(--foreground);
@@ -198,7 +246,11 @@
 .portus-theme h1,
 .portus-theme h2,
 .portus-theme h3,
-.portus-theme h4 {
+.portus-theme h4,
+.moove-theme h1,
+.moove-theme h2,
+.moove-theme h3,
+.moove-theme h4 {
   font-family: "Poppins", var(--font-sans);
   letter-spacing: -0.015em;
 }
