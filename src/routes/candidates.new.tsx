@@ -107,7 +107,7 @@ function NewCandidate() {
         salary_max: (existing as any).salary_max ?? "",
       }));
 
-      setCandId(existing.id);
+      setCandidateId(existing.id);
       setDocs(existing.documents ?? []);
     }
   }, [existing]);
