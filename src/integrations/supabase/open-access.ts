@@ -36,9 +36,11 @@ export const openAccess = createMiddleware({ type: "function" }).server(async ({
   const SERVICE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];
   const PUBLISHABLE_KEY = process.env["SUPABASE_PUBLISHABLE_KEY"];
 
-  const key = SERVICE_KEY || PUBLISHABLE_KEY;
+  // A checagem de equipe precisa da chave de serviço: com a chave pública as
+  // leituras de perfil/papéis voltam vazias e o acesso é negado por engano.
+  const key = SERVICE_KEY;
   if (!SUPABASE_URL || !key || !PUBLISHABLE_KEY) {
-    throw new Error("Backend não configurado: SUPABASE_URL / chave ausente.");
+    throw new Error("Backend indisponível no momento. Tente novamente em instantes.");
   }
 
   const authHeader = getRequest()?.headers?.get("authorization") ?? "";
