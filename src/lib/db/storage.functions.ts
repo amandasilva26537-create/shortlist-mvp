@@ -26,13 +26,18 @@ export const uploadAppFile = createServerFn({ method: "POST" })
     const raw = atob(data.data_base64);
     const bytes = new Uint8Array(raw.length);
     for (let i = 0; i < raw.length; i += 1) bytes[i] = raw.charCodeAt(i);
-    const { error } = await context.supabase.storage.from(data.bucket).upload(safePath, bytes, {
-      contentType: data.content_type || "application/octet-stream",
-      upsert: false,
+    const contentType = data.content_type || "application/octet-stream";
+    const blob = new Blob([bytes], { type: contentType });
+    const { error } = await context.supabase.storage.from(data.bucket).upload(safePath, blob, {
+      contentType,
+      upsert: true,
     });
-    if (error) throw new Error(error.message);
-    return {
-      path: safePath,
-      url: `${process.env["SUPABASE_URL"]}/storage/v1/object/public/${data.bucket}/${safePath}`,
-    };
+    if (error) throw new Error(`Falha no upload: ${error.message}`);
+    // Buckets são privados: devolvemos uma URL assinada de longa duração.
+    const { data: signed, error: signError } = await context.supabase.storage
+      .from(data.bucket)
+      .createSignedUrl(safePath, 60 * 60 * 24 * 365 * 5);
+    if (signError || !signed?.signedUrl) throw new Error(`Falha ao gerar link do arquivo: ${signError?.message ?? "desconhecido"}`);
+    return { path: safePath, url: signed.signedUrl };
   });
+
