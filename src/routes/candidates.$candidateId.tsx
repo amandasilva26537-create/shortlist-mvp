@@ -611,7 +611,11 @@ function CandidatePage() {
               </p>
               {Object.entries(
                 (testResults as any[]).reduce((acc: Record<string, any[]>, t: any) => {
-                  const label = t.jobs?.title ?? "Sem vaga";
+                  const label = t.jobs
+                    ? t.jobs.clients?.name
+                      ? `${t.jobs.clients.name} | ${t.jobs.title}`
+                      : t.jobs.title
+                    : "Sem vaga";
                   (acc[label] ??= []).push(t);
                   return acc;
                 }, {}),

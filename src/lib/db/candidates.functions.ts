@@ -110,7 +110,7 @@ export const listCandidateTestResults = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("candidate_test_results")
-      .select("*, jobs(id, title)")
+      .select("*, jobs(id, title, clients(name))")
       .eq("candidate_id", data.candidate_id)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -141,12 +141,12 @@ export const upsertCandidateTestResult = createServerFn({ method: "POST" })
           .from("candidate_test_results")
           .update(payload)
           .eq("id", id)
-          .select("*, jobs(id, title)")
+          .select("*, jobs(id, title, clients(name))")
           .single()
       : context.supabase
           .from("candidate_test_results")
           .insert(payload)
-          .select("*, jobs(id, title)")
+          .select("*, jobs(id, title, clients(name))")
           .single();
     const { data: row, error } = await query;
     if (error) throw new Error(error.message);

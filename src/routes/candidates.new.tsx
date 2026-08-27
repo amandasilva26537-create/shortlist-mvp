@@ -1371,14 +1371,12 @@ function TagInput({
   );
 }
 
-const TEST_RESULT_FORMATS: { value: string; label: string }[] = [
+const TEST_RESULT_FORMATS: { value: string; label: string; accept?: string }[] = [
+  { value: "pdf", label: "PDF", accept: ".pdf,application/pdf" },
+  { value: "image", label: "Imagem", accept: "image/*" },
+  { value: "docx", label: "Documento", accept: ".doc,.docx,.odt,.rtf" },
+  { value: "spreadsheet", label: "Planilha", accept: ".xls,.xlsx,.csv,.ods" },
   { value: "link", label: "Link" },
-  { value: "pdf", label: "PDF" },
-  { value: "docx", label: "Word" },
-  { value: "image", label: "Imagem" },
-  { value: "spreadsheet", label: "Planilha" },
-  { value: "video", label: "Vídeo" },
-  { value: "text", label: "Texto" },
   { value: "other", label: "Outro arquivo" },
 ];
 
@@ -1401,7 +1399,16 @@ function TestResultsEditor({
   const deleteFn = useServerFn(deleteCandidateTestResult);
   const jobsFn = useServerFn(listJobs);
 
-  const { data: jobs } = useQuery({ queryKey: ["jobs-picker"], queryFn: () => jobsFn() });
+  const { data: allJobs } = useQuery({ queryKey: ["jobs-picker"], queryFn: () => jobsFn() });
+  // Só vagas cadastradas nos últimos 30 dias, mais recentes primeiro.
+  const jobs = (allJobs ?? [])
+    .filter((j: any) => {
+      if (!j.created_at) return false;
+      const days = (Date.now() - new Date(j.created_at).getTime()) / 86400000;
+      return days <= 30;
+    })
+    .sort((a: any, b: any) => +new Date(b.created_at) - +new Date(a.created_at));
+
   const { data: results, isLoading } = useQuery({
     queryKey: ["candidate-test-results", candidateId],
     queryFn: () => listFn({ data: { candidate_id: candidateId! } }),
@@ -1411,7 +1418,7 @@ function TestResultsEditor({
   const [draft, setDraft] = useState<any | null>(null); // item sendo criado/editado
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const startNew = () => setDraft({ title: "", format: "link", job_id: "", url: "", content: "" });
+  const startNew = () => setDraft({ title: "", format: "", job_id: "", url: "", content: "" });
   const startEdit = (item: any) =>
     setDraft({
       id: item.id,
@@ -1422,22 +1429,25 @@ function TestResultsEditor({
       content: item.content ?? "",
     });
 
-  const save = async () => {
-    if (!draft?.title?.trim()) return toast.error("Dê um título pro resultado");
-    if (!draft?.job_id) return toast.error("Escolha a vaga/shortlist relacionada");
+  const save = async (finalDraft: any) => {
+    if (!finalDraft?.title?.trim()) return toast.error("Dê um título pro resultado");
+    if (!finalDraft?.format) return toast.error("Escolha o tipo de teste");
+    if (!finalDraft?.job_id) return toast.error("Escolha a vaga/shortlist relacionada");
+    if (finalDraft.format !== "text" && !finalDraft.url)
+      return toast.error("Envie o arquivo ou cole o link");
     const cid = candidateId ?? (await ensureCandidateSaved());
     if (!cid) return;
-    setBusyId(draft.id ?? "new");
+    setBusyId(finalDraft.id ?? "new");
     try {
       await upsertFn({
         data: {
-          id: draft.id,
+          id: finalDraft.id,
           candidate_id: cid,
-          job_id: draft.job_id,
-          title: draft.title.trim(),
-          format: draft.format,
-          url: draft.format === "text" ? null : draft.url || null,
-          content: draft.format === "text" ? draft.content || null : null,
+          job_id: finalDraft.job_id,
+          title: finalDraft.title.trim(),
+          format: finalDraft.format,
+          url: finalDraft.format === "text" ? null : finalDraft.url || null,
+          content: finalDraft.format === "text" ? finalDraft.content || null : null,
         },
       });
       toast.success("Resultado salvo");
@@ -1476,6 +1486,7 @@ function TestResultsEditor({
         draft?.id === item.id ? (
           <TestResultDraftForm
             key={item.id}
+            candidateId={candidateId}
             draft={draft}
             setDraft={setDraft}
             jobs={jobs}
@@ -1492,7 +1503,9 @@ function TestResultsEditor({
               <div className="text-sm font-medium">{item.title}</div>
               <div className="text-xs text-muted-foreground">
                 {TEST_RESULT_FORMATS.find((f) => f.value === item.format)?.label ?? item.format}
-                {item.jobs?.title ? ` · ${item.jobs.title}` : ""}
+                {item.jobs?.title
+                  ? ` · ${item.jobs.clients?.name ? `${item.jobs.clients.name} | ` : ""}${item.jobs.title}`
+                  : ""}
               </div>
             </div>
             <div className="flex shrink-0 gap-1">
@@ -1515,6 +1528,7 @@ function TestResultsEditor({
 
       {draft && draft.id === undefined ? (
         <TestResultDraftForm
+          candidateId={candidateId}
           draft={draft}
           setDraft={setDraft}
           jobs={jobs}
@@ -1532,6 +1546,7 @@ function TestResultsEditor({
 }
 
 function TestResultDraftForm({
+  candidateId,
   draft,
   setDraft,
   jobs,
@@ -1539,25 +1554,57 @@ function TestResultDraftForm({
   onSave,
   busy,
 }: {
+  candidateId?: string;
   draft: any;
   setDraft: (d: any) => void;
   jobs?: any[];
   onCancel: () => void;
-  onSave: () => void;
+  onSave: (draft: any) => void;
   busy: boolean;
 }) {
+  const [uploading, setUploading] = useState(false);
   const update = (patch: any) => setDraft((p: any) => ({ ...p, ...patch }));
+  const selectedFormat = TEST_RESULT_FORMATS.find((f) => f.value === draft.format);
+
+  const handleFile = async (file: File | null) => {
+    if (!file) return;
+    if (!candidateId) {
+      toast.error("Salve o candidato antes de anexar um arquivo.");
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error("Arquivo muito grande. Envie até 12MB.");
+      return;
+    }
+    setUploading(true);
+    try {
+      const path = `${candidateId}/test-results/${Date.now()}-${file.name}`;
+      const url = await uploadFileViaServer("candidate-files", path, file);
+      update({ url, file_name: file.name });
+      toast.success("Arquivo enviado");
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível enviar o arquivo.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-2 rounded-lg border border-primary/40 bg-primary-soft/20 p-3">
-      <div className="flex items-center gap-2">
-        <Input
-          placeholder="Título (ex: Teste de inglês)"
-          value={draft.title}
-          onChange={(e) => update({ title: e.target.value })}
-        />
-        <Select value={draft.format} onValueChange={(v) => update({ format: v })}>
-          <SelectTrigger className="w-[130px] shrink-0">
-            <SelectValue />
+      <Input
+        placeholder="Título (ex: Teste de inglês)"
+        value={draft.title}
+        onChange={(e) => update({ title: e.target.value })}
+      />
+
+      <div>
+        <Label className="text-xs">Tipo de teste</Label>
+        <Select
+          value={draft.format}
+          onValueChange={(v) => update({ format: v, url: "", content: "" })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione o tipo" />
           </SelectTrigger>
           <SelectContent>
             {TEST_RESULT_FORMATS.map((f) => (
@@ -1568,37 +1615,59 @@ function TestResultDraftForm({
           </SelectContent>
         </Select>
       </div>
-      <Select value={draft.job_id || undefined} onValueChange={(v) => update({ job_id: v })}>
-        <SelectTrigger>
-          <SelectValue placeholder="Vaga/shortlist relacionada" />
-        </SelectTrigger>
-        <SelectContent>
-          {(jobs ?? []).map((j: any) => (
-            <SelectItem key={j.id} value={j.id}>
-              {j.title}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {draft.format === "text" ? (
-        <Textarea
-          rows={3}
-          placeholder="Cole o texto do resultado aqui"
-          value={draft.content}
-          onChange={(e) => update({ content: e.target.value })}
-        />
-      ) : (
+
+      <div>
+        <Label className="text-xs">Vaga/shortlist relacionada</Label>
+        <Select value={draft.job_id || undefined} onValueChange={(v) => update({ job_id: v })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione a vaga" />
+          </SelectTrigger>
+          <SelectContent>
+            {(jobs ?? []).length === 0 && (
+              <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                Nenhuma vaga cadastrada nos últimos 30 dias
+              </div>
+            )}
+            {(jobs ?? []).map((j: any) => (
+              <SelectItem key={j.id} value={j.id}>
+                {j.clients?.name ? `${j.clients.name} | ${j.title}` : j.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {selectedFormat && selectedFormat.value === "link" && (
         <Input
           placeholder="Cole o link (Google Drive, YouTube, etc.)"
           value={draft.url}
           onChange={(e) => update({ url: e.target.value })}
         />
       )}
+
+      {selectedFormat && selectedFormat.value !== "link" && (
+        <div>
+          <input
+            type="file"
+            accept={selectedFormat.accept}
+            disabled={uploading}
+            onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+            className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-medium"
+          />
+          {uploading && <div className="mt-1 text-xs text-muted-foreground">Enviando…</div>}
+          {!uploading && draft.url && (
+            <div className="mt-1 truncate text-xs text-primary">
+              ✓ {draft.file_name || "Arquivo anexado"}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex justify-end gap-2">
         <Button size="sm" variant="ghost" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button size="sm" onClick={onSave} disabled={busy}>
+        <Button size="sm" onClick={() => onSave(draft)} disabled={busy || uploading}>
           {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
           Salvar
         </Button>
