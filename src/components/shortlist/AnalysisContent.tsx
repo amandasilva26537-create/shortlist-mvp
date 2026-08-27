@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MatchRing } from "@/components/candidate/MatchRing";
-import { Loader2, Save, Plus, Trash2, Check, Minus, X, HelpCircle, RefreshCw } from "lucide-react";
+import { Loader2, Save, Plus, Trash2, Check, Minus, X, HelpCircle, RefreshCw, Pencil } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { upsertEvaluation } from "@/lib/db/shortlists.functions";
@@ -287,7 +287,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
         <MainCaseBlock
           value={evaluation?.main_case}
           readOnly={readOnly}
-          onSave={(v) => persist("main_case", v)}
+          onSave={(v: any) => persist("main_case", v)}
         />
       </section>
 
@@ -544,6 +544,98 @@ function RiskEditor({
         <Button variant="outline" size="sm" onClick={add} className="print:hidden">
           <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar risco
         </Button>
+      )}
+    </div>
+  );
+}
+
+/** Case principal com edição campo a campo pela recrutadora. */
+function MainCaseBlock({
+  value,
+  readOnly,
+  onSave,
+}: {
+  value: any;
+  readOnly?: boolean;
+  onSave: (v: any) => void;
+}) {
+  const data = value && typeof value === "object" ? value : {};
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const isEmpty = !CASE_FIELDS.some((f) => String(data[f.key] ?? "").trim());
+
+  if (readOnly && isEmpty) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
+        Sem informações nesta seção.
+      </div>
+    );
+  }
+
+  if (editing) {
+    return (
+      <div className="space-y-3 rounded-xl border border-border bg-card p-5">
+        {CASE_FIELDS.map((f) => (
+          <div key={f.key} className="space-y-1">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {f.label}
+            </div>
+            <Textarea
+              rows={3}
+              value={draft[f.key] ?? ""}
+              onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+            />
+          </div>
+        ))}
+        <div className="flex justify-end gap-2">
+          <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+            Cancelar
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              const next: Record<string, string> = {};
+              CASE_FIELDS.forEach((f) => (next[f.key] = (draft[f.key] ?? "").trim()));
+              onSave(next);
+              setEditing(false);
+            }}
+          >
+            <Save className="mr-1.5 h-3.5 w-3.5" /> Salvar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 rounded-xl border border-border bg-card p-5 text-sm">
+      {!readOnly && (
+        <div className="flex justify-end print:hidden">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              const d: Record<string, string> = {};
+              CASE_FIELDS.forEach((f) => (d[f.key] = String(data[f.key] ?? "")));
+              setDraft(d);
+              setEditing(true);
+            }}
+          >
+            <Pencil className="mr-1.5 h-3.5 w-3.5" /> Editar
+          </Button>
+        </div>
+      )}
+      {isEmpty ? (
+        <div className="text-muted-foreground">Sem informações nesta seção.</div>
+      ) : (
+        CASE_FIELDS.map((f) => (
+          <CaseField
+            key={f.key}
+            label={f.label}
+            value={data[f.key]}
+            highlight={f.key === "relation_to_job"}
+          />
+        ))
       )}
     </div>
   );
