@@ -79,7 +79,7 @@
 
   /* #F4F7FA */
   --secondary: oklch(0.968 0.006 245);
-  --secondary-foreground: oklch(0.30 0.02 250);
+  --secondary-foreground: oklch(0.3 0.02 250);
 
   --muted: oklch(0.968 0.006 245);
   /* #6B7280 */
@@ -106,7 +106,7 @@
   --ring: oklch(0.71 0.075 240);
 
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.30 0.02 250);
+  --sidebar-foreground: oklch(0.3 0.02 250);
   --sidebar-primary: oklch(0.71 0.075 240);
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.965 0.018 240);
@@ -136,7 +136,10 @@
     text-rendering: optimizeLegibility;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     letter-spacing: -0.02em;
   }
 }
@@ -157,33 +160,33 @@
 
 /* Identidade visual Portus — aplicada apenas ao portal do cliente. */
 .portus-theme {
-  --background: #fafcfb;
-  --foreground: #202524;
+  --background: #ffffff;
+  --foreground: #101828;
 
   --card: #ffffff;
-  --card-foreground: #202524;
+  --card-foreground: #101828;
 
   --popover: #ffffff;
-  --popover-foreground: #202524;
+  --popover-foreground: #101828;
 
   --primary: #009b76;
   --primary-foreground: #ffffff;
-  --primary-soft: #ddf8ed;
+  --primary-soft: #ecfaf4;
 
-  --secondary: #eef8f4;
-  --secondary-foreground: #007a5e;
+  --secondary: #f7f8f8;
+  --secondary-foreground: #344054;
 
-  --muted: #f1f7f4;
-  --muted-foreground: #5c6b66;
+  --muted: #f7f8f8;
+  --muted-foreground: #667085;
 
-  --accent: #ddf8ed;
+  --accent: #ecfaf4;
   --accent-foreground: #007a5e;
 
   --success: #009b76;
   --warning: #d98b00;
 
-  --border: #dde7e3;
-  --input: #dde7e3;
+  --border: #e4e7ec;
+  --input: #e4e7ec;
   --ring: #00d6a3;
 
   --chart-1: #009b76;
@@ -193,6 +196,13 @@
   --portal-strong: #007a5e;
   --portal-highlight: #00d6a3;
   --portal-gradient: linear-gradient(to right, #00d6a3, #009b76, #007a5e);
+  --portal-header-gradient: linear-gradient(
+    to right,
+    rgba(0, 155, 118, 0.06),
+    #ffffff 18%,
+    #ffffff 82%,
+    rgba(0, 155, 118, 0.06)
+  );
 
   font-family: "Poppins", var(--font-sans);
   background-color: var(--background);
@@ -215,7 +225,7 @@
   --primary-soft: #f3ebfd;
 
   --secondary: #f7f7f8;
-  --secondary-foreground: #7412de;
+  --secondary-foreground: #6b6b75;
 
   --muted: #f7f7f8;
   --muted-foreground: #6b6b75;
@@ -237,6 +247,13 @@
   --portal-strong: #7412de;
   --portal-highlight: #ffe667;
   --portal-gradient: linear-gradient(to right, #7412de, #a05cf0, #ffe667);
+  --portal-header-gradient: linear-gradient(
+    to right,
+    rgba(116, 18, 222, 0.06),
+    #ffffff 18%,
+    #ffffff 82%,
+    rgba(116, 18, 222, 0.06)
+  );
 
   font-family: "Poppins", var(--font-sans);
   background-color: var(--background);

@@ -144,7 +144,10 @@ function Portal() {
       {header}
 
       {/* 1. Cabeçalho da shortlist */}
-      <div className="border-b border-border bg-primary-soft/60">
+      <div
+        className="border-b border-border"
+        style={{ background: "var(--portal-header-gradient)" }}
+      >
         <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
           <div
             className="text-[11px] font-semibold uppercase tracking-[0.18em]"
