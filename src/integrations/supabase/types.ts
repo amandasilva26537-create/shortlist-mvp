@@ -765,6 +765,7 @@ export type Database = {
       }
       shortlists: {
         Row: {
+          brand: string | null
           client_id: string
           created_at: string
           id: string
@@ -781,6 +782,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          brand?: string | null
           client_id: string
           created_at?: string
           id?: string
@@ -797,6 +799,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          brand?: string | null
           client_id?: string
           created_at?: string
           id?: string
