@@ -288,14 +288,38 @@ function NewCandidate() {
   const save = async (status?: string) => {
     const id = await ensureSaved(status ? { status } : {});
     if (!id) return;
+    provisionalRef.current = false;
     toast.success("Candidato salvo");
     navigate({ to: "/candidates/$candidateId", params: { candidateId: id } });
   };
 
-  const saveDraft = async () => {
-    const id = await ensureSaved({ status: "rascunho" });
-    if (id) toast.success("Rascunho salvo");
+  /** Cancelar: descarta o registro provisório para não deixar rascunho no banco. */
+  const discardProvisional = async () => {
+    const id = candIdRef.current;
+    if (!provisionalRef.current || !id) return;
+    provisionalRef.current = false;
+    try {
+      await delCandFn({ data: { id } });
+      qc.invalidateQueries({ queryKey: ["candidates"] });
+    } catch {
+      /* silencioso: cancelar não deve bloquear a navegação */
+    }
   };
+
+  const cancel = async () => {
+    await discardProvisional();
+    navigate({ to: "/candidates" });
+  };
+
+  // Se a recrutadora sair da tela sem concluir, o registro provisório é removido.
+  useEffect(() => {
+    return () => {
+      if (provisionalRef.current && candIdRef.current) {
+        void delCandFn({ data: { id: candIdRef.current } }).catch(() => {});
+      }
+    };
+  }, []);
+
 
   return (
     <AppShell>
