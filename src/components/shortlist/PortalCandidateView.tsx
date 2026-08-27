@@ -2,12 +2,15 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { MatchRing } from "@/components/candidate/MatchRing";
 import { DiscSection } from "@/components/candidate/DiscSection";
+import { TestResultsSection } from "@/components/candidate/TestResultsSection";
 import { ProfessionalProfileView } from "@/components/candidate/ProfessionalProfileView";
 import { AnalysisContent } from "@/components/shortlist/AnalysisContent";
-import { CandidateSectionMenu, type CandidateSection } from "@/components/shortlist/CandidateSectionMenu";
+import {
+  CandidateSectionMenu,
+  type CandidateSection,
+} from "@/components/shortlist/CandidateSectionMenu";
 import { Briefcase, MapPin, Clock, Linkedin, Star, DollarSign, User } from "lucide-react";
 import { salaryLabel } from "@/lib/format";
-
 
 interface Props {
   candidate: any;
@@ -48,7 +51,9 @@ export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, short
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <h2 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{c.full_name}</h2>
+              <h2 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">
+                {c.full_name}
+              </h2>
               {c.headline && <p className="mt-1 text-sm text-muted-foreground">{c.headline}</p>}
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 {c.current_position && <Chip icon={Briefcase}>{c.current_position}</Chip>}
@@ -56,7 +61,11 @@ export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, short
                 {c.work_model && <Chip icon={Clock}>{c.work_model}</Chip>}
                 {c.age && <Chip icon={User}>{c.age} anos</Chip>}
                 {salary && <Chip icon={DollarSign}>Pretensão: {salary}</Chip>}
-                {c.disc_profile && <Badge variant="secondary" className="rounded-full">DISC {c.disc_profile}</Badge>}
+                {c.disc_profile && (
+                  <Badge variant="secondary" className="rounded-full">
+                    DISC {c.disc_profile}
+                  </Badge>
+                )}
 
                 {c.linkedin_url && (
                   <a
@@ -91,8 +100,12 @@ export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, short
         </div>
       </section>
 
-      {/* Menu com os três botões */}
-      <CandidateSectionMenu value={section} onChange={setSection} />
+      {/* Menu com os botões */}
+      <CandidateSectionMenu
+        value={section}
+        onChange={setSection}
+        hasTestResults={c.test_results?.length > 0}
+      />
 
       {/* Conteúdo selecionado (um por vez, na mesma tela) */}
       {section === "analysis" && (
@@ -111,9 +124,16 @@ export function PortalCandidateView({ candidate: c, evaluation: ev, jobId, short
 
       {section === "behavior" && <DiscSection candidate={c} readOnly />}
 
+      {section === "test_results" && (
+        <div className="rounded-2xl border border-border bg-card p-4 md:p-5">
+          <TestResultsSection items={c.test_results} />
+        </div>
+      )}
+
       {!section && (
         <p className="rounded-2xl border border-dashed border-border bg-card p-5 text-center text-sm text-muted-foreground">
-          Escolha uma das opções acima para ver a análise, o perfil completo ou o perfil comportamental.
+          Escolha uma das opções acima para ver a análise, o perfil completo ou o perfil
+          comportamental.
         </p>
       )}
     </div>

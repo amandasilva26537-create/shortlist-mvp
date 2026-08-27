@@ -1,27 +1,37 @@
-import { FileText, User, Brain } from "lucide-react";
+import { FileText, User, Brain, ClipboardList } from "lucide-react";
 
-export type CandidateSection = "analysis" | "profile" | "behavior";
+export type CandidateSection = "analysis" | "profile" | "behavior" | "test_results";
 
-const ITEMS: { key: CandidateSection; label: string; icon: any }[] = [
+const BASE_ITEMS: { key: CandidateSection; label: string; icon: any }[] = [
   { key: "analysis", label: "Análise para esta vaga", icon: FileText },
   { key: "profile", label: "Ver perfil completo", icon: User },
   { key: "behavior", label: "Ver perfil comportamental", icon: Brain },
 ];
 
-/** Menu de três botões que alterna o conteúdo detalhado do candidato na mesma tela. */
+const TEST_RESULTS_ITEM = {
+  key: "test_results" as const,
+  label: "Resultados de testes",
+  icon: ClipboardList,
+};
+
+/** Menu de botões que alterna o conteúdo detalhado do candidato na mesma tela.
+ * O item "Resultados de testes" só aparece quando `hasTestResults` é true. */
 export function CandidateSectionMenu({
   value,
   onChange,
+  hasTestResults,
 }: {
   value: CandidateSection | null;
   onChange: (next: CandidateSection | null) => void;
+  hasTestResults?: boolean;
 }) {
+  const items = hasTestResults ? [...BASE_ITEMS, TEST_RESULTS_ITEM] : BASE_ITEMS;
   return (
     <nav
       aria-label="Seções do candidato"
-      className="grid grid-cols-1 gap-2 rounded-2xl border border-border bg-card p-3 shadow-sm sm:grid-cols-3"
+      className={`grid grid-cols-1 gap-2 rounded-2xl border border-border bg-card p-3 shadow-sm ${items.length === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}
     >
-      {ITEMS.map(({ key, label, icon: Icon }) => {
+      {items.map(({ key, label, icon: Icon }) => {
         const active = value === key;
         return (
           <button

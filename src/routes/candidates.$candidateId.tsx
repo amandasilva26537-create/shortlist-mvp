@@ -7,16 +7,55 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Pencil, Lock, ExternalLink, FileText, Linkedin, Sparkles, ListPlus, Trash2, Archive, ChevronDown } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  ArrowLeft,
+  Pencil,
+  Lock,
+  ExternalLink,
+  FileText,
+  Linkedin,
+  Sparkles,
+  ListPlus,
+  Trash2,
+  Archive,
+  ChevronDown,
+} from "lucide-react";
 import { getCandidate, archiveCandidate, deleteCandidate } from "@/lib/db/candidates.functions";
-import { listCandidateShortlistLinks, removeCandidateFromShortlist, updateCandidateShortlistStatus, listCandidateClientFeedback } from "@/lib/db/shortlists.functions";
+import {
+  listCandidateShortlistLinks,
+  removeCandidateFromShortlist,
+  updateCandidateShortlistStatus,
+  listCandidateClientFeedback,
+} from "@/lib/db/shortlists.functions";
 import { AddToShortlistDialog } from "@/components/candidate/AddToShortlistDialog";
 import { TagChips, TagPicker, BlockListWarning } from "@/components/candidate/CandidateTags";
 import { EditableExperienceList, LanguageList } from "@/components/candidate/ProfileBits";
 import { DiscSection } from "@/components/candidate/DiscSection";
+import { TestResultsSection } from "@/components/candidate/TestResultsSection";
 import { salaryLabel } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -45,7 +84,6 @@ function sortByYearDesc(items: any[]): any[] {
   return [...items].sort((a, b) => year(b) - year(a));
 }
 
-
 export const Route = createFileRoute("/candidates/$candidateId")({
   head: ({ params }) => ({ meta: [{ title: `Candidato · ${params.candidateId}` }] }),
   component: CandidatePage,
@@ -65,7 +103,9 @@ function CandidatePage() {
   const removeLinkFn = useServerFn(removeCandidateFromShortlist);
   const setStatusFn = useServerFn(updateCandidateShortlistStatus);
 
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(candidateId);
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    candidateId,
+  );
 
   const { data, isLoading } = useQuery({
     queryKey: ["candidate", candidateId],
@@ -88,36 +128,83 @@ function CandidatePage() {
   const [delOpen, setDelOpen] = useState(false);
   const [tab, setTab] = useState("overview");
 
-
   const removeLink = useMutation({
-    mutationFn: (shortlist_id: string) => removeLinkFn({ data: { shortlist_id, candidate_id: candidateId } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["candidate-shortlists", candidateId] }); toast.success("Removido da shortlist"); },
+    mutationFn: (shortlist_id: string) =>
+      removeLinkFn({ data: { shortlist_id, candidate_id: candidateId } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["candidate-shortlists", candidateId] });
+      toast.success("Removido da shortlist");
+    },
   });
   const setStatus = useMutation({
-    mutationFn: (v: { shortlist_id: string; status: string }) => setStatusFn({ data: { ...v, candidate_id: candidateId } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["candidate-shortlists", candidateId] }); toast.success("Status atualizado"); },
+    mutationFn: (v: { shortlist_id: string; status: string }) =>
+      setStatusFn({ data: { ...v, candidate_id: candidateId } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["candidate-shortlists", candidateId] });
+      toast.success("Status atualizado");
+    },
   });
   const archiveM = useMutation({
     mutationFn: (archive: boolean) => archFn({ data: { id: candidateId, archive } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["candidate", candidateId] }); qc.invalidateQueries({ queryKey: ["candidates"] }); toast.success("Atualizado"); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["candidate", candidateId] });
+      qc.invalidateQueries({ queryKey: ["candidates"] });
+      toast.success("Atualizado");
+    },
   });
   const removeM = useMutation({
     mutationFn: () => delFn({ data: { id: candidateId } }),
-    onSuccess: () => { toast.success("Candidato excluído"); qc.invalidateQueries({ queryKey: ["candidates"] }); navigate({ to: "/candidates" }); },
+    onSuccess: () => {
+      toast.success("Candidato excluído");
+      qc.invalidateQueries({ queryKey: ["candidates"] });
+      navigate({ to: "/candidates" });
+    },
     onError: (e: any) => toast.error(e.message ?? "Falha ao excluir"),
   });
 
-  if (isLoading) return <AppShell><div className="text-sm text-muted-foreground">Carregando…</div></AppShell>;
-  if (!c) return <AppShell><div className="text-sm text-muted-foreground">Candidato não encontrado.</div></AppShell>;
+  if (isLoading)
+    return (
+      <AppShell>
+        <div className="text-sm text-muted-foreground">Carregando…</div>
+      </AppShell>
+    );
+  if (!c)
+    return (
+      <AppShell>
+        <div className="text-sm text-muted-foreground">Candidato não encontrado.</div>
+      </AppShell>
+    );
 
-  const initials = (c.full_name ?? "").split(" ").slice(0,2).map((s: string) => s[0]).join("").toUpperCase();
+  const initials = (c.full_name ?? "")
+    .split(" ")
+    .slice(0, 2)
+    .map((s: string) => s[0])
+    .join("")
+    .toUpperCase();
 
-  const STATUS_OPTIONS = ["adicionado","em_analise","apresentado","entrevista_solicitada","entrevista_agendada","finalista","aprovado","reprovado","contratado","desistiu"];
-  const statusLabels: Record<string,string> = {
-    adicionado: "Adicionado", em_analise: "Em análise", apresentado: "Apresentado",
-    entrevista_solicitada: "Entrevista solicitada", entrevista_agendada: "Entrevista agendada",
-    finalista: "Finalista", aprovado: "Aprovado", reprovado: "Reprovado",
-    contratado: "Contratado", desistiu: "Desistiu",
+  const STATUS_OPTIONS = [
+    "adicionado",
+    "em_analise",
+    "apresentado",
+    "entrevista_solicitada",
+    "entrevista_agendada",
+    "finalista",
+    "aprovado",
+    "reprovado",
+    "contratado",
+    "desistiu",
+  ];
+  const statusLabels: Record<string, string> = {
+    adicionado: "Adicionado",
+    em_analise: "Em análise",
+    apresentado: "Apresentado",
+    entrevista_solicitada: "Entrevista solicitada",
+    entrevista_agendada: "Entrevista agendada",
+    finalista: "Finalista",
+    aprovado: "Aprovado",
+    reprovado: "Reprovado",
+    contratado: "Contratado",
+    desistiu: "Desistiu",
   };
 
   return (
@@ -129,13 +216,19 @@ function CandidatePage() {
             if (isShortlist) {
               const url = cursor ? `${returnTo}?cursor=${cursor}` : returnTo;
               return (
-                <a href={url} className="inline-flex items-center gap-1 text-sm text-primary font-medium hover:underline">
+                <a
+                  href={url}
+                  className="inline-flex items-center gap-1 text-sm text-primary font-medium hover:underline"
+                >
                   <ArrowLeft className="h-3.5 w-3.5" /> Voltar para a shortlist
                 </a>
               );
             }
             return (
-              <Link to="/candidates" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+              <Link
+                to="/candidates"
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+              >
                 <ArrowLeft className="h-3.5 w-3.5" /> Voltar
               </Link>
             );
@@ -144,36 +237,53 @@ function CandidatePage() {
             <Button variant="outline" onClick={() => setAddOpen(true)}>
               <ListPlus className="mr-1.5 h-4 w-4" /> Adicionar à shortlist
             </Button>
-            <Button onClick={() => navigate({ to: "/candidates/new", search: { id: candidateId } as any })}>
+            <Button
+              onClick={() =>
+                navigate({ to: "/candidates/new", search: { id: candidateId } as any })
+              }
+            >
               <Pencil className="mr-1.5 h-4 w-4" /> Editar
             </Button>
             <Button variant="ghost" onClick={() => archiveM.mutate(c.status !== "arquivado")}>
-              <Archive className="mr-1.5 h-4 w-4" /> {c.status === "arquivado" ? "Desarquivar" : "Arquivar"}
+              <Archive className="mr-1.5 h-4 w-4" />{" "}
+              {c.status === "arquivado" ? "Desarquivar" : "Arquivar"}
             </Button>
             <AlertDialog open={delOpen} onOpenChange={setDelOpen}>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" className="text-destructive hover:text-destructive"><Trash2 className="mr-1.5 h-4 w-4" />Excluir</Button>
+                <Button variant="ghost" className="text-destructive hover:text-destructive">
+                  <Trash2 className="mr-1.5 h-4 w-4" />
+                  Excluir
+                </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Excluir candidato?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Tem certeza de que deseja excluir <b>{c.full_name}</b>? Esta ação removerá o candidato do banco de candidatos.
+                    Tem certeza de que deseja excluir <b>{c.full_name}</b>? Esta ação removerá o
+                    candidato do banco de candidatos.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 {shortlistLinks.length > 0 && (
                   <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
-                    Este candidato está vinculado a {shortlistLinks.length} shortlist(s). Ao excluir, ele também será removido dessas shortlists:
+                    Este candidato está vinculado a {shortlistLinks.length} shortlist(s). Ao
+                    excluir, ele também será removido dessas shortlists:
                     <ul className="list-disc pl-5 mt-1">
                       {shortlistLinks.map((l: any) => (
-                        <li key={l.shortlist_id}>{l.shortlists?.title || `Shortlist ${l.shortlists?.number}`} · {l.shortlists?.jobs?.title} · {l.shortlists?.clients?.name}</li>
+                        <li key={l.shortlist_id}>
+                          {l.shortlists?.title || `Shortlist ${l.shortlists?.number}`} ·{" "}
+                          {l.shortlists?.jobs?.title} · {l.shortlists?.clients?.name}
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => removeM.mutate()} disabled={removeM.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  <AlertDialogAction
+                    onClick={() => removeM.mutate()}
+                    disabled={removeM.isPending}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
                     {removeM.isPending ? "Excluindo…" : "Excluir candidato"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -181,7 +291,6 @@ function CandidatePage() {
             </AlertDialog>
           </div>
         </div>
-
 
         <BlockListWarning tags={c.tags} />
 
@@ -197,14 +306,39 @@ function CandidatePage() {
                 {c.disc_profile && <Badge variant="secondary">{c.disc_profile}</Badge>}
                 <StatusBadge status={c.status} />
               </div>
-              {c.headline && <div className="mt-1 text-sm font-medium text-primary">{c.headline}</div>}
+              {c.headline && (
+                <div className="mt-1 text-sm font-medium text-primary">{c.headline}</div>
+              )}
               <div className="mt-1 text-sm text-muted-foreground">
-                {[c.current_position, c.current_company, c.area, c.city, c.work_model, c.age ? `${c.age} anos` : null].filter(Boolean).join(" · ")}
+                {[
+                  c.current_position,
+                  c.current_company,
+                  c.area,
+                  c.city,
+                  c.work_model,
+                  c.age ? `${c.age} anos` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
                 {salaryLabel(c) && <>Pretensão: {salaryLabel(c)} · </>}
                 Cadastrado em {new Date(c.created_at).toLocaleDateString("pt-BR")}
-                {c.linkedin_url && <> · <a href={c.linkedin_url} target="_blank" rel="noreferrer" className="text-primary hover:underline inline-flex items-center gap-1"><Linkedin className="h-3 w-3" />LinkedIn</a></>}
+                {c.linkedin_url && (
+                  <>
+                    {" "}
+                    ·{" "}
+                    <a
+                      href={c.linkedin_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      <Linkedin className="h-3 w-3" />
+                      LinkedIn
+                    </a>
+                  </>
+                )}
               </div>
               <div className="mt-3 flex items-center gap-2 flex-wrap">
                 <TagChips tags={c.tags} />
@@ -221,6 +355,9 @@ function CandidatePage() {
               <TabsTrigger value="experience">Experiência e Formação</TabsTrigger>
               <TabsTrigger value="skills">Competências</TabsTrigger>
               <TabsTrigger value="disc">Perfil comportamental</TabsTrigger>
+              {c.test_results?.length > 0 && (
+                <TabsTrigger value="test_results">Resultados de testes</TabsTrigger>
+              )}
             </TabsList>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -229,35 +366,61 @@ function CandidatePage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuItem onClick={() => setTab("documents")}>Documentos e arquivos</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTab("additional")}>Informações adicionais</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTab("documents")}>
+                  Documentos e arquivos
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTab("additional")}>
+                  Informações adicionais
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTab("shortlists")}>
                   Vagas e shortlists{shortlistLinks.length > 0 && ` (${shortlistLinks.length})`}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTab("feedbacks")}>
-                  <Lock className="mr-2 h-3.5 w-3.5" />Feedbacks de clientes{clientFeedback.length > 0 && ` (${clientFeedback.length})`}
+                  <Lock className="mr-2 h-3.5 w-3.5" />
+                  Feedbacks de clientes{clientFeedback.length > 0 && ` (${clientFeedback.length})`}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTab("internal")}>
-                  <Lock className="mr-2 h-3.5 w-3.5" />Anotações internas
+                  <Lock className="mr-2 h-3.5 w-3.5" />
+                  Anotações internas
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             {SECONDARY_LABELS[tab] && (
-              <Badge variant="secondary" className="ml-auto">{SECONDARY_LABELS[tab]}</Badge>
+              <Badge variant="secondary" className="ml-auto">
+                {SECONDARY_LABELS[tab]}
+              </Badge>
             )}
           </div>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
-            {c.mini_bio && <Card title="mini bio"><ClampText text={c.mini_bio} /></Card>}
-            {c.full_bio && <Card title="Resumo profissional detalhado"><ClampText text={c.full_bio} /></Card>}
-            {c.executive_summary?.length > 0 && <Card title="Resumo executivo"><Bullets items={c.executive_summary} /></Card>}
-            {c.specialties?.length > 0 && <Card title="Áreas de especialidade"><Tags items={c.specialties} /></Card>}
+            {c.mini_bio && (
+              <Card title="mini bio">
+                <ClampText text={c.mini_bio} />
+              </Card>
+            )}
+            {c.full_bio && (
+              <Card title="Resumo profissional detalhado">
+                <ClampText text={c.full_bio} />
+              </Card>
+            )}
+            {c.executive_summary?.length > 0 && (
+              <Card title="Resumo executivo">
+                <Bullets items={c.executive_summary} />
+              </Card>
+            )}
+            {c.specialties?.length > 0 && (
+              <Card title="Áreas de especialidade">
+                <Tags items={c.specialties} />
+              </Card>
+            )}
             {(c.achievements?.length > 0 || c.main_results?.length > 0) && (
               <Card title="Destaques da carreira">
                 {c.achievements?.length > 0 && <Bullets items={c.achievements} />}
                 {c.main_results?.length > 0 && (
                   <div className={c.achievements?.length > 0 ? "mt-3" : ""}>
-                    <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">Principais resultados</div>
+                    <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">
+                      Principais resultados
+                    </div>
                     <Bullets items={c.main_results} />
                   </div>
                 )}
@@ -265,12 +428,26 @@ function CandidatePage() {
             )}
             {c.main_case && Object.values(c.main_case).some(Boolean) && (
               <Card title="Principal case">
-                {["context","challenge","action","result"].map((k) => c.main_case[k] && (
-                  <div key={k} className="mb-2">
-                    <div className="text-xs font-semibold uppercase text-muted-foreground">{({context:"Contexto",challenge:"Desafio",action:"Ação",result:"Resultado"} as any)[k]}</div>
-                    <div className="text-sm">{c.main_case[k]}</div>
-                  </div>
-                ))}
+                {["context", "challenge", "action", "result"].map(
+                  (k) =>
+                    c.main_case[k] && (
+                      <div key={k} className="mb-2">
+                        <div className="text-xs font-semibold uppercase text-muted-foreground">
+                          {
+                            (
+                              {
+                                context: "Contexto",
+                                challenge: "Desafio",
+                                action: "Ação",
+                                result: "Resultado",
+                              } as any
+                            )[k]
+                          }
+                        </div>
+                        <div className="text-sm">{c.main_case[k]}</div>
+                      </div>
+                    ),
+                )}
               </Card>
             )}
             {c.strengths?.length > 0 && (
@@ -286,103 +463,219 @@ function CandidatePage() {
             {c.work_style && <Card title="Estilo de atuação">{c.work_style}</Card>}
             {c.professional_moment && Object.values(c.professional_moment).some(Boolean) && (
               <Card title="Momento profissional">
-                {Object.entries({reason_for_move:"Motivo da movimentação",looking_for:"O que busca",availability:"Disponibilidade",expectations:"Expectativas"}).map(([k,label]) => c.professional_moment[k] && (
-                  <div key={k} className="mb-1 text-sm"><span className="text-muted-foreground">{label}: </span>{c.professional_moment[k]}</div>
-                ))}
+                {Object.entries({
+                  reason_for_move: "Motivo da movimentação",
+                  looking_for: "O que busca",
+                  availability: "Disponibilidade",
+                  expectations: "Expectativas",
+                }).map(
+                  ([k, label]) =>
+                    c.professional_moment[k] && (
+                      <div key={k} className="mb-1 text-sm">
+                        <span className="text-muted-foreground">{label}: </span>
+                        {c.professional_moment[k]}
+                      </div>
+                    ),
+                )}
               </Card>
             )}
             {!c.headline && !c.mini_bio && (
               <div className="card-elevated p-10 text-center">
                 <Sparkles className="h-8 w-8 text-primary mx-auto mb-2" />
-                <div className="text-sm text-muted-foreground mb-3">O perfil ainda não foi gerado.</div>
-                <Button onClick={() => navigate({ to: "/candidates/new", search: { id: candidateId } as any })}>Editar e gerar perfil</Button>
+                <div className="text-sm text-muted-foreground mb-3">
+                  O perfil ainda não foi gerado.
+                </div>
+                <Button
+                  onClick={() =>
+                    navigate({ to: "/candidates/new", search: { id: candidateId } as any })
+                  }
+                >
+                  Editar e gerar perfil
+                </Button>
               </div>
             )}
           </TabsContent>
 
           <TabsContent value="experience" className="mt-4 space-y-6">
             <section>
-              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">Experiência profissional</h2>
-              {c.trajectory?.length > 0 ? (
-                <EditableExperienceList candidate={c} />
-              ) : <Empty />}
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                Experiência profissional
+              </h2>
+              {c.trajectory?.length > 0 ? <EditableExperienceList candidate={c} /> : <Empty />}
             </section>
 
             <section>
-              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">Formação e desenvolvimento</h2>
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                Formação e desenvolvimento
+              </h2>
               <div className="space-y-4">
-                {c.education?.length > 0 && <Card title="Formação acadêmica">{sortByYearDesc(c.education).map((e: any, i: number) => (
-                  <div key={i} className="text-sm mb-1">• {[e.course, e.institution, [e.start, e.end].filter(Boolean).join("—"), e.status].filter(Boolean).join(" · ")}</div>
-                ))}</Card>}
-                {c.courses?.length > 0 && <Card title="Cursos, certificações e eventos">{sortByYearDesc(c.courses).slice(0, 10).map((e: any, i: number) => (
-                  <div key={i} className="text-sm mb-1">• {[e.name, e.institution, e.year, e.workload].filter(Boolean).join(" · ")}</div>
-                ))}</Card>}
-                {c.languages?.length > 0 && <Card title="Idiomas"><LanguageList items={c.languages} /></Card>}
-                {c.competencies?.technical?.length > 0 && <Card title="Conhecimentos complementares"><Tags items={c.competencies.technical} /></Card>}
-                {!c.education?.length && !c.courses?.length && !c.languages?.length && !c.competencies?.technical?.length && <Empty />}
+                {c.education?.length > 0 && (
+                  <Card title="Formação acadêmica">
+                    {sortByYearDesc(c.education).map((e: any, i: number) => (
+                      <div key={i} className="text-sm mb-1">
+                        •{" "}
+                        {[
+                          e.course,
+                          e.institution,
+                          [e.start, e.end].filter(Boolean).join("—"),
+                          e.status,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </div>
+                    ))}
+                  </Card>
+                )}
+                {c.courses?.length > 0 && (
+                  <Card title="Cursos, certificações e eventos">
+                    {sortByYearDesc(c.courses)
+                      .slice(0, 10)
+                      .map((e: any, i: number) => (
+                        <div key={i} className="text-sm mb-1">
+                          •{" "}
+                          {[e.name, e.institution, e.year, e.workload].filter(Boolean).join(" · ")}
+                        </div>
+                      ))}
+                  </Card>
+                )}
+                {c.languages?.length > 0 && (
+                  <Card title="Idiomas">
+                    <LanguageList items={c.languages} />
+                  </Card>
+                )}
+                {c.competencies?.technical?.length > 0 && (
+                  <Card title="Conhecimentos complementares">
+                    <Tags items={c.competencies.technical} />
+                  </Card>
+                )}
+                {!c.education?.length &&
+                  !c.courses?.length &&
+                  !c.languages?.length &&
+                  !c.competencies?.technical?.length && <Empty />}
               </div>
             </section>
           </TabsContent>
 
           <TabsContent value="skills" className="mt-4 space-y-4">
-            {(c.competencies?.hard_skills?.length > 0 || c.competencies?.soft_skills?.length > 0 || c.competencies?.leadership?.length > 0 || c.competencies?.tools?.length > 0) ? (
+            {c.competencies?.hard_skills?.length > 0 ||
+            c.competencies?.soft_skills?.length > 0 ||
+            c.competencies?.leadership?.length > 0 ||
+            c.competencies?.tools?.length > 0 ? (
               <>
-                {c.competencies?.hard_skills?.length > 0 && <Card title="Habilidades técnicas"><Tags items={c.competencies.hard_skills.slice(0, 15)} /></Card>}
-                {c.competencies?.tools?.length > 0 && <Card title="Ferramentas"><Tags items={c.competencies.tools.slice(0, 15)} /></Card>}
-                {c.competencies?.soft_skills?.length > 0 && <Card title="Habilidades comportamentais"><Tags items={c.competencies.soft_skills.slice(0, 15)} /></Card>}
-                {c.competencies?.leadership?.length > 0 && <Card title="Habilidades de liderança"><Tags items={c.competencies.leadership.slice(0, 15)} /></Card>}
+                {c.competencies?.hard_skills?.length > 0 && (
+                  <Card title="Habilidades técnicas">
+                    <Tags items={c.competencies.hard_skills.slice(0, 15)} />
+                  </Card>
+                )}
+                {c.competencies?.tools?.length > 0 && (
+                  <Card title="Ferramentas">
+                    <Tags items={c.competencies.tools.slice(0, 15)} />
+                  </Card>
+                )}
+                {c.competencies?.soft_skills?.length > 0 && (
+                  <Card title="Habilidades comportamentais">
+                    <Tags items={c.competencies.soft_skills.slice(0, 15)} />
+                  </Card>
+                )}
+                {c.competencies?.leadership?.length > 0 && (
+                  <Card title="Habilidades de liderança">
+                    <Tags items={c.competencies.leadership.slice(0, 15)} />
+                  </Card>
+                )}
               </>
-            ) : <Empty />}
+            ) : (
+              <Empty />
+            )}
           </TabsContent>
 
           <TabsContent value="disc" className="mt-4">
             <DiscSection candidate={c} />
           </TabsContent>
 
+          {c.test_results?.length > 0 && (
+            <TabsContent value="test_results" className="mt-4">
+              <TestResultsSection items={c.test_results} />
+            </TabsContent>
+          )}
 
           <TabsContent value="documents" className="mt-4">
             {c.documents?.length > 0 ? (
               <div className="grid gap-2 sm:grid-cols-2">
                 {c.documents.map((d: any) => (
-                  <a key={d.id} href={d.url} target="_blank" rel="noreferrer" className="card-elevated p-3 flex items-center gap-3 hover:border-primary transition-colors">
+                  <a
+                    key={d.id}
+                    href={d.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="card-elevated p-3 flex items-center gap-3 hover:border-primary transition-colors"
+                  >
                     <FileText className="h-5 w-5 text-primary" />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-medium">{d.label}</div>
-                      <div className="text-[11px] text-muted-foreground">{d.kind}{!d.visible_to_client && " · interno"}</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {d.kind}
+                        {!d.visible_to_client && " · interno"}
+                      </div>
                     </div>
                     <ExternalLink className="h-4 w-4 text-muted-foreground" />
                   </a>
                 ))}
               </div>
-            ) : <Empty />}
+            ) : (
+              <Empty />
+            )}
           </TabsContent>
 
           <TabsContent value="additional" className="mt-4">
             {c.additional_info ? (
               <Card title="Informações adicionais">
-                <div className="whitespace-pre-wrap text-sm">{typeof c.additional_info === "string" ? c.additional_info : JSON.stringify(c.additional_info, null, 2)}</div>
+                <div className="whitespace-pre-wrap text-sm">
+                  {typeof c.additional_info === "string"
+                    ? c.additional_info
+                    : JSON.stringify(c.additional_info, null, 2)}
+                </div>
               </Card>
-            ) : <Empty />}
+            ) : (
+              <Empty />
+            )}
           </TabsContent>
-
 
           <TabsContent value="internal" className="mt-4 space-y-4">
             <div className="rounded-lg border-l-4 border-amber-500 bg-amber-50 p-3 text-xs text-amber-800">
-              <Lock className="h-3.5 w-3.5 inline mr-1" />Informações internas — nunca aparecem para o cliente.
+              <Lock className="h-3.5 w-3.5 inline mr-1" />
+              Informações internas — nunca aparecem para o cliente.
             </div>
             <Card title="Contato">
               <div className="text-sm">Telefone: {c.phone || "—"}</div>
               <div className="text-sm">E-mail: {c.email || "—"}</div>
             </Card>
-            {c.recruiter_note && <Card title="Parecer do recrutador"><div className="whitespace-pre-wrap text-sm">{c.recruiter_note}</div></Card>}
-            {c.transcript && <Card title="Resumo/transcrição da entrevista"><div className="whitespace-pre-wrap text-sm">{c.transcript}</div></Card>}
-            {c.internal_notes && <Card title="Observações internas"><div className="whitespace-pre-wrap text-sm">{c.internal_notes}</div></Card>}
-            {c.inconsistencies?.length > 0 && <Card title="Inconsistências detectadas"><Bullets items={c.inconsistencies} /></Card>}
+            {c.recruiter_note && (
+              <Card title="Parecer do recrutador">
+                <div className="whitespace-pre-wrap text-sm">{c.recruiter_note}</div>
+              </Card>
+            )}
+            {c.transcript && (
+              <Card title="Resumo/transcrição da entrevista">
+                <div className="whitespace-pre-wrap text-sm">{c.transcript}</div>
+              </Card>
+            )}
+            {c.internal_notes && (
+              <Card title="Observações internas">
+                <div className="whitespace-pre-wrap text-sm">{c.internal_notes}</div>
+              </Card>
+            )}
+            {c.inconsistencies?.length > 0 && (
+              <Card title="Inconsistências detectadas">
+                <Bullets items={c.inconsistencies} />
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="feedbacks" className="mt-4 space-y-4">
             {clientFeedback.length === 0 ? (
-              <div className="card-elevated p-6 text-center text-sm text-muted-foreground">Nenhum feedback de cliente registrado para este candidato.</div>
+              <div className="card-elevated p-6 text-center text-sm text-muted-foreground">
+                Nenhum feedback de cliente registrado para este candidato.
+              </div>
             ) : (
               Object.entries(
                 (clientFeedback as any[]).reduce((acc: Record<string, any[]>, f: any) => {
@@ -392,17 +685,25 @@ function CandidatePage() {
                 }, {}),
               ).map(([shortlistId, items]) => {
                 const sl = (items as any[])[0]?.shortlists;
-                const slName = sl?.title || (sl?.number != null ? `Shortlist ${String(sl.number).padStart(2, "0")}` : "Shortlist");
+                const slName =
+                  sl?.title ||
+                  (sl?.number != null
+                    ? `Shortlist ${String(sl.number).padStart(2, "0")}`
+                    : "Shortlist");
                 return (
                   <div key={shortlistId} className="card-elevated p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div className="min-w-0">
                         <div className="text-xs text-muted-foreground">{sl?.clients?.name}</div>
                         <div className="font-medium">{slName}</div>
-                        {sl?.jobs?.title && <div className="text-xs text-muted-foreground">{sl.jobs.title}</div>}
+                        {sl?.jobs?.title && (
+                          <div className="text-xs text-muted-foreground">{sl.jobs.title}</div>
+                        )}
                       </div>
                       <Link to="/shortlists/$shortlistId" params={{ shortlistId }}>
-                        <Button variant="outline" size="sm">Abrir shortlist</Button>
+                        <Button variant="outline" size="sm">
+                          Abrir shortlist
+                        </Button>
                       </Link>
                     </div>
                     <div className="space-y-2">
@@ -411,15 +712,28 @@ function CandidatePage() {
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <div className="text-sm font-medium">
                               {f.client_identifier || "Cliente"}
-                              {f.client_role && <span className="text-muted-foreground font-normal"> · {f.client_role}</span>}
+                              {f.client_role && (
+                                <span className="text-muted-foreground font-normal">
+                                  {" "}
+                                  · {f.client_role}
+                                </span>
+                              )}
                             </div>
                             <div className="flex items-center gap-2">
-                              {f.decision && <Badge variant="secondary">{DECISION_LABELS[f.decision] ?? f.decision}</Badge>}
+                              {f.decision && (
+                                <Badge variant="secondary">
+                                  {DECISION_LABELS[f.decision] ?? f.decision}
+                                </Badge>
+                              )}
                               {f.favorite && <Badge variant="secondary">★ Favorito</Badge>}
-                              <span className="text-xs text-muted-foreground">{new Date(f.created_at).toLocaleDateString("pt-BR")}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(f.created_at).toLocaleDateString("pt-BR")}
+                              </span>
                             </div>
                           </div>
-                          {f.comment && <div className="mt-2 whitespace-pre-wrap text-sm">{f.comment}</div>}
+                          {f.comment && (
+                            <div className="mt-2 whitespace-pre-wrap text-sm">{f.comment}</div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -431,41 +745,76 @@ function CandidatePage() {
 
           <TabsContent value="shortlists" className="mt-4 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">{shortlistLinks.length} vínculo(s)</div>
-              <Button size="sm" onClick={() => setAddOpen(true)}><ListPlus className="mr-1.5 h-3.5 w-3.5" />Adicionar à shortlist</Button>
+              <div className="text-sm text-muted-foreground">
+                {shortlistLinks.length} vínculo(s)
+              </div>
+              <Button size="sm" onClick={() => setAddOpen(true)}>
+                <ListPlus className="mr-1.5 h-3.5 w-3.5" />
+                Adicionar à shortlist
+              </Button>
             </div>
             {shortlistLinks.length === 0 ? (
-              <div className="card-elevated p-6 text-center text-sm text-muted-foreground">Este candidato ainda não está em nenhuma shortlist.</div>
-            ) : shortlistLinks.map((l: any) => (
-              <div key={l.shortlist_id} className="card-elevated p-4">
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="min-w-0">
-                    <div className="text-xs text-muted-foreground">{l.shortlists?.clients?.name}</div>
-                    <div className="font-medium">{l.shortlists?.jobs?.title}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {l.shortlists?.title || `Shortlist ${String(l.shortlists?.number).padStart(2, "0")}`} · adicionado em {new Date(l.added_at).toLocaleDateString("pt-BR")}
+              <div className="card-elevated p-6 text-center text-sm text-muted-foreground">
+                Este candidato ainda não está em nenhuma shortlist.
+              </div>
+            ) : (
+              shortlistLinks.map((l: any) => (
+                <div key={l.shortlist_id} className="card-elevated p-4">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div className="min-w-0">
+                      <div className="text-xs text-muted-foreground">
+                        {l.shortlists?.clients?.name}
+                      </div>
+                      <div className="font-medium">{l.shortlists?.jobs?.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {l.shortlists?.title ||
+                          `Shortlist ${String(l.shortlists?.number).padStart(2, "0")}`}{" "}
+                        · adicionado em {new Date(l.added_at).toLocaleDateString("pt-BR")}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Select
+                        value={l.status}
+                        onValueChange={(v) =>
+                          setStatus.mutate({ shortlist_id: l.shortlist_id, status: v })
+                        }
+                      >
+                        <SelectTrigger className="h-8 w-48">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_OPTIONS.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {statusLabels[s]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {l.shortlists?.jobs?.id && (
+                        <Link to="/jobs/$jobId" params={{ jobId: l.shortlists.jobs.id }}>
+                          <Button variant="ghost" size="sm">
+                            Ver vaga
+                          </Button>
+                        </Link>
+                      )}
+                      <Link to="/shortlists/$shortlistId" params={{ shortlistId: l.shortlist_id }}>
+                        <Button variant="outline" size="sm">
+                          Ver shortlist
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => removeLink.mutate(l.shortlist_id)}
+                      >
+                        Remover
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Select value={l.status} onValueChange={(v) => setStatus.mutate({ shortlist_id: l.shortlist_id, status: v })}>
-                      <SelectTrigger className="h-8 w-48"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{statusLabels[s]}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    {l.shortlists?.jobs?.id && (
-                      <Link to="/jobs/$jobId" params={{ jobId: l.shortlists.jobs.id }}>
-                        <Button variant="ghost" size="sm">Ver vaga</Button>
-                      </Link>
-                    )}
-                    <Link to="/shortlists/$shortlistId" params={{ shortlistId: l.shortlist_id }}>
-                      <Button variant="outline" size="sm">Ver shortlist</Button>
-                    </Link>
-                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => removeLink.mutate(l.shortlist_id)}>Remover</Button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -480,22 +829,56 @@ function CandidatePage() {
   );
 }
 
-
 function Card({ title, children }: { title: string; children: any }) {
-  return <div className="card-elevated p-5"><div className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{title}</div><div className="text-sm">{children}</div></div>;
+  return (
+    <div className="card-elevated p-5">
+      <div className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{title}</div>
+      <div className="text-sm">{children}</div>
+    </div>
+  );
 }
-function Bullets({ items }: { items: string[] }) { return <ul className="list-disc pl-5 space-y-1">{items.map((s, i) => <li key={i}>{s}</li>)}</ul>; }
-function Tags({ items }: { items: string[] }) { return <div className="flex flex-wrap gap-1.5">{items.map((t, i) => <Badge key={i} variant="secondary">{t}</Badge>)}</div>; }
-function Empty() { return <div className="card-elevated p-6 text-sm text-muted-foreground text-center">Sem informações nesta seção.</div>; }
+function Bullets({ items }: { items: string[] }) {
+  return (
+    <ul className="list-disc pl-5 space-y-1">
+      {items.map((s, i) => (
+        <li key={i}>{s}</li>
+      ))}
+    </ul>
+  );
+}
+function Tags({ items }: { items: string[] }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map((t, i) => (
+        <Badge key={i} variant="secondary">
+          {t}
+        </Badge>
+      ))}
+    </div>
+  );
+}
+function Empty() {
+  return (
+    <div className="card-elevated p-6 text-sm text-muted-foreground text-center">
+      Sem informações nesta seção.
+    </div>
+  );
+}
 
 function ClampText({ text }: { text: string }) {
   const [open, setOpen] = useState(false);
   const long = text.length > 420;
   return (
     <div>
-      <div className={`whitespace-pre-wrap text-sm ${!open && long ? "line-clamp-6" : ""}`}>{text}</div>
+      <div className={`whitespace-pre-wrap text-sm ${!open && long ? "line-clamp-6" : ""}`}>
+        {text}
+      </div>
       {long && (
-        <button type="button" onClick={() => setOpen((v) => !v)} className="mt-1 text-xs font-medium text-primary hover:underline">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="mt-1 text-xs font-medium text-primary hover:underline"
+        >
           {open ? "Ver menos" : "Ver mais"}
         </button>
       )}
@@ -503,9 +886,8 @@ function ClampText({ text }: { text: string }) {
   );
 }
 
-
 function StatusBadge({ status }: { status?: string }) {
-  const map: Record<string,{ label: string; cls: string }> = {
+  const map: Record<string, { label: string; cls: string }> = {
     rascunho: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
     em_processamento: { label: "Processando", cls: "bg-blue-100 text-blue-700" },
     aguardando_revisao: { label: "Aguardando revisão", cls: "bg-amber-100 text-amber-700" },
@@ -516,4 +898,3 @@ function StatusBadge({ status }: { status?: string }) {
   const s = map[status ?? "rascunho"] ?? map.rascunho;
   return <Badge className={s.cls + " border-0"}>{s.label}</Badge>;
 }
-

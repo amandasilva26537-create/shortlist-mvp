@@ -48,6 +48,7 @@ export const CandidateInput = z.object({
   competencies: z.any().nullable().optional(),
   additional_info: z.any().nullable().optional(),
   inconsistencies: z.any().nullable().optional(),
+  test_results: z.any().nullable().optional(),
   ai_profile: z.any().nullable().optional(),
   status: z.string().nullable().optional(),
 });
