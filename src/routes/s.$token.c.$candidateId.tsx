@@ -223,20 +223,30 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 
-function Bullets({ items }: { items: string[] }) {
+function toList(items: unknown): string[] {
+  if (Array.isArray(items)) return items as string[];
+  if (typeof items === "string")
+    return items
+      .split(/\r?\n|(?:^|\s)[•\-–]\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  return [];
+}
+
+function Bullets({ items }: { items: unknown }) {
   return (
     <ul className="space-y-1">
-      {items.map((it, i) => (
+      {toList(items).map((it, i) => (
         <li key={i} className="text-sm">• {it}</li>
       ))}
     </ul>
   );
 }
 
-function Tags({ items }: { items: string[] }) {
+function Tags({ items }: { items: unknown }) {
   return (
     <div className="flex flex-wrap gap-1.5">
-      {items.map((it, i) => (
+      {toList(items).map((it, i) => (
         <Badge key={i} variant="secondary" className="text-xs">{it}</Badge>
       ))}
     </div>

@@ -887,10 +887,10 @@ function Bullets({ items }: { items: unknown }) {
     </ul>
   );
 }
-function Tags({ items }: { items: string[] }) {
+function Tags({ items }: { items: unknown }) {
   return (
     <div className="flex flex-wrap gap-1.5">
-      {items.map((t, i) => (
+      {toList(items).map((t, i) => (
         <Badge key={i} variant="secondary">
           {t}
         </Badge>
