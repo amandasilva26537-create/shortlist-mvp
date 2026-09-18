@@ -869,10 +869,19 @@ function Card({ title, children }: { title: string; children: any }) {
     </div>
   );
 }
-function Bullets({ items }: { items: string[] }) {
+function toList(items: unknown): string[] {
+  if (Array.isArray(items)) return items as string[];
+  if (typeof items === "string")
+    return items
+      .split(/\r?\n|(?:^|\s)[•\-–]\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  return [];
+}
+function Bullets({ items }: { items: unknown }) {
   return (
     <ul className="list-disc pl-5 space-y-1">
-      {items.map((s, i) => (
+      {toList(items).map((s, i) => (
         <li key={i}>{s}</li>
       ))}
     </ul>
