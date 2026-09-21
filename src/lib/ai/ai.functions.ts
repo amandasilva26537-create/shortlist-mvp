@@ -523,6 +523,19 @@ export const evaluateCandidateForJob = createServerFn({ method: "POST" })
     const ais: any = jobAny.ai_structure ?? {};
     const promptText = `Você é a recrutadora responsável por esta vaga. Avalie a aderência DESTA pessoa a ESTA vaga específica. Seja HONESTA — não infle percentuais. Nunca aplique nota mínima obrigatória.
 
+===== COMO RACIOCINAR ANTES DE ESCREVER (OBRIGATÓRIO) =====
+Analise EM CONJUNTO, antes de produzir qualquer texto:
+1. descrição, missão, responsabilidades, resultados esperados e requisitos da VAGA;
+2. currículo completo e cadastro do candidato;
+3. TODA a entrevista/transcrição e as respostas dadas nela;
+4. observações, parecer e orientações do recrutador;
+5. resultados, números e métricas informados pelo candidato;
+6. demais informações do processo (testes, DISC, notas internas, documentos).
+
+A VAGA determina o FOCO. O currículo e a entrevista são as FONTES DE EVIDÊNCIA. As orientações do recrutador definem o que merece MAIOR DESTAQUE — mas nunca autorizam criar informação inexistente.
+
+Pergunta central a responder: "Considerando especificamente ESTA vaga, quais experiências, resultados, competências e evidências REAIS encontradas no currículo e na entrevista tornam esta pessoa relevante para esta oportunidade?"
+
 Use SOMENTE informações realmente presentes no material fornecido. Se algo não estiver disponível, retorne "" ou [] ou marque status "unknown".
 
 ${SHORTLIST_WRITING_STYLE}
