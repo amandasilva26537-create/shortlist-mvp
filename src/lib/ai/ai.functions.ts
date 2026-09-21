@@ -590,7 +590,7 @@ Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
 {
   "overall_match": number,                          // 0..100, honesto, sem piso
   "key_differentiator": string,                     // 1 frase objetiva
-  "job_specific_summary": string,                   // até 4 linhas específicas desta vaga
+  "job_specific_summary": string,                   // RESUMO DO CANDIDATO PARA ESTA VAGA — ver regras detalhadas abaixo
   "recruiter_opinion": string,                      // 6-10 linhas em tom consultivo humano — como se escrito por um recrutador experiente após entrevistar o candidato. Explique por que está apresentando, comunicação/postura/energia observada na entrevista, coerência currículo↔entrevista, interesse pela vaga e empresa, engajamento, disponibilidade, aderência comportamental, principais evidências. NUNCA use frases prontas como "excelente profissional", "ótima comunicação", "perfil aderente", "forte potencial".
   "main_case": { "context": string, "challenge": string, "action": string, "result": string, "relation_to_job": string },
   "risk_items": [{ "point": string, "mitigation": string }],   // 1-4 riscos concretos + mitigação já validada na entrevista (não hipotética)
