@@ -579,8 +579,11 @@ Momento profissional: ${JSON.stringify(cAny.professional_moment ?? {})}
 Motivadores: ${JSON.stringify(cAny.motivators ?? [])}
 Pontos fortes: ${JSON.stringify(cAny.strengths ?? [])}
 Case principal (currículo): ${JSON.stringify(cAny.main_case ?? {})}
-Parecer do recrutador (bruto): ${cAny.recruiter_note ?? ""}
-Entrevista/Transcrição: ${cAny.transcript ?? ""}
+Formação complementar/cursos: ${JSON.stringify(cAny.courses ?? [])}
+Informações adicionais do processo: ${JSON.stringify(cAny.additional_info ?? {})}
+DISC (material bruto): ${cAny.disc_raw ?? ""}
+ORIENTAÇÕES E PARECER DO RECRUTADOR (definem o foco do texto): ${cAny.recruiter_note ?? ""}
+ENTREVISTA / TRANSCRIÇÃO COMPLETA (leia por inteiro antes de escrever): ${cAny.transcript ?? ""}
 Notas internas: ${cAny.internal_notes ?? ""}
 
 Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
