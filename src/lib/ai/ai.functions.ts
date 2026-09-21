@@ -523,6 +523,19 @@ export const evaluateCandidateForJob = createServerFn({ method: "POST" })
     const ais: any = jobAny.ai_structure ?? {};
     const promptText = `Você é a recrutadora responsável por esta vaga. Avalie a aderência DESTA pessoa a ESTA vaga específica. Seja HONESTA — não infle percentuais. Nunca aplique nota mínima obrigatória.
 
+===== COMO RACIOCINAR ANTES DE ESCREVER (OBRIGATÓRIO) =====
+Analise EM CONJUNTO, antes de produzir qualquer texto:
+1. descrição, missão, responsabilidades, resultados esperados e requisitos da VAGA;
+2. currículo completo e cadastro do candidato;
+3. TODA a entrevista/transcrição e as respostas dadas nela;
+4. observações, parecer e orientações do recrutador;
+5. resultados, números e métricas informados pelo candidato;
+6. demais informações do processo (testes, DISC, notas internas, documentos).
+
+A VAGA determina o FOCO. O currículo e a entrevista são as FONTES DE EVIDÊNCIA. As orientações do recrutador definem o que merece MAIOR DESTAQUE — mas nunca autorizam criar informação inexistente.
+
+Pergunta central a responder: "Considerando especificamente ESTA vaga, quais experiências, resultados, competências e evidências REAIS encontradas no currículo e na entrevista tornam esta pessoa relevante para esta oportunidade?"
+
 Use SOMENTE informações realmente presentes no material fornecido. Se algo não estiver disponível, retorne "" ou [] ou marque status "unknown".
 
 ${SHORTLIST_WRITING_STYLE}
@@ -566,15 +579,18 @@ Momento profissional: ${JSON.stringify(cAny.professional_moment ?? {})}
 Motivadores: ${JSON.stringify(cAny.motivators ?? [])}
 Pontos fortes: ${JSON.stringify(cAny.strengths ?? [])}
 Case principal (currículo): ${JSON.stringify(cAny.main_case ?? {})}
-Parecer do recrutador (bruto): ${cAny.recruiter_note ?? ""}
-Entrevista/Transcrição: ${cAny.transcript ?? ""}
+Formação complementar/cursos: ${JSON.stringify(cAny.courses ?? [])}
+Informações adicionais do processo: ${JSON.stringify(cAny.additional_info ?? {})}
+DISC (material bruto): ${cAny.disc_raw ?? ""}
+ORIENTAÇÕES E PARECER DO RECRUTADOR (definem o foco do texto): ${cAny.recruiter_note ?? ""}
+ENTREVISTA / TRANSCRIÇÃO COMPLETA (leia por inteiro antes de escrever): ${cAny.transcript ?? ""}
 Notas internas: ${cAny.internal_notes ?? ""}
 
 Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
 {
   "overall_match": number,                          // 0..100, honesto, sem piso
   "key_differentiator": string,                     // 1 frase objetiva
-  "job_specific_summary": string,                   // até 4 linhas específicas desta vaga
+  "job_specific_summary": string,                   // RESUMO DO CANDIDATO PARA ESTA VAGA — ver regras detalhadas abaixo
   "recruiter_opinion": string,                      // 6-10 linhas em tom consultivo humano — como se escrito por um recrutador experiente após entrevistar o candidato. Explique por que está apresentando, comunicação/postura/energia observada na entrevista, coerência currículo↔entrevista, interesse pela vaga e empresa, engajamento, disponibilidade, aderência comportamental, principais evidências. NUNCA use frases prontas como "excelente profissional", "ótima comunicação", "perfil aderente", "forte potencial".
   "main_case": { "context": string, "challenge": string, "action": string, "result": string, "relation_to_job": string },
   "risk_items": [{ "point": string, "mitigation": string }],   // 1-4 riscos concretos + mitigação já validada na entrevista (não hipotética)
@@ -588,6 +604,37 @@ Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
   },
   "radar_scores": { "<nome da competência da vaga>": number }
 }
+
+===== REGRAS DO "job_specific_summary" (RESUMO DO CANDIDATO) =====
+NÃO é um resumo do currículo nem da trajetória em ordem cronológica. É uma análise executiva e estratégica que mostra por que a experiência REAL desta pessoa é relevante para ESTA vaga.
+
+Formato: 4 a 6 frases corridas (1 parágrafo, ou 2 curtos). Sem bullets, sem títulos.
+
+Priorize, nesta ordem de importância, quando houver evidência:
+- experiências mais relacionadas à posição em avaliação;
+- senioridade e escopo de atuação; nível de autonomia e responsabilidade;
+- responsabilidades relevantes para a vaga;
+- liderança e gestão (tamanho de equipe, times indiretos, gestão de gestores);
+- resultados alcançados, com números e métricas;
+- faturamento, orçamento, verba ou metas sob responsabilidade;
+- projetos relevantes, mercados e segmentos atendidos;
+- competências decisivas para a vaga; progressão profissional;
+- experiências transferíveis para o desafio atual.
+Sempre que existirem números, dados ou resultados concretos, coloque-os em destaque no texto.
+
+USO DA ENTREVISTA: a entrevista COMPLEMENTA o currículo. Se uma informação importante para a vaga não aparece detalhada no currículo mas foi explicada na entrevista (ex.: currículo diz "Gerente de Marketing" e na entrevista a pessoa relata liderar 8 pessoas, gerir R$ 500 mil/mês de investimento e responder pela estratégia de aquisição), USE a informação da entrevista, porque ela mostra a dimensão real da experiência.
+
+ADERÊNCIA À VAGA: não deixe o cargo atual ou a especialidade principal do currículo dominar o resumo automaticamente. Se a trajetória é concentrada em uma especialidade (ex.: tráfego pago) mas a vaga é mais ampla (ex.: Head de Marketing), procure no currículo e na entrevista evidências reais ligadas ao escopo da vaga — estratégia, liderança, gestão de equipe, gestão de orçamento, planejamento, visão de negócio, aquisição, crescimento, indicadores, funil, integração com vendas, gestão de projetos, processos, tomada de decisão e responsabilidade por resultados — e destaque o que existir. Se não existir, não invente e não sugira por analogia.
+
+ORIENTAÇÕES DO RECRUTADOR: definem o foco. Se o recrutador pedir destaque para liderança e resultados da operação, procure essas evidências no currículo e na entrevista e priorize-as no texto. A orientação nunca cria informação.
+
+LINGUAGEM: profissional, natural, estratégica, objetiva e factual. Sem opinião pessoal e sem elogio. Proibido: "excelente profissional", "perfil muito forte", "profissional extremamente competente", "candidato diferenciado", "certamente agregará", e equivalentes. Em vez de elogiar, mostre a evidência:
+- Errado: "Possui excelente capacidade de liderança."
+- Certo: "Liderou uma equipe de 12 profissionais e respondeu pela estruturação dos processos, acompanhamento dos indicadores e desenvolvimento do time."
+O cliente deve formar a própria opinião a partir dos fatos apresentados.
+
+NUNCA invente experiências, competências, responsabilidades, números, resultados, liderança, ferramentas, projetos ou conhecimentos. O objetivo não é fazer a pessoa parecer perfeita — é apresentar, da forma mais estratégica possível, as evidências REAIS de aderência à vaga. Quando um ponto importante não estiver informado, diga de forma natural que ainda precisa ser validado.
+
 
 Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
 - Todas as pontuações são inteiras 0..100, sem piso mínimo. NÃO use valores padrão (ex: 70, 80, 85, 88, 90). Só use um valor se ele reflete evidência concreta.
