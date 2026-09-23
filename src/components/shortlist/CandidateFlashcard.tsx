@@ -231,12 +231,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Chip({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+/** Indicador compacto: ícone discreto, rótulo pequeno e valor em destaque. */
+function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
-    <div className="flex min-w-0 items-center gap-1.5">
+    <div className="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-muted/30 px-2.5 py-1.5">
       <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-      <span className="sr-only">{label}: </span>
-      <span className="truncate text-xs text-muted-foreground">{value}</span>
+      <div className="min-w-0">
+        <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+          {label}
+        </div>
+        <div className="truncate text-xs font-semibold text-foreground">{value}</div>
+      </div>
     </div>
   );
 }
