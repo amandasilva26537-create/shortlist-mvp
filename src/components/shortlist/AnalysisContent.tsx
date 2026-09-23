@@ -121,7 +121,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
   const candidateSummary = buildCandidateSummary(candidate);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {!readOnly && (
         <div className="flex justify-end print:hidden">
           <Button size="sm" variant="outline" onClick={generate} disabled={busy}>
@@ -148,76 +148,66 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
         </div>
       )}
 
-      {evaluation && (
+      {evaluation && !readOnly && (
         <section>
-          <SectionTitle>1. Compatibilidade</SectionTitle>
-          <div className="rounded-xl border border-border bg-card p-5">
-            <div className="flex flex-wrap items-start gap-6">
-              {match != null ? (
-                <MatchRing value={match} size={112} label="match" />
-              ) : (
-                <div className="grid h-[112px] w-[112px] shrink-0 place-items-center rounded-full border border-dashed border-border text-center text-[11px] text-muted-foreground">
-                  Avaliação
-                  <br />
-                  incompleta
+          <SectionTitle icon={Gauge}>Compatibilidade</SectionTitle>
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="flex flex-col gap-6 md:flex-row md:items-start">
+              <div className="flex shrink-0 flex-col items-center gap-2 md:w-[150px]">
+                {match != null ? (
+                  <MatchRing value={match} size={116} label="match" />
+                ) : (
+                  <div className="grid h-[116px] w-[116px] shrink-0 place-items-center rounded-full border border-dashed border-border text-center text-[11px] text-muted-foreground">
+                    Avaliação
+                    <br />
+                    incompleta
+                  </div>
+                )}
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Match geral
+                </span>
+              </div>
+
+              <div className="min-w-[240px] flex-1 space-y-4">
+                <div className="text-xs text-muted-foreground print:hidden">
+                  {!hasAnyScore
+                    ? "Atribua uma nota de 0 a 10 para cada competência abaixo."
+                    : "As notas vêm sugeridas pela análise. Ajuste o que quiser e salve."}
                 </div>
-              )}
-              {!readOnly && (
-                <div className="flex-1 min-w-[240px] space-y-3">
-                  {!hasAnyScore ? (
-                    <div className="text-xs text-muted-foreground">
-                      Atribua uma nota de 0 a 10 para cada competência abaixo.
-                    </div>
-                  ) : (
-                    <div className="text-xs text-muted-foreground print:hidden">
-                      As notas abaixo vêm sugeridas pela análise. Ajuste o que quiser e clique em
-                      Salvar avaliação.
-                    </div>
+
+                <div className="grid grid-cols-1 gap-x-8 gap-y-4 lg:grid-cols-2">
+                  {Object.entries(DIMENSION_LABELS).map(([k, label]) => (
+                    <ScoreRow
+                      key={k}
+                      label={label}
+                      value={recruiterScores[k]}
+                      onChange={(raw) => setScore(k, raw)}
+                    />
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-end gap-2 border-t border-border pt-3 print:hidden">
+                  {scoresDirty && (
+                    <span className="text-xs text-muted-foreground">Alterações não salvas</span>
                   )}
-
-                  <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-                    {Object.entries(DIMENSION_LABELS).map(([k, label]) => {
-                      const score = recruiterScores[k];
-                      return (
-                        <div key={k} className="flex items-center justify-between gap-3">
-                          <span className="text-sm font-medium text-foreground">{label}</span>
-                          <Input
-                            type="number"
-                            min={0}
-                            max={10}
-                            step={1}
-                            placeholder="–"
-                            value={score ?? ""}
-                            onChange={(e) => setScore(k, e.target.value)}
-                            className="h-8 w-16 text-center print:hidden"
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="flex items-center justify-end gap-2 border-t border-border pt-3 print:hidden">
-                    {scoresDirty && (
-                      <span className="text-xs text-muted-foreground">Alterações não salvas</span>
+                  <Button size="sm" onClick={saveScores} disabled={save.isPending || !scoresDirty}>
+                    {save.isPending ? (
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Save className="mr-1.5 h-3.5 w-3.5" />
                     )}
-                    <Button size="sm" onClick={saveScores} disabled={save.isPending || !scoresDirty}>
-                      {save.isPending ? (
-                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Save className="mr-1.5 h-3.5 w-3.5" />
-                      )}
-                      Salvar avaliação
-                    </Button>
-                  </div>
+                    Salvar avaliação
+                  </Button>
                 </div>
-              )}
-
+              </div>
             </div>
           </div>
         </section>
       )}
 
       <EditableSection
-        title="2. Parecer do recrutador"
+        title="Parecer do recrutador"
+        icon={FileText}
         value={draft.recruiter_opinion}
         onChange={(v) => setDraft({ ...draft, recruiter_opinion: v })}
         onSave={() => persist("recruiter_opinion", draft.recruiter_opinion)}
@@ -227,7 +217,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       />
 
       <section>
-        <SectionTitle>3. Riscos &amp; Trade-offs</SectionTitle>
+        <SectionTitle icon={AlertTriangle}>Riscos &amp; Trade-offs</SectionTitle>
         <RiskEditor
           items={draft.risk_items ?? []}
           onChange={(items) => {
@@ -239,7 +229,8 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       </section>
 
       <EditableSection
-        title="4. Fator motivacional para a vaga"
+        title="Fator motivacional para a vaga"
+        icon={Target}
         value={draft.motivational_factor}
         onChange={(v) => setDraft({ ...draft, motivational_factor: v })}
         onSave={() => persist("motivational_factor", draft.motivational_factor)}
@@ -249,7 +240,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       />
 
       <section>
-        <SectionTitle>5. Critérios eliminatórios</SectionTitle>
+        <SectionTitle icon={ListChecks}>Critérios eliminatórios</SectionTitle>
         <EditableBlock
           title="Critérios avaliados"
           editable={!readOnly}
@@ -259,7 +250,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
           hint="Um critério por linha: critério | situação (yes, partial, no, unknown) | evidência"
           onSave={(items) => persist("eliminatory_checklist", items)}
         >
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
             {(evaluation?.eliminatory_checklist ?? []).map((item: any, i: number) => (
               <ChecklistRow key={i} item={item} />
             ))}
