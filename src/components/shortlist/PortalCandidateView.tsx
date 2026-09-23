@@ -1,16 +1,13 @@
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { MatchRing } from "@/components/candidate/MatchRing";
 import { DiscSection } from "@/components/candidate/DiscSection";
 import { TestResultsSection } from "@/components/candidate/TestResultsSection";
 import { ProfessionalProfileView } from "@/components/candidate/ProfessionalProfileView";
 import { AnalysisContent } from "@/components/shortlist/AnalysisContent";
+import { CandidateFlashcard } from "@/components/shortlist/CandidateFlashcard";
 import {
   CandidateSectionMenu,
   type CandidateSection,
 } from "@/components/shortlist/CandidateSectionMenu";
-import { MapPin, Clock, Linkedin, DollarSign, User } from "lucide-react";
-import { salaryLabel, availabilityLabel } from "@/lib/format";
 
 interface Props {
   candidate: any;
