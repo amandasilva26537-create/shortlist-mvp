@@ -72,14 +72,24 @@ function ShortlistDetail() {
     } catch (e: any) { toast.error(e.message); }
   };
 
+  /**
+   * Gera a análise (resumo/parecer/headline) no padrão atual para TODOS os candidatos
+   * desta shortlist que ainda não a tenham nesse padrão.
+   * Nunca sobrescreve análises de shortlists anteriores: só regera quando a análise
+   * pertence a esta shortlist (ou a nenhuma) e está em um padrão antigo.
+   */
   const analyzeAll = async () => {
     setBatchBusy(true);
     try {
-      const missing = (data.candidates as any[]).filter(
-        (c) => !evaluations.find((e: any) => e.candidate_id === c.candidate_id && typeof e.overall_match === "number"),
-      );
+      const missing = (data.candidates as any[]).filter((c) => {
+        const ev: any = evaluations.find((e: any) => e.candidate_id === c.candidate_id);
+        if (!ev || typeof ev.overall_match !== "number") return true;
+        const outdated = (ev.prompt_version ?? 0) < SUMMARY_PROMPT_VERSION;
+        const ownedByThisShortlist = !ev.shortlist_id || ev.shortlist_id === shortlistId;
+        return outdated && ownedByThisShortlist;
+      });
       if (missing.length === 0) {
-        toast.info("Todos os candidatos já possuem análise. Use 'Recalcular' no painel para atualizar.");
+        toast.info("Todos os candidatos já possuem análise no padrão atual. Use 'Recalcular' no painel para atualizar.");
         setBatchBusy(false);
         return;
       }
