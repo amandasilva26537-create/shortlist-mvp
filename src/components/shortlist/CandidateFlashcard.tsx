@@ -190,11 +190,15 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
                 </p>
               )}
 
-              <div className="mt-3 flex flex-wrap items-stretch gap-2">
-                {c.city && <Stat icon={MapPin} label="Cidade" value={c.city} />}
-                {c.age && <Stat icon={User} label="Idade" value={`${c.age} anos`} />}
-                {salary && <Stat icon={DollarSign} label="Pretensão" value={salary} />}
-                {availability && <Stat icon={Clock} label="Disponibilidade" value={availability} />}
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <Stat icon={MapPin} label="Cidade" value={c.city || "Não informado"} />
+                <Stat icon={User} label="Idade" value={c.age ? `${c.age} anos` : "Não informado"} />
+                <Stat icon={DollarSign} label="Pretensão" value={salary || "Não informado"} />
+                <Stat
+                  icon={Clock}
+                  label="Disponibilidade"
+                  value={availability || "Não informado"}
+                />
               </div>
 
               {!ev && (
