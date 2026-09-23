@@ -316,7 +316,7 @@ ${data.instruction ? `Instrução adicional do recrutador: ${data.instruction}` 
 Retorne um objeto JSON com EXATAMENTE estas chaves:
 {
   "basic_info": { "full_name": string, "current_position": string, "current_company": string, "area": string, "city": string, "state": string, "country": string, "work_model": string, "age": number|null, "salary_expectation": number|null, "linkedin_url": string, "email": string, "phone": string },
-  "headline": string,
+  "headline": string,                               // FORMATO OBRIGATÓRIO: no máximo 4 palavras-chave separadas por " | " (ex.: "Marketing Digital | Lançamentos | Projetos | Operações"). NUNCA frases, NUNCA verbos, NUNCA adjetivos ("sólida experiência", "profissional com..."), NUNCA ponto final.
   "mini_bio": string,
   "full_bio": string,
   "executive_summary": string[],
@@ -638,7 +638,11 @@ Antes de gerar, considere: (1) qual é a vaga da shortlist; (2) quais experiênc
 Exemplos corretos:
 - "Marketing | Growth | Lançamentos | Aquisição"
 - "Comercial | Gestão de Times | Funil | Receita"
-Exemplos errados (frases): "Profissional de marketing com sólida experiência em growth", "Marketing | Estratégia, Growth e Gestão de Aquisição".
+Exemplos errados (NUNCA faça assim):
+- "Estrategista de Marketing Digital com sólida experiência em lançamentos e gestão de projetos operacionais." (é frase, tem adjetivo e ponto final)
+- "Profissional de marketing com sólida experiência em growth"
+- "Marketing | Estratégia, Growth e Gestão de Aquisição" (mistura vírgulas e "e")
+VALIDAÇÃO OBRIGATÓRIA antes de devolver: o campo tem de 2 a 3 separadores " | ", nenhuma vírgula, nenhum " com ", " em ", " de sólida", nenhum ponto final e no máximo 2 palavras por bloco. Se falhar, reescreva no formato de palavras-chave antes de responder.
 Se as evidências de escopo ampliado NÃO existirem, use palavras-chave fiéis ao que a pessoa realmente fez — sem inflar.
 
 

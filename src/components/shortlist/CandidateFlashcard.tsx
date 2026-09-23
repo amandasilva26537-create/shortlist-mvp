@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, DollarSign, Clock, User, Pencil, Save } from "lucide-react";
-import { salaryLabel, availabilityLabel } from "@/lib/format";
+import { salaryLabel, availabilityLabel, keywordHeadline } from "@/lib/format";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { patchCandidate } from "@/lib/db/candidates.functions";
@@ -189,13 +189,13 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
               <h2 className="text-xl font-semibold tracking-tight md:text-2xl">
                 {c.full_name}
               </h2>
-              {(ev?.job_headline || c.headline) && (
+              {keywordHeadline(ev?.job_headline || c.headline) && (
                 <p className="mt-1 text-[13px] font-medium tracking-wide text-primary">
-                  {ev?.job_headline || c.headline}
+                  {keywordHeadline(ev?.job_headline || c.headline)}
                 </p>
               )}
 
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <Stat icon={MapPin} label="Cidade" value={cityLabel || "Não informado"} />
                 <Stat icon={User} label="Idade" value={c.age ? `${c.age} anos` : "Não informado"} />
                 <Stat icon={DollarSign} label="Pretensão" value={salary || "Não informado"} />
@@ -250,7 +250,7 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
         <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
           {label}
         </div>
-        <div className="break-words text-xs font-semibold leading-snug text-foreground">{value}</div>
+        <div className="break-words text-[11px] font-semibold leading-snug text-foreground">{value}</div>
       </div>
     </div>
   );
