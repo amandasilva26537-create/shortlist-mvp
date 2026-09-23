@@ -589,7 +589,8 @@ Notas internas: ${cAny.internal_notes ?? ""}
 Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
 {
   "overall_match": number,                          // 0..100, honesto, sem piso
-  "key_differentiator": string,                     // 1 frase objetiva
+  "job_headline": string,                           // HEADLINE ORIENTADA À VAGA — ver regras detalhadas abaixo
+  "key_differentiator": string,                     // 1 frase objetiva, ligada ao escopo DESTA vaga
   "job_specific_summary": string,                   // RESUMO DO CANDIDATO PARA ESTA VAGA — ver regras detalhadas abaixo
   "recruiter_opinion": string,                      // PARECER DO RECRUTADOR — ver regras detalhadas abaixo
   "main_case": { "context": string, "challenge": string, "action": string, "result": string, "relation_to_job": string },
