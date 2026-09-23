@@ -49,8 +49,10 @@ export function EditableBlock({
   hint,
   children,
   className,
+  hideTitle,
 }: {
   title: string;
+  hideTitle?: boolean;
   editable?: boolean;
   isEmpty?: boolean;
   toDraft: () => string;
