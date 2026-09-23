@@ -313,11 +313,66 @@ function initialScores(ev: any): Record<string, number | null> {
 }
 
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function SectionTitle({ children, icon: Icon }: { children: React.ReactNode; icon?: any }) {
   return (
-    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-      {children}
-    </h3>
+    <div className="mb-3 flex items-center gap-2">
+      {Icon && <Icon className="h-3.5 w-3.5 text-primary" strokeWidth={2.25} />}
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        {children}
+      </h3>
+      <div className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
+/** Nota de 0 a 10 com barra de progresso discreta (valores idênticos aos salvos). */
+function ScoreRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number | null | undefined;
+  onChange: (raw: string) => void;
+}) {
+  const v = typeof value === "number" ? Math.max(0, Math.min(10, value)) : null;
+  const color =
+    v == null
+      ? "var(--muted)"
+      : v >= 8.5
+        ? "var(--success)"
+        : v >= 7
+          ? "var(--primary)"
+          : v >= 5
+            ? "var(--warning)"
+            : "var(--destructive)";
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-xs font-medium text-foreground">{label}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold tabular-nums" style={{ color }}>
+            {v ?? "–"}
+          </span>
+          <Input
+            type="number"
+            min={0}
+            max={10}
+            step={1}
+            placeholder="–"
+            value={value ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            className="h-7 w-14 text-center text-xs print:hidden"
+          />
+        </div>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${((v ?? 0) / 10) * 100}%`, background: color }}
+        />
+      </div>
+    </div>
   );
 }
 
