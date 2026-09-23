@@ -16,6 +16,7 @@ import {
   removeCandidateFromShortlist,
 } from "@/lib/db/shortlists.functions";
 import { evaluateCandidateForJob } from "@/lib/ai/ai.functions";
+import { SUMMARY_PROMPT_VERSION } from "@/lib/ai/writing-style";
 import { FlashcardDeck } from "@/components/shortlist/FlashcardDeck";
 import { AddCandidateDialog } from "@/components/shortlist/AddCandidateDialog";
 
