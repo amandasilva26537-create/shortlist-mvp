@@ -250,7 +250,7 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
         <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
           {label}
         </div>
-        <div className="break-words text-xs font-semibold leading-snug text-foreground">{value}</div>
+        <div className="break-words text-[11px] font-semibold leading-snug text-foreground">{value}</div>
       </div>
     </div>
   );
