@@ -507,41 +507,60 @@ function RiskEditor({
 
   return (
     <div className="space-y-3">
-      {items.map((it, i) => (
-        <div key={i} className="rounded-xl border border-border bg-card p-4 space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Ponto de atenção
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {items.map((it, i) => (
+          <div
+            key={i}
+            className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+          >
+            <div className="flex items-start gap-3 p-4">
+              <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[color:var(--warning)]/15 text-[color:var(--warning)]">
+                <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2.5} />
+              </div>
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  Ponto de atenção
+                </div>
+                {readOnly ? (
+                  <div className="text-[13px] leading-relaxed">{it.point}</div>
+                ) : (
+                  <Textarea
+                    rows={2}
+                    value={it.point ?? ""}
+                    onChange={(e) => update(i, { point: e.target.value })}
+                  />
+                )}
+              </div>
+              {!readOnly && (
+                <Button variant="ghost" size="sm" onClick={() => remove(i)} className="print:hidden">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
             </div>
-            {!readOnly && (
-              <Button variant="ghost" size="sm" onClick={() => remove(i)} className="print:hidden">
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            )}
+            <div className="flex items-start gap-3 border-t border-border bg-muted/30 p-4">
+              <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[color:var(--success)]/10 text-[color:var(--success)]">
+                <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
+              </div>
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  Mitigação (validada na entrevista)
+                </div>
+                {readOnly ? (
+                  <div className="text-[13px] leading-relaxed text-muted-foreground">
+                    {it.mitigation}
+                  </div>
+                ) : (
+                  <Textarea
+                    rows={3}
+                    value={it.mitigation ?? ""}
+                    onChange={(e) => update(i, { mitigation: e.target.value })}
+                  />
+                )}
+              </div>
+            </div>
           </div>
-          {readOnly ? (
-            <div className="text-sm">{it.point}</div>
-          ) : (
-            <Textarea
-              rows={2}
-              value={it.point ?? ""}
-              onChange={(e) => update(i, { point: e.target.value })}
-            />
-          )}
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-primary mt-2">
-            Mitigação (validada na entrevista)
-          </div>
-          {readOnly ? (
-            <div className="text-sm text-muted-foreground">{it.mitigation}</div>
-          ) : (
-            <Textarea
-              rows={3}
-              value={it.mitigation ?? ""}
-              onChange={(e) => update(i, { mitigation: e.target.value })}
-            />
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
       {!readOnly && (
         <Button variant="outline" size="sm" onClick={add} className="print:hidden">
           <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar risco
