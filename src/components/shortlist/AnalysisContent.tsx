@@ -162,108 +162,55 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
                   incompleta
                 </div>
               )}
-              <div className="flex-1 min-w-[240px] space-y-3">
-                {!hasAnyScore ? (
-                  <div className="text-xs text-muted-foreground">
-                    {readOnly
-                      ? "A recrutadora ainda não avaliou as competências desta vaga."
-                      : "Atribua uma nota de 0 a 10 para cada competência abaixo."}
-                  </div>
-                ) : (
-                  !readOnly && (
+              {!readOnly && (
+                <div className="flex-1 min-w-[240px] space-y-3">
+                  {!hasAnyScore ? (
+                    <div className="text-xs text-muted-foreground">
+                      Atribua uma nota de 0 a 10 para cada competência abaixo.
+                    </div>
+                  ) : (
                     <div className="text-xs text-muted-foreground print:hidden">
                       As notas abaixo vêm sugeridas pela análise. Ajuste o que quiser e clique em
                       Salvar avaliação.
                     </div>
-                  )
-                )}
+                  )}
 
-
-                {readOnly ? (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
                     {Object.entries(DIMENSION_LABELS).map(([k, label]) => {
                       const score = recruiterScores[k];
                       return (
-                        <div
-                          key={k}
-                          className="rounded-lg border border-border bg-gradient-to-br from-primary-soft/40 to-transparent p-3"
-                        >
-                          <div className="mb-1.5 flex items-baseline justify-between gap-2">
-                            <span className="text-sm font-medium text-foreground">{label}</span>
-                            <span
-                              className={
-                                score == null
-                                  ? "text-xs text-muted-foreground"
-                                  : "text-xs font-semibold tabular-nums text-primary"
-                              }
-                            >
-                              {score == null ? "Não avaliado" : `${score}/10`}
-                            </span>
-                          </div>
-                          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                            {score != null && (
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${score * 10}%`,
-                                  background:
-                                    score >= 8.5
-                                      ? "var(--success)"
-                                      : score >= 7
-                                        ? "var(--primary)"
-                                        : score >= 5
-                                          ? "var(--warning)"
-                                          : "var(--destructive)",
-                                }}
-                              />
-                            )}
-                          </div>
+                        <div key={k} className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-medium text-foreground">{label}</span>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={10}
+                            step={1}
+                            placeholder="–"
+                            value={score ?? ""}
+                            onChange={(e) => setScore(k, e.target.value)}
+                            className="h-8 w-16 text-center print:hidden"
+                          />
                         </div>
                       );
                     })}
                   </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-                      {Object.entries(DIMENSION_LABELS).map(([k, label]) => {
-                        const score = recruiterScores[k];
-                        return (
-                          <div key={k} className="flex items-center justify-between gap-3">
-                            <span className="text-sm font-medium text-foreground">{label}</span>
-                            <Input
-                              type="number"
-                              min={0}
-                              max={10}
-                              step={1}
-                              placeholder="–"
-                              value={score ?? ""}
-                              onChange={(e) => setScore(k, e.target.value)}
-                              className="h-8 w-16 text-center print:hidden"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="flex items-center justify-end gap-2 border-t border-border pt-3 print:hidden">
-                      {scoresDirty && (
-                        <span className="text-xs text-muted-foreground">Alterações não salvas</span>
+                  <div className="flex items-center justify-end gap-2 border-t border-border pt-3 print:hidden">
+                    {scoresDirty && (
+                      <span className="text-xs text-muted-foreground">Alterações não salvas</span>
+                    )}
+                    <Button size="sm" onClick={saveScores} disabled={save.isPending || !scoresDirty}>
+                      {save.isPending ? (
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Save className="mr-1.5 h-3.5 w-3.5" />
                       )}
-                      <Button
-                        size="sm"
-                        onClick={saveScores}
-                        disabled={save.isPending || !scoresDirty}
-                      >
-                        {save.isPending ? (
-                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Save className="mr-1.5 h-3.5 w-3.5" />
-                        )}
-                        Salvar avaliação
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
+                      Salvar avaliação
+                    </Button>
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </section>
