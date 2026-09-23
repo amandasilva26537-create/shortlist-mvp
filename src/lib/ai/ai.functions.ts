@@ -538,7 +538,7 @@ Pergunta central a responder: "Considerando especificamente ESTA vaga, quais exp
 
 Use SOMENTE informações realmente presentes no material fornecido. Se algo não estiver disponível, retorne "" ou [] ou marque status "unknown".
 
-${SHORTLIST_WRITING_STYLE}
+${EXECUTIVE_WRITING_STYLE}
 
 ${genderInstruction(cAny.gender, cAny.full_name)}
 
