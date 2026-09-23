@@ -143,7 +143,12 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
               <Field label="Pretensão máxima (R$)"><Input value={form.salary_max} onChange={set("salary_max")} inputMode="numeric" /></Field>
               <Field label="Pretensão (valor único, R$)"><Input value={form.salary_expectation} onChange={set("salary_expectation")} inputMode="numeric" /></Field>
             </div>
-            <Field label="Headline / posicionamento">
+            {jobId && (
+              <Field label="Headline para esta vaga (aparece na shortlist)">
+                <Textarea rows={2} value={form.job_headline} onChange={set("job_headline")} />
+              </Field>
+            )}
+            <Field label="Headline geral do candidato (cadastro)">
               <Textarea rows={2} value={form.headline} onChange={set("headline")} />
             </Field>
             {jobId && (
