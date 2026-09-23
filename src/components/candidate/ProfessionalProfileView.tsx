@@ -16,6 +16,15 @@ const EDU_FIELDS = ["course", "institution", "start", "end", "status"];
 const COURSE_FIELDS = ["name", "institution", "year", "workload"];
 const LANG_FIELDS = ["language", "level"];
 
+/** Mantém apenas experiências de 2020 em diante (empregos atuais sempre entram). */
+function isFrom2020(exp: any): boolean {
+  const text = `${exp?.start ?? ""} ${exp?.end ?? ""}`;
+  if (exp?.current === true || /atual|present/i.test(text)) return true;
+  const years = text.match(/\b(19|20)\d{2}\b/g);
+  if (!years || years.length === 0) return true;
+  return Math.max(...years.map(Number)) >= 2020;
+}
+
 /** Informações profissionais do candidato (sem DISC), reutilizadas pelo recrutador e pelo cliente. */
 export function ProfessionalProfileView({ candidate: c, editable }: { candidate: any; editable?: boolean }) {
   const comp = c.competencies && typeof c.competencies === "object" ? c.competencies : {};
