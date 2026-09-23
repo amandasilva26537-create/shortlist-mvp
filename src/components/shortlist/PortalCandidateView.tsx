@@ -78,12 +78,3 @@ export function PortalCandidateView({
     </div>
   );
 }
-
-function Chip({ icon: Icon, children }: { icon: any; children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 font-medium text-secondary-foreground">
-      <Icon className="h-3.5 w-3.5" />
-      {children}
-    </span>
-  );
-}
