@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, Pencil, Save } from "lucide-react";
-import { experienceDuration, experiencePeriod, isCurrentExperience } from "@/lib/experience";
+import { experiencePeriod, isCurrentExperience } from "@/lib/experience";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { updateCandidateExperience } from "@/lib/db/candidates.functions";
@@ -106,7 +106,6 @@ export function ExperienceItem({
     ? []
     : [exp.segment, exp.location, exp.work_model].map(cleanValue).filter(Boolean);
   const period = experiencePeriod(exp);
-  const duration = experienceDuration(exp);
 
   if (editing) {
     return (
