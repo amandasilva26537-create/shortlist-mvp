@@ -121,6 +121,7 @@ export function ProfessionalProfileView({ candidate: c, editable }: { candidate:
         <div className="space-y-3">
           <EditableBlock
             title="Formação acadêmica"
+            hideTitle
             editable={editable}
             isEmpty={!(c.education?.length > 0)}
             toDraft={() => objectsToLines(c.education, EDU_FIELDS)}
@@ -160,6 +161,7 @@ export function ProfessionalProfileView({ candidate: c, editable }: { candidate:
         <SubHeading>Idiomas</SubHeading>
         <EditableBlock
           title="Idiomas"
+          hideTitle
           editable={editable}
           isEmpty={!(c.languages?.length > 0)}
           toDraft={() => objectsToLines(c.languages, LANG_FIELDS)}

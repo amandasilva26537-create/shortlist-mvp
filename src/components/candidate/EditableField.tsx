@@ -49,8 +49,10 @@ export function EditableBlock({
   hint,
   children,
   className,
+  hideTitle,
 }: {
   title: string;
+  hideTitle?: boolean;
   editable?: boolean;
   isEmpty?: boolean;
   toDraft: () => string;
@@ -85,7 +87,11 @@ export function EditableBlock({
   return (
     <div className={className ?? "rounded-xl border border-border bg-card p-5 shadow-sm"}>
       <div className="mb-2 flex items-start justify-between gap-3">
-        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+        {hideTitle ? (
+          <div />
+        ) : (
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+        )}
         {editable && !editing && (
           <Button size="sm" variant="outline" onClick={start} className="print:hidden">
             <Pencil className="mr-1.5 h-3.5 w-3.5" /> Editar
