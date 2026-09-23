@@ -10,7 +10,6 @@ import {
   Plus,
   Trash2,
   Check,
-  Minus,
   X,
   HelpCircle,
   RefreshCw,
