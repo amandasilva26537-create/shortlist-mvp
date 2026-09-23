@@ -89,6 +89,7 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
             job_id: jobId,
             ...(shortlistId ? { shortlist_id: shortlistId } : {}),
             key_differentiator: form.key_differentiator || null,
+            job_headline: form.job_headline || null,
           },
         });
       }
