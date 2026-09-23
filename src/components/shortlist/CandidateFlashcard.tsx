@@ -28,7 +28,9 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
   const c = candidate;
   const ev = evaluation;
   const salary = salaryLabel(c);
-  const availability = availabilityLabel(c.professional_moment?.availability);
+  const cityLabel = [c.city, c.state].filter(Boolean).join(" - ") || null;
+  const pm = c.professional_moment && typeof c.professional_moment === "object" ? c.professional_moment : {};
+  const availability = availabilityLabel(pm.availability ?? c.availability);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
   const editable = !readOnly;
 
