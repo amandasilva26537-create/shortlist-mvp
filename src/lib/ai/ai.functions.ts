@@ -618,16 +618,20 @@ Antes de escrever cada campo, pergunte internamente: "Esta informação ajuda o 
 - NUNCA atribua cargo, senioridade, escopo ou especialidade que a pessoa não tem para aproximá-la da vaga. Se as evidências do escopo da vaga não existirem, não invente e não sugira por analogia — registre objetivamente o que precisa ser validado.
 
 ===== REGRAS DO "job_headline" (HEADLINE PARA ESTA VAGA) =====
-Uma linha curta (máx. ~90 caracteres), orientada à vaga, no formato "Área/Posicionamento | eixos de atuação".
+Formato estilo LinkedIn: APENAS palavras-chave separadas por " | ". NUNCA frases, verbos conjugados, adjetivos ou pontuação final.
 
-NÃO copie cargo atual, último cargo, título do LinkedIn nem a profissão histórica predominante.
+- No MÁXIMO 4 palavras-chave (pode ter 3). Cada palavra-chave tem 1 ou 2 palavras.
+- Orientada à VAGA atual e sustentada pela experiência REAL do candidato.
+- NÃO copie cargo atual, último cargo nem a profissão histórica predominante.
+- Sem nome de empresa, sem senioridade inventada, sem "especialista em".
 
-Antes de gerar, considere: (1) qual é a vaga da shortlist; (2) quais experiências reais sustentam a candidatura para ela; (3) qual posicionamento representa melhor a aderência à oportunidade.
+Antes de gerar, considere: (1) qual é a vaga da shortlist; (2) quais experiências reais sustentam a candidatura para ela; (3) quais 4 eixos melhor representam essa aderência.
 
-Exemplo — vaga de Head de Marketing, candidato com histórico concentrado em tráfego pago, mas com evidências reais de atuação ampla em marketing, liderança, estratégia e funil:
-- Errado: "Especialista em Tráfego Pago | Performance & Mídia"
-- Certo: "Marketing | Estratégia, Growth e Gestão de Aquisição"
-Se as evidências de escopo ampliado NÃO existirem, mantenha a headline fiel ao que a pessoa realmente fez — sem inflar.
+Exemplos corretos:
+- "Marketing | Growth | Lançamentos | Aquisição"
+- "Comercial | Gestão de Times | Funil | Receita"
+Exemplos errados (frases): "Profissional de marketing com sólida experiência em growth", "Marketing | Estratégia, Growth e Gestão de Aquisição".
+Se as evidências de escopo ampliado NÃO existirem, use palavras-chave fiéis ao que a pessoa realmente fez — sem inflar.
 
 
 ===== REGRAS DO "job_specific_summary" (RESUMO DO CANDIDATO) =====
