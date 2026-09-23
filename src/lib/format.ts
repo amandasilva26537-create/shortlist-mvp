@@ -40,3 +40,21 @@ export function matchColor(match: number) {
   if (match >= 50) return "text-[color:var(--warning)]";
   return "text-destructive";
 }
+
+/** Disponibilidade resumida: "Imediata", "5 dias", "30 dias"… */
+export function availabilityLabel(raw: any): string | null {
+  if (raw == null) return null;
+  const s = String(raw).trim();
+  if (!s) return null;
+  const low = s.toLowerCase();
+  if (/imediat/.test(low)) return "Imediata";
+  const m = low.match(/(\d+)\s*(dia|dias|d)\b/);
+  if (m) return `${m[1]} dias`;
+  const w = low.match(/(\d+)\s*(semana|semanas)/);
+  if (w) return `${Number(w[1]) * 7} dias`;
+  const mo = low.match(/(\d+)\s*(m[êe]s|meses)/);
+  if (mo) return `${Number(mo[1]) * 30} dias`;
+  const n = low.match(/^(\d+)$/);
+  if (n) return `${n[1]} dias`;
+  return s.length > 28 ? s.slice(0, 28) + "…" : s;
+}
