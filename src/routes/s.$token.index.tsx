@@ -255,7 +255,6 @@ function Portal() {
                 candidateName={candidate.full_name}
                 identity={identity}
               />
-              {testResults.length > 0 && <TestResultsSidebarCard items={testResults} />}
             </div>
           </div>
         )}
