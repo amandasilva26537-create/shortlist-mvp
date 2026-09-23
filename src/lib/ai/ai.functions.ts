@@ -3,7 +3,7 @@ import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-
 import { generateText } from "ai";
 import { z } from "zod";
 import { AI_MODEL, createLovableAiGateway, requireApiKey } from "./gateway.server";
-import { SHORTLIST_WRITING_STYLE, genderInstruction } from "./writing-style";
+import { SHORTLIST_WRITING_STYLE, EXECUTIVE_WRITING_STYLE, genderInstruction } from "./writing-style";
 
 const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
@@ -538,7 +538,7 @@ Pergunta central a responder: "Considerando especificamente ESTA vaga, quais exp
 
 Use SOMENTE informações realmente presentes no material fornecido. Se algo não estiver disponível, retorne "" ou [] ou marque status "unknown".
 
-${SHORTLIST_WRITING_STYLE}
+${EXECUTIVE_WRITING_STYLE}
 
 ${genderInstruction(cAny.gender, cAny.full_name)}
 
@@ -591,7 +591,7 @@ Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
   "overall_match": number,                          // 0..100, honesto, sem piso
   "key_differentiator": string,                     // 1 frase objetiva
   "job_specific_summary": string,                   // RESUMO DO CANDIDATO PARA ESTA VAGA — ver regras detalhadas abaixo
-  "recruiter_opinion": string,                      // 6-10 linhas em tom consultivo humano — como se escrito por um recrutador experiente após entrevistar o candidato. Explique por que está apresentando, comunicação/postura/energia observada na entrevista, coerência currículo↔entrevista, interesse pela vaga e empresa, engajamento, disponibilidade, aderência comportamental, principais evidências. NUNCA use frases prontas como "excelente profissional", "ótima comunicação", "perfil aderente", "forte potencial".
+  "recruiter_opinion": string,                      // 6-10 linhas em registro consultivo profissional (3ª pessoa, sem narrar a entrevista). Fundamente: motivo da apresentação, coerência entre currículo e o que foi validado, comunicação e postura observadas descritas por comportamento concreto, interesse pela vaga e pela empresa, disponibilidade, aderência comportamental e principais evidências. NUNCA use frases prontas como "excelente profissional", "ótima comunicação", "perfil aderente", "forte potencial".
   "main_case": { "context": string, "challenge": string, "action": string, "result": string, "relation_to_job": string },
   "risk_items": [{ "point": string, "mitigation": string }],   // 1-4 riscos concretos + mitigação já validada na entrevista (não hipotética)
   "motivational_factor": string,                    // por que ele quer ESTA vaga, com base em entrevista/parecer
@@ -608,7 +608,16 @@ Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
 ===== REGRAS DO "job_specific_summary" (RESUMO DO CANDIDATO) =====
 NÃO é um resumo do currículo nem da trajetória em ordem cronológica. É uma análise executiva e estratégica que mostra por que a experiência REAL desta pessoa é relevante para ESTA vaga.
 
-Formato: 4 a 6 frases corridas (1 parágrafo, ou 2 curtos). Sem bullets, sem títulos.
+Formato: 5 a 7 frases corridas (1 ou 2 parágrafos). Sem bullets, sem títulos. Registro executivo, 3ª pessoa, factual.
+
+ESTRUTURA OBRIGATÓRIA do texto (em sequência, sem rótulos visíveis):
+1. Enquadramento: senioridade, escopo atual e por que a trajetória conversa com o desafio DESTA vaga (setores/mercados e porte da operação, quando informados).
+2. Escopo e método: o que a pessoa efetivamente conduziu — estrutura sob responsabilidade (headcount, times diretos/indiretos), orçamento/verba/receita, processos, rituais, sistemas de gestão e indicadores acompanhados.
+3. Resultados com dados: números, percentuais, valores, prazos e metas atingidas. Se houver métrica, ela precisa aparecer no texto.
+4. Aderência aos requisitos críticos da vaga: quais must-have e competências avaliadas ficam sustentados por evidência concreta.
+5. Fechamento objetivo: o ponto de maior aderência e, se aplicável, o que ainda precisa ser validado — sem recomendação nem elogio.
+
+Pelo menos uma frase precisa conter dado quantitativo sempre que o material tiver qualquer número (equipe, orçamento, receita, %, volume, prazo, carteira, metas). Nunca escreva "resultados relevantes" ou "equipe grande" no lugar do dado real.
 
 Priorize, nesta ordem de importância, quando houver evidência:
 - experiências mais relacionadas à posição em avaliação;
@@ -658,7 +667,7 @@ Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
       const { text } = await generateText({
         model,
         prompt: promptText,
-        temperature: 0.5,
+        temperature: 0.25,
       });
       output = extractJson(text);
     } catch (err: any) {
