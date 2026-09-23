@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Briefcase, MapPin, Building2, DollarSign, Clock, Star, User, Pencil, Save } from "lucide-react";
-import { salaryLabel } from "@/lib/format";
+import { MapPin, DollarSign, Clock, User, Pencil, Save } from "lucide-react";
+import { salaryLabel, availabilityLabel } from "@/lib/format";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { patchCandidate } from "@/lib/db/candidates.functions";
@@ -29,6 +29,7 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
   const c = candidate;
   const ev = evaluation;
   const salary = salaryLabel(c);
+  const availability = availabilityLabel(c.professional_moment?.availability);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
   const editable = !readOnly;
 
