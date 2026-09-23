@@ -591,7 +591,7 @@ Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
   "overall_match": number,                          // 0..100, honesto, sem piso
   "key_differentiator": string,                     // 1 frase objetiva
   "job_specific_summary": string,                   // RESUMO DO CANDIDATO PARA ESTA VAGA — ver regras detalhadas abaixo
-  "recruiter_opinion": string,                      // 6-10 linhas em registro consultivo profissional (3ª pessoa, sem narrar a entrevista). Fundamente: motivo da apresentação, coerência entre currículo e o que foi validado, comunicação e postura observadas descritas por comportamento concreto, interesse pela vaga e pela empresa, disponibilidade, aderência comportamental e principais evidências. NUNCA use frases prontas como "excelente profissional", "ótima comunicação", "perfil aderente", "forte potencial".
+  "recruiter_opinion": string,                      // PARECER DO RECRUTADOR — ver regras detalhadas abaixo
   "main_case": { "context": string, "challenge": string, "action": string, "result": string, "relation_to_job": string },
   "risk_items": [{ "point": string, "mitigation": string }],   // 1-4 riscos concretos + mitigação já validada na entrevista (não hipotética)
   "motivational_factor": string,                    // por que ele quer ESTA vaga, com base em entrevista/parecer
@@ -643,6 +643,29 @@ LINGUAGEM: profissional, natural, estratégica, objetiva e factual. Sem opinião
 O cliente deve formar a própria opinião a partir dos fatos apresentados.
 
 NUNCA invente experiências, competências, responsabilidades, números, resultados, liderança, ferramentas, projetos ou conhecimentos. O objetivo não é fazer a pessoa parecer perfeita — é apresentar, da forma mais estratégica possível, as evidências REAIS de aderência à vaga. Quando um ponto importante não estiver informado, diga de forma natural que ainda precisa ser validado.
+
+===== REGRAS DO "recruiter_opinion" (PARECER DO RECRUTADOR) =====
+Padrão de linguagem: parecer de recrutamento apresentado a um cliente. Profissional, objetivo, claro e baseado em evidências. Não pode parecer texto de IA, nem informal/conversado, nem rebuscado.
+
+Formato: 3 a 4 parágrafos curtos, texto corrido, sem bullets e sem títulos. 3ª pessoa. Frases diretas, uma ideia por frase.
+
+SEQUÊNCIA:
+1. Abertura com a experiência e as áreas de atuação relevantes para a vaga (tempo de experiência e campos de atuação). Ex.: "O profissional possui 14 anos de experiência em redação e conteúdo, com atuação em estratégia, copy, inbound marketing e construção de jornadas de comunicação."
+2. O que efetivamente fez, com exemplos concretos nomeando empresa/projeto quando informado. Ex.: "Na Huggy, participou da estratégia de comunicação durante uma mudança na tarifação do WhatsApp que poderia gerar impacto relevante na base de clientes."
+3. Resultados, números e evidências que sustentam isso, atribuídos à fonte quando vierem do relato. Ex.: "Segundo as informações apresentadas, diante de uma estimativa de churn de 20%, o índice registrado ficou entre 7% e 8%."
+4. Relação com ESTA vaga e fechamento com os principais pontos de aderência. Ex.: "Os principais pontos de aderência estão na experiência com conteúdo e copy, visão de funil e capacidade de estruturar comunicações considerando diferentes etapas da jornada do cliente."
+
+FONTES: currículo, cadastro e TODA a entrevista/transcrição, além das anotações do recrutador. Cite ferramentas, métricas, tamanho de equipe, orçamento, receita, volume de operação e resultados sempre que essas informações existirem. Destaque somente experiências relevantes para a vaga atual e explique brevemente por que têm relação com a posição.
+
+RESPONDA OBJETIVAMENTE: (1) qual é a experiência relevante; (2) o que fez; (3) quais resultados/números/evidências sustentam; (4) o que dessa experiência tem relação com esta vaga.
+
+EVITAR: excesso de adjetivos, linguagem promocional, genérica ou informal. Proibido usar (nem variações): "consegue fazer", "manda bem", "mexeu com", "super estratégico", "perfil incrível", "excelente profissional", "demonstrou domínio total", "vocabulário impecável", "forte combinação", "trajetória consolidada", "perfil híbrido", "combinação entre", "robusta experiência", "sólida experiência", "ampla expertise", "profissional diferenciado".
+
+Em vez de qualificar, apresente a evidência:
+- Errado: "Possui excelente visão analítica." → Certo: "Apresentou conhecimento de métricas como CAC e conversão e explicou como utiliza esses indicadores no acompanhamento do funil."
+- Errado: "Demonstra domínio total de escrita estratégica." → Certo: "A experiência apresenta relação com a vaga pela atuação em escrita, construção de mensagens e comunicação em diferentes etapas da jornada do cliente."
+
+NUNCA invente informação para deixar o parecer mais completo. Se algo relevante não estiver informado, registre objetivamente que precisa ser validado.
 
 
 Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
