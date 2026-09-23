@@ -608,7 +608,16 @@ Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
 ===== REGRAS DO "job_specific_summary" (RESUMO DO CANDIDATO) =====
 NÃO é um resumo do currículo nem da trajetória em ordem cronológica. É uma análise executiva e estratégica que mostra por que a experiência REAL desta pessoa é relevante para ESTA vaga.
 
-Formato: 4 a 6 frases corridas (1 parágrafo, ou 2 curtos). Sem bullets, sem títulos.
+Formato: 5 a 7 frases corridas (1 ou 2 parágrafos). Sem bullets, sem títulos. Registro executivo, 3ª pessoa, factual.
+
+ESTRUTURA OBRIGATÓRIA do texto (em sequência, sem rótulos visíveis):
+1. Enquadramento: senioridade, escopo atual e por que a trajetória conversa com o desafio DESTA vaga (setores/mercados e porte da operação, quando informados).
+2. Escopo e método: o que a pessoa efetivamente conduziu — estrutura sob responsabilidade (headcount, times diretos/indiretos), orçamento/verba/receita, processos, rituais, sistemas de gestão e indicadores acompanhados.
+3. Resultados com dados: números, percentuais, valores, prazos e metas atingidas. Se houver métrica, ela precisa aparecer no texto.
+4. Aderência aos requisitos críticos da vaga: quais must-have e competências avaliadas ficam sustentados por evidência concreta.
+5. Fechamento objetivo: o ponto de maior aderência e, se aplicável, o que ainda precisa ser validado — sem recomendação nem elogio.
+
+Pelo menos uma frase precisa conter dado quantitativo sempre que o material tiver qualquer número (equipe, orçamento, receita, %, volume, prazo, carteira, metas). Nunca escreva "resultados relevantes" ou "equipe grande" no lugar do dado real.
 
 Priorize, nesta ordem de importância, quando houver evidência:
 - experiências mais relacionadas à posição em avaliação;
