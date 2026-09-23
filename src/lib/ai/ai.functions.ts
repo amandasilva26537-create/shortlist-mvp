@@ -316,7 +316,7 @@ ${data.instruction ? `Instrução adicional do recrutador: ${data.instruction}` 
 Retorne um objeto JSON com EXATAMENTE estas chaves:
 {
   "basic_info": { "full_name": string, "current_position": string, "current_company": string, "area": string, "city": string, "state": string, "country": string, "work_model": string, "age": number|null, "salary_expectation": number|null, "linkedin_url": string, "email": string, "phone": string },
-  "headline": string,
+  "headline": string,                               // FORMATO OBRIGATÓRIO: no máximo 4 palavras-chave separadas por " | " (ex.: "Marketing Digital | Lançamentos | Projetos | Operações"). NUNCA frases, NUNCA verbos, NUNCA adjetivos ("sólida experiência", "profissional com..."), NUNCA ponto final.
   "mini_bio": string,
   "full_bio": string,
   "executive_summary": string[],
