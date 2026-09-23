@@ -198,7 +198,6 @@ function ExperienceEditor({
   const [saving, setSaving] = useState(false);
   const set = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
 
-  const preview = experienceDuration({ start: form.start, end: form.end, current: form.current });
 
   const submit = async () => {
     setSaving(true);
