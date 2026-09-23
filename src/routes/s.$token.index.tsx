@@ -191,12 +191,9 @@ function Portal() {
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[68fr_32fr]">
-            <div className="min-w-0 space-y-4">
+            <div className="min-w-0 space-y-3">
               {/* 2. Navegação entre candidatos */}
-              <nav
-                aria-label="Navegação entre candidatos"
-                className="rounded-2xl border border-border bg-card p-3 shadow-sm"
-              >
+              <nav aria-label="Navegação entre candidatos" className="py-1">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                   <div className="min-w-0 text-sm text-muted-foreground">
                     Candidato <b className="text-foreground">{safeIdx + 1}</b> de{" "}
@@ -222,18 +219,6 @@ function Portal() {
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  {ordered.map((o: any, i: number) => (
-                    <button
-                      key={o.candidate_id}
-                      onClick={() => goto(i)}
-                      aria-label={`Ir para candidato ${i + 1}`}
-                      className={`h-1.5 rounded-full transition-all ${
-                        i === safeIdx ? "w-8 bg-primary" : "w-2 bg-border hover:bg-primary/40"
-                      }`}
-                    />
-                  ))}
                 </div>
               </nav>
 

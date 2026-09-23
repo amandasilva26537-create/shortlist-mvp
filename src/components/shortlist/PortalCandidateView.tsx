@@ -25,11 +25,10 @@ export function PortalCandidateView({
   jobId,
   shortlistId,
 }: Props) {
-  const [section, setSection] = useState<CandidateSection | null>(null);
+  const [section, setSection] = useState<CandidateSection | null>("analysis");
 
   return (
-    <div className="space-y-4">
-      {/* Mesmo quadro compacto usado pelo recrutador (somente leitura para o cliente) */}
+    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
       <CandidateFlashcard
         candidate={c}
         evaluation={ev}
@@ -37,18 +36,14 @@ export function PortalCandidateView({
         jobId={jobId}
         shortlistId={shortlistId}
       />
-
-
-      {/* Menu com os botões */}
       <CandidateSectionMenu
         value={section}
         onChange={setSection}
         hasTestResults={testResults.length > 0}
       />
 
-      {/* Conteúdo selecionado (um por vez, na mesma tela) */}
       {section === "analysis" && (
-        <div className="rounded-2xl border border-border bg-card p-4 md:p-5">
+        <div className="p-4 md:p-5">
           <AnalysisContent
             candidate={c}
             jobId={jobId}
@@ -59,21 +54,14 @@ export function PortalCandidateView({
         </div>
       )}
 
-      {section === "profile" && <ProfessionalProfileView candidate={c} />}
+      {section === "profile" && <div className="p-4 md:p-5"><ProfessionalProfileView candidate={c} /></div>}
 
-      {section === "behavior" && <DiscSection candidate={c} readOnly />}
+      {section === "behavior" && <div className="p-4 md:p-5"><DiscSection candidate={c} readOnly /></div>}
 
       {section === "test_results" && (
-        <div className="rounded-2xl border border-border bg-card p-4 md:p-5">
+        <div className="p-4 md:p-5">
           <TestResultsSection items={testResults} />
         </div>
-      )}
-
-      {!section && (
-        <p className="rounded-2xl border border-dashed border-border bg-card p-5 text-center text-sm text-muted-foreground">
-          Escolha uma das opções acima para ver a análise, o perfil completo ou o perfil
-          comportamental.
-        </p>
       )}
     </div>
   );

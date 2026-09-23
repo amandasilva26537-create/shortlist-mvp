@@ -1,17 +1,16 @@
-import { FileText, User, Brain, ClipboardList } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export type CandidateSection = "analysis" | "profile" | "behavior" | "test_results";
 
-const BASE_ITEMS: { key: CandidateSection; label: string; icon: any }[] = [
-  { key: "analysis", label: "Análise para esta vaga", icon: FileText },
-  { key: "profile", label: "Ver perfil completo", icon: User },
-  { key: "behavior", label: "Ver perfil comportamental", icon: Brain },
+const BASE_ITEMS: { key: CandidateSection; label: string }[] = [
+  { key: "analysis", label: "Análise para esta vaga" },
+  { key: "profile", label: "Perfil completo" },
+  { key: "behavior", label: "Perfil comportamental" },
 ];
 
 const TEST_RESULTS_ITEM = {
   key: "test_results" as const,
   label: "Testes e avaliações",
-  icon: ClipboardList,
 };
 
 /** Menu de botões que alterna o conteúdo detalhado do candidato na mesma tela.
@@ -29,25 +28,25 @@ export function CandidateSectionMenu({
   return (
     <nav
       aria-label="Seções do candidato"
-      className={`grid grid-cols-1 gap-2 rounded-2xl border border-border bg-card p-3 shadow-sm ${items.length === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}
+      className="flex min-h-12 items-end gap-6 overflow-x-auto border-y border-border bg-card px-5"
     >
-      {items.map(({ key, label, icon: Icon }) => {
+      {items.map(({ key, label }) => {
         const active = value === key;
         return (
-          <button
+          <Button
             key={key}
             type="button"
+            variant="ghost"
             aria-pressed={active}
-            onClick={() => onChange(active ? null : key)}
-            className={`flex min-w-0 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${
+            onClick={() => onChange(key)}
+            className={`h-12 shrink-0 rounded-none border-x-0 border-t-0 border-b-2 px-1 text-sm font-medium shadow-none hover:bg-transparent ${
               active
-                ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                : "border-border bg-secondary text-secondary-foreground hover:border-primary"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Icon className="h-4 w-4 shrink-0" />
-            <span className="min-w-0 leading-tight">{label}</span>
-          </button>
+            {label}
+          </Button>
         );
       })}
     </nav>

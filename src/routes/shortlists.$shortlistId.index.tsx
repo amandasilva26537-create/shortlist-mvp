@@ -125,7 +125,7 @@ function ShortlistDetail() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
             <div className="text-[11px] uppercase tracking-widest text-primary">Shortlist #{data.number}</div>
