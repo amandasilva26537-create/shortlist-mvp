@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, Pencil, Save } from "lucide-react";
-import { experienceDuration, experiencePeriod, isCurrentExperience } from "@/lib/experience";
+import { experiencePeriod, isCurrentExperience } from "@/lib/experience";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { updateCandidateExperience } from "@/lib/db/candidates.functions";
@@ -106,7 +106,6 @@ export function ExperienceItem({
     ? []
     : [exp.segment, exp.location, exp.work_model].map(cleanValue).filter(Boolean);
   const period = experiencePeriod(exp);
-  const duration = experienceDuration(exp);
 
   if (editing) {
     return (
@@ -135,10 +134,7 @@ export function ExperienceItem({
             {meta.length > 0 && <div className="text-xs text-muted-foreground">{meta.join(" · ")}</div>}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs text-muted-foreground">
-              {period}
-              {duration ? ` (${duration})` : ""}
-            </span>
+            <span className="text-xs text-muted-foreground">{period}</span>
             <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
           </div>
         </button>
@@ -202,7 +198,6 @@ function ExperienceEditor({
   const [saving, setSaving] = useState(false);
   const set = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
 
-  const preview = experienceDuration({ start: form.start, end: form.end, current: form.current });
 
   const submit = async () => {
     setSaving(true);
@@ -257,7 +252,6 @@ function ExperienceEditor({
         />
         Emprego atual
       </label>
-      {preview && <div className="text-xs text-muted-foreground">Tempo nesta empresa: {preview}</div>}
       <Field label="Descrição / escopo">
         <Textarea rows={3} value={form.scope} onChange={(e) => set("scope", e.target.value)} />
       </Field>

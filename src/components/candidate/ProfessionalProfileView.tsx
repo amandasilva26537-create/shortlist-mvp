@@ -16,6 +16,15 @@ const EDU_FIELDS = ["course", "institution", "start", "end", "status"];
 const COURSE_FIELDS = ["name", "institution", "year", "workload"];
 const LANG_FIELDS = ["language", "level"];
 
+/** Mantém apenas experiências de 2020 em diante (empregos atuais sempre entram). */
+function isFrom2020(exp: any): boolean {
+  const text = `${exp?.start ?? ""} ${exp?.end ?? ""}`;
+  if (exp?.current === true || /atual|present/i.test(text)) return true;
+  const years = text.match(/\b(19|20)\d{2}\b/g);
+  if (!years || years.length === 0) return true;
+  return Math.max(...years.map(Number)) >= 2020;
+}
+
 /** Informações profissionais do candidato (sem DISC), reutilizadas pelo recrutador e pelo cliente. */
 export function ProfessionalProfileView({ candidate: c, editable }: { candidate: any; editable?: boolean }) {
   const comp = c.competencies && typeof c.competencies === "object" ? c.competencies : {};
@@ -67,22 +76,14 @@ export function ProfessionalProfileView({ candidate: c, editable }: { candidate:
     </EditableBlock>
   );
 
+  const experiences: { exp: any; index: number }[] = (Array.isArray(c.trajectory) ? c.trajectory : [])
+    .map((exp: any, index: number) => ({ exp, index }))
+    .filter(({ exp }: any) => isFrom2020(exp));
+
   return (
     <div className="space-y-4">
       <EditableBlock
-        title="Mini bio"
-        editable={editable}
-        isEmpty={!c.mini_bio}
-        toDraft={() => String(c.mini_bio ?? "")}
-        fromDraft={(v) => v.trim()}
-        rows={5}
-        onSave={(v) => patch({ mini_bio: v })}
-      >
-        <Text value={c.mini_bio} />
-      </EditableBlock>
-
-      <EditableBlock
-        title="Resumo executivo do perfil"
+        title="Resumo do candidato"
         editable={editable}
         isEmpty={!c.executive_summary}
         toDraft={() => textOf(c.executive_summary)}
@@ -94,17 +95,17 @@ export function ProfessionalProfileView({ candidate: c, editable }: { candidate:
       </EditableBlock>
 
       <div>
-        <SubHeading>Experiência e Formação</SubHeading>
+        <SubHeading>Experiência</SubHeading>
         <div className="space-y-3">
-          {c.trajectory?.length > 0 ? (
-            c.trajectory.map((t: any, i: number) => (
+          {experiences.length > 0 ? (
+            experiences.map(({ exp, index }) => (
               <ExperienceItem
-                key={i}
-                exp={t}
+                key={index}
+                exp={exp}
                 defaultOpen
                 compact={false}
                 editable={editable}
-                onSave={editable ? (next) => onSaveExperience(i, next) : undefined}
+                onSave={editable ? (next) => onSaveExperience(index, next) : undefined}
               />
             ))
           ) : (
@@ -112,7 +113,12 @@ export function ProfessionalProfileView({ candidate: c, editable }: { candidate:
               <Empty />
             </Card>
           )}
+        </div>
+      </div>
 
+      <div>
+        <SubHeading>Formação Acadêmica</SubHeading>
+        <div className="space-y-3">
           <EditableBlock
             title="Formação acadêmica"
             editable={editable}
@@ -151,27 +157,29 @@ export function ProfessionalProfileView({ candidate: c, editable }: { candidate:
       </div>
 
       <div>
+        <SubHeading>Idiomas</SubHeading>
+        <EditableBlock
+          title="Idiomas"
+          editable={editable}
+          isEmpty={!(c.languages?.length > 0)}
+          toDraft={() => objectsToLines(c.languages, LANG_FIELDS)}
+          fromDraft={(v) => linesToObjects(v, LANG_FIELDS)}
+          hint="Um idioma por linha: idioma | nível (Básico, Intermediário, Avançado, Nativo)"
+          onSave={(items) => patch({ languages: items })}
+        >
+          <LanguageList items={c.languages ?? []} />
+        </EditableBlock>
+      </div>
+
+      <div>
         <SubHeading>Competências</SubHeading>
         <div className="grid gap-4 md:grid-cols-2">
-          {compBlock("technical", "Conhecimentos complementares")}
+          {compBlock("tools", "Ferramentas, sistemas e plataformas")}
           {compBlock("hard_skills", "Habilidades técnicas")}
-          {compBlock("tools", "Ferramentas")}
           {compBlock("soft_skills", "Habilidades comportamentais")}
-          {compBlock("leadership", "Habilidades de liderança")}
-
-          <EditableBlock
-            title="Idiomas"
-            editable={editable}
-            isEmpty={!(c.languages?.length > 0)}
-            toDraft={() => objectsToLines(c.languages, LANG_FIELDS)}
-            fromDraft={(v) => linesToObjects(v, LANG_FIELDS)}
-            hint="Um idioma por linha: idioma | nível (Básico, Intermediário, Avançado, Nativo)"
-            onSave={(items) => patch({ languages: items })}
-          >
-            <LanguageList items={c.languages ?? []} />
-          </EditableBlock>
         </div>
       </div>
+
 
       {docs.length > 0 && (
         <div>
