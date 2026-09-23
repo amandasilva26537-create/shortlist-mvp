@@ -442,7 +442,10 @@ function CaseField({
 }
 
 function ChecklistRow({ item }: { item: any }) {
-  const cfg: Record<string, { icon: any; bg: string; text: string; label: string }> = {
+  const cfg: Record<
+    string,
+    { icon: any; glyph?: string; bg: string; text: string; label: string }
+  > = {
     yes: {
       icon: Check,
       bg: "bg-[color:var(--success)]/10",
@@ -450,7 +453,8 @@ function ChecklistRow({ item }: { item: any }) {
       label: "Atende",
     },
     partial: {
-      icon: Minus,
+      icon: null,
+      glyph: "◐",
       bg: "bg-[color:var(--warning)]/15",
       text: "text-[color:var(--warning)]",
       label: "Parcial",
@@ -466,17 +470,23 @@ function ChecklistRow({ item }: { item: any }) {
   const s = cfg[item.status] ?? cfg.unknown;
   const Icon = s.icon;
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-3">
+    <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3.5 shadow-sm">
       <div className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${s.bg} ${s.text}`}>
-        <Icon className="h-4 w-4" strokeWidth={2.5} />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium">{item.criterion}</div>
-        {item.evidence && (
-          <div className="mt-0.5 text-xs text-muted-foreground">{item.evidence}</div>
+        {Icon ? (
+          <Icon className="h-4 w-4" strokeWidth={2.5} />
+        ) : (
+          <span className="text-[13px] leading-none">{s.glyph}</span>
         )}
       </div>
-      <span className={`shrink-0 text-xs font-semibold ${s.text}`}>{s.label}</span>
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] font-semibold">{item.criterion}</div>
+        {item.evidence && (
+          <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{item.evidence}</div>
+        )}
+      </div>
+      <span className={`shrink-0 text-[11px] font-semibold uppercase tracking-wide ${s.text}`}>
+        {s.label}
+      </span>
     </div>
   );
 }
