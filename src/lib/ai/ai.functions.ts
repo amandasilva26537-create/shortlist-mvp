@@ -3,7 +3,7 @@ import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-
 import { generateText } from "ai";
 import { z } from "zod";
 import { AI_MODEL, createLovableAiGateway, requireApiKey } from "./gateway.server";
-import { SHORTLIST_WRITING_STYLE, EXECUTIVE_WRITING_STYLE, genderInstruction } from "./writing-style";
+import { SHORTLIST_WRITING_STYLE, EXECUTIVE_WRITING_STYLE, SUMMARY_PROMPT_VERSION, genderInstruction } from "./writing-style";
 
 const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
@@ -737,6 +737,7 @@ Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
       dimension_scores: output.dimension_scores ?? {},
       radar_scores: output.radar_scores ?? {},
       ai_generated: output,
+      prompt_version: SUMMARY_PROMPT_VERSION,
       shortlist_id: data.shortlist_id ?? null,
     };
 
