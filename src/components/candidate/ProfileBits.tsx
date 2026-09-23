@@ -252,7 +252,6 @@ function ExperienceEditor({
         />
         Emprego atual
       </label>
-      {preview && <div className="text-xs text-muted-foreground">Tempo nesta empresa: {preview}</div>}
       <Field label="Descrição / escopo">
         <Textarea rows={3} value={form.scope} onChange={(e) => set("scope", e.target.value)} />
       </Field>
