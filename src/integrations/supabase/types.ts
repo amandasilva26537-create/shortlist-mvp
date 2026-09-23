@@ -96,6 +96,7 @@ export type Database = {
           interview_questions: string[] | null
           job_headline: string | null
           job_id: string
+          prompt_version: number
           job_specific_summary: string | null
           key_differentiator: string | null
           main_case: Json | null
@@ -126,6 +127,7 @@ export type Database = {
           interview_questions?: string[] | null
           job_headline?: string | null
           job_id: string
+          prompt_version?: number
           job_specific_summary?: string | null
           key_differentiator?: string | null
           main_case?: Json | null
@@ -156,6 +158,7 @@ export type Database = {
           interview_questions?: string[] | null
           job_headline?: string | null
           job_id?: string
+          prompt_version?: number
           job_specific_summary?: string | null
           key_differentiator?: string | null
           main_case?: Json | null
