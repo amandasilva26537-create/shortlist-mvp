@@ -793,7 +793,7 @@ export const generateDiscResult = createServerFn({ method: "POST" })
     if (data.job_id) {
       const { data: job } = await context.supabase
         .from("jobs")
-        .select("title, seniority, area, description, responsibilities, requirements, behavioral_profile")
+        .select("title, seniority, area, description, must_have, nice_to_have, hard_skills, soft_skills")
         .eq("id", data.job_id)
         .maybeSingle();
       const j: any = job;
@@ -801,9 +801,10 @@ export const generateDiscResult = createServerFn({ method: "POST" })
         jobContext = `\nVAGA DESTA SHORTLIST (use para relacionar o resultado):
 Cargo: ${j.title ?? ""} ${j.seniority ?? ""} ${j.area ?? ""}
 Descrição: ${j.description ?? ""}
-Responsabilidades: ${Array.isArray(j.responsibilities) ? j.responsibilities.join("; ") : (j.responsibilities ?? "")}
-Requisitos: ${Array.isArray(j.requirements) ? j.requirements.join("; ") : (j.requirements ?? "")}
-Perfil comportamental desejado: ${j.behavioral_profile ?? ""}\n`;
+Requisitos obrigatórios: ${(j.must_have ?? []).join("; ")}
+Desejáveis: ${(j.nice_to_have ?? []).join("; ")}
+Hard skills: ${(j.hard_skills ?? []).join("; ")}
+Soft skills / comportamental desejado: ${(j.soft_skills ?? []).join("; ")}\n`;
       }
     }
 
