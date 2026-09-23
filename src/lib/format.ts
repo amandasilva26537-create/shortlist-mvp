@@ -58,3 +58,32 @@ export function availabilityLabel(raw: any): string | null {
   if (n) return `${n[1]} dias`;
   return s.length > 28 ? s.slice(0, 28) + "…" : s;
 }
+
+/**
+ * Garante o padrão de headline em palavras-chave: até 4 blocos separados por " | ".
+ * Se o texto vier como frase (padrão antigo), extrai as palavras-chave.
+ */
+export function keywordHeadline(raw?: string | null): string | null {
+  if (!raw) return null;
+  let t = String(raw).trim().replace(/\.$/, "");
+  if (!t) return null;
+  if (!t.includes("|")) {
+    t = t.replace(/^[^,|]*?\b(?:com|em)\s+(?:sólida\s+)?(?:experiência|vivência|atuação)\s+(?:em|com)\s+/i, "");
+    t = t.replace(/\b(?:profissional|especialista|estrategista|gestor|gestora|analista|coordenador|coordenadora)\s+(?:de|em)\s+/gi, "");
+  }
+  const parts = t
+    .split(/\s*\|\s*|\s*,\s*|\s+e\s+/i)
+    .map((p) => p.trim().replace(/^[-–]\s*/, ""))
+    .filter(Boolean)
+    .map((p) => p.split(/\s+/).slice(0, 2).join(" "));
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const p of parts) {
+    const k = p.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(p);
+    if (out.length === 4) break;
+  }
+  return out.join(" | ") || null;
+}
