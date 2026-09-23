@@ -23,7 +23,7 @@ function publicClient(shareToken: string) {
 // Colunas do candidato liberadas para a visão do cliente (sem e-mail, telefone,
 // notas internas ou inconsistências).
 const CLIENT_SAFE_CANDIDATE_COLUMNS =
-  "id, full_name, photo_url, headline, current_position, current_company, area, seniority, city, state, country, work_model, linkedin_url, mini_bio, full_bio, executive_summary, specialties, main_results, achievements, main_case, strengths, work_style, professional_moment, motivators, trajectory, education, courses, languages, competencies, additional_info, gender, disc_profile, disc_scores, salary_expectation, salary_min, salary_max, status";
+  "id, full_name, photo_url, headline, current_position, current_company, area, seniority, city, state, country, age, work_model, linkedin_url, mini_bio, full_bio, executive_summary, specialties, main_results, achievements, main_case, strengths, work_style, professional_moment, motivators, trajectory, education, courses, languages, competencies, additional_info, gender, disc_profile, disc_scores, salary_expectation, salary_min, salary_max, status";
 
 export const getPortalShortlist = createServerFn({ method: "GET" })
   .inputValidator((v: unknown) => z.object({ token: z.string().min(16) }).parse(v))
@@ -42,7 +42,7 @@ export const getPortalShortlist = createServerFn({ method: "GET" })
       supabaseAdmin
         .from("shortlist_candidates")
         .select(
-          "shortlist_id, candidate_id, position, reviewed, status, visible_documents, candidates(id, full_name, photo_url, current_position, city, work_model, linkedin_url, disc_profile, disc_scores, salary_expectation, salary_min, salary_max)",
+          "shortlist_id, candidate_id, position, reviewed, status, visible_documents, candidates(id, full_name, photo_url, headline, current_position, city, state, age, work_model, linkedin_url, disc_profile, disc_scores, professional_moment, salary_expectation, salary_min, salary_max)",
         )
         .eq("shortlist_id", sl.id)
         .order("position"),

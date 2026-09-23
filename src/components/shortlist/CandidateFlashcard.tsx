@@ -28,7 +28,12 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
   const c = candidate;
   const ev = evaluation;
   const salary = salaryLabel(c);
-  const availability = availabilityLabel(c.professional_moment?.availability);
+  const cityLabel =
+    c.city && c.state && !String(c.city).toLowerCase().includes(String(c.state).toLowerCase())
+      ? `${c.city} - ${c.state}`
+      : c.city || c.state || null;
+  const pm = c.professional_moment && typeof c.professional_moment === "object" ? c.professional_moment : {};
+  const availability = availabilityLabel(pm.availability ?? c.availability);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
   const editable = !readOnly;
 
@@ -181,17 +186,17 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
             </div>
 
             <div className="min-w-0 flex-1">
-              <h2 className="truncate text-xl font-semibold tracking-tight md:text-2xl">
+              <h2 className="text-xl font-semibold tracking-tight md:text-2xl">
                 {c.full_name}
               </h2>
               {(ev?.job_headline || c.headline) && (
-                <p className="mt-1 line-clamp-1 text-[13px] font-medium tracking-wide text-primary">
+                <p className="mt-1 text-[13px] font-medium tracking-wide text-primary">
                   {ev?.job_headline || c.headline}
                 </p>
               )}
 
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                <Stat icon={MapPin} label="Cidade" value={c.city || "Não informado"} />
+                <Stat icon={MapPin} label="Cidade" value={cityLabel || "Não informado"} />
                 <Stat icon={User} label="Idade" value={c.age ? `${c.age} anos` : "Não informado"} />
                 <Stat icon={DollarSign} label="Pretensão" value={salary || "Não informado"} />
                 <Stat
@@ -200,6 +205,7 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
                   value={availability || "Não informado"}
                 />
               </div>
+
 
               {!ev && (
                 <div className="mt-3 text-xs text-muted-foreground">
@@ -244,7 +250,7 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
         <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
           {label}
         </div>
-        <div className="truncate text-xs font-semibold text-foreground">{value}</div>
+        <div className="break-words text-xs font-semibold leading-snug text-foreground">{value}</div>
       </div>
     </div>
   );
