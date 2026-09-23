@@ -161,9 +161,10 @@ function EditableBlock({
 interface DiscSectionProps {
   candidate: any;
   readOnly?: boolean;
+  jobId?: string;
 }
 
-export function DiscSection({ candidate, readOnly = false }: DiscSectionProps) {
+export function DiscSection({ candidate, readOnly = false, jobId }: DiscSectionProps) {
   const qc = useQueryClient();
   const genFn = useServerFn(generateDiscResult);
   const saveFn = useServerFn(updateCandidateDisc);
