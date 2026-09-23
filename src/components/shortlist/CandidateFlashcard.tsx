@@ -53,6 +53,7 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
       salary_expectation: c.salary_expectation != null ? String(c.salary_expectation) : "",
       availability: c.professional_moment?.availability ?? "",
       key_differentiator: ev?.key_differentiator ?? "",
+      job_headline: ev?.job_headline ?? "",
     });
     setEditing(true);
   };
@@ -88,6 +89,7 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
             job_id: jobId,
             ...(shortlistId ? { shortlist_id: shortlistId } : {}),
             key_differentiator: form.key_differentiator || null,
+            job_headline: form.job_headline || null,
           },
         });
       }
@@ -143,7 +145,12 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
               <Field label="Pretensão máxima (R$)"><Input value={form.salary_max} onChange={set("salary_max")} inputMode="numeric" /></Field>
               <Field label="Pretensão (valor único, R$)"><Input value={form.salary_expectation} onChange={set("salary_expectation")} inputMode="numeric" /></Field>
             </div>
-            <Field label="Headline / posicionamento">
+            {jobId && (
+              <Field label="Headline para esta vaga (aparece na shortlist)">
+                <Textarea rows={2} value={form.job_headline} onChange={set("job_headline")} />
+              </Field>
+            )}
+            <Field label="Headline geral do candidato (cadastro)">
               <Textarea rows={2} value={form.headline} onChange={set("headline")} />
             </Field>
             {jobId && (
@@ -179,8 +186,8 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h2 className="text-2xl font-semibold tracking-tight">{c.full_name}</h2>
-                  {c.headline && (
-                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{c.headline}</p>
+                  {(ev?.job_headline || c.headline) && (
+                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{ev?.job_headline || c.headline}</p>
                   )}
                 </div>
                 {c.disc_profile && <Badge variant="secondary" className="text-xs">DISC {c.disc_profile}</Badge>}

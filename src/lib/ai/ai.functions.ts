@@ -589,7 +589,8 @@ Notas internas: ${cAny.internal_notes ?? ""}
 Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
 {
   "overall_match": number,                          // 0..100, honesto, sem piso
-  "key_differentiator": string,                     // 1 frase objetiva
+  "job_headline": string,                           // HEADLINE ORIENTADA À VAGA — ver regras detalhadas abaixo
+  "key_differentiator": string,                     // 1 frase objetiva, ligada ao escopo DESTA vaga
   "job_specific_summary": string,                   // RESUMO DO CANDIDATO PARA ESTA VAGA — ver regras detalhadas abaixo
   "recruiter_opinion": string,                      // PARECER DO RECRUTADOR — ver regras detalhadas abaixo
   "main_case": { "context": string, "challenge": string, "action": string, "result": string, "relation_to_job": string },
@@ -604,6 +605,30 @@ Retorne APENAS um objeto JSON válido com EXATAMENTE estas chaves:
   },
   "radar_scores": { "<nome da competência da vaga>": number }
 }
+
+===== REGRA CENTRAL: A VAGA DEFINE O POSICIONAMENTO, A TRAJETÓRIA FORNECE AS EVIDÊNCIAS =====
+Toda a apresentação do candidato é construída especificamente para ESTA vaga. Vale para "job_headline", "job_specific_summary", "recruiter_opinion", "top_strengths", "main_case", "key_differentiator", "radar_scores" e qualquer texto de aderência.
+
+Antes de escrever cada campo, pergunte internamente: "Esta informação ajuda o cliente a entender a aderência deste candidato especificamente para ESTA vaga?" Se não ajudar, não recebe destaque.
+
+- Não posicione o candidato pela área em que trabalhou historicamente quando essa área não for o escopo da vaga atual. A trajetória anterior entra como EVIDÊNCIA, nunca como posicionamento.
+- Varra TODO o currículo e TODA a entrevista buscando evidências ligadas ao escopo da vaga: estratégia da área, liderança, gestão de equipe, planejamento, orçamento, aquisição e crescimento, funil, indicadores, receita, integração com áreas correlatas (ex.: Comercial), gestão de projetos, processos, tomada de decisão e responsabilidade por resultados.
+- Experiências de outras áreas aparecem apenas quando comprovam uma competência relevante para a vaga.
+- Não esconda a trajetória: organize e priorize. O que não conversa com a vaga fica em segundo plano ou fora.
+- NUNCA atribua cargo, senioridade, escopo ou especialidade que a pessoa não tem para aproximá-la da vaga. Se as evidências do escopo da vaga não existirem, não invente e não sugira por analogia — registre objetivamente o que precisa ser validado.
+
+===== REGRAS DO "job_headline" (HEADLINE PARA ESTA VAGA) =====
+Uma linha curta (máx. ~90 caracteres), orientada à vaga, no formato "Área/Posicionamento | eixos de atuação".
+
+NÃO copie cargo atual, último cargo, título do LinkedIn nem a profissão histórica predominante.
+
+Antes de gerar, considere: (1) qual é a vaga da shortlist; (2) quais experiências reais sustentam a candidatura para ela; (3) qual posicionamento representa melhor a aderência à oportunidade.
+
+Exemplo — vaga de Head de Marketing, candidato com histórico concentrado em tráfego pago, mas com evidências reais de atuação ampla em marketing, liderança, estratégia e funil:
+- Errado: "Especialista em Tráfego Pago | Performance & Mídia"
+- Certo: "Marketing | Estratégia, Growth e Gestão de Aquisição"
+Se as evidências de escopo ampliado NÃO existirem, mantenha a headline fiel ao que a pessoa realmente fez — sem inflar.
+
 
 ===== REGRAS DO "job_specific_summary" (RESUMO DO CANDIDATO) =====
 NÃO é um resumo do currículo nem da trajetória em ordem cronológica. É uma análise executiva e estratégica que mostra por que a experiência REAL desta pessoa é relevante para ESTA vaga.
@@ -700,6 +725,7 @@ Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
     // Persistir
     const patch: any = {
       overall_match: typeof output.overall_match === "number" ? Math.round(output.overall_match) : null,
+      job_headline: output.job_headline ?? null,
       key_differentiator: output.key_differentiator ?? null,
       job_specific_summary: output.job_specific_summary ?? null,
       recruiter_opinion: output.recruiter_opinion ?? null,

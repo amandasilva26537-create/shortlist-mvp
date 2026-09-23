@@ -61,7 +61,9 @@ export function PortalCandidateView({
               <h2 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">
                 {c.full_name}
               </h2>
-              {c.headline && <p className="mt-1 text-sm text-muted-foreground">{c.headline}</p>}
+              {(ev?.job_headline || c.headline) && (
+                <p className="mt-1 text-sm text-muted-foreground">{ev?.job_headline || c.headline}</p>
+              )}
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 {c.current_position && <Chip icon={Briefcase}>{c.current_position}</Chip>}
                 {c.city && <Chip icon={MapPin}>{c.city}</Chip>}

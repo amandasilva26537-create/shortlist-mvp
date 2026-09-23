@@ -1,0 +1,1 @@
+ALTER TABLE public.candidate_job_evaluations ADD COLUMN IF NOT EXISTS job_headline text;

@@ -260,6 +260,7 @@ const EvaluationPatch = z.object({
   candidate_id: z.string().uuid(),
   job_id: z.string().uuid(),
   shortlist_id: z.string().uuid().optional(),
+  job_headline: z.string().nullable().optional(),
   job_specific_summary: z.string().nullable().optional(),
   recruiter_opinion: z.string().nullable().optional(),
   motivational_factor: z.string().nullable().optional(),

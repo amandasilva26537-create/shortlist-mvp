@@ -94,6 +94,7 @@ export type Database = {
           id: string
           inconsistencies: string[] | null
           interview_questions: string[] | null
+          job_headline: string | null
           job_id: string
           job_specific_summary: string | null
           key_differentiator: string | null
@@ -122,6 +123,7 @@ export type Database = {
           id?: string
           inconsistencies?: string[] | null
           interview_questions?: string[] | null
+          job_headline?: string | null
           job_id: string
           job_specific_summary?: string | null
           key_differentiator?: string | null
@@ -150,6 +152,7 @@ export type Database = {
           id?: string
           inconsistencies?: string[] | null
           interview_questions?: string[] | null
+          job_headline?: string | null
           job_id?: string
           job_specific_summary?: string | null
           key_differentiator?: string | null
