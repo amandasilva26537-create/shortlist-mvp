@@ -165,30 +165,36 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-center gap-4 md:grid-cols-[84px_minmax(0,1fr)_96px]">
+          <div className="grid grid-cols-[76px_minmax(0,1fr)_auto] items-center gap-4 md:grid-cols-[92px_minmax(0,1fr)_112px] md:gap-6">
             <div>
               {c.photo_url ? (
-                <img src={c.photo_url} alt="" className="h-[72px] w-[72px] rounded-md object-cover md:h-[84px] md:w-[84px]" />
+                <img
+                  src={c.photo_url}
+                  alt=""
+                  className="h-[76px] w-[76px] rounded-xl object-cover ring-1 ring-border md:h-[92px] md:w-[92px]"
+                />
               ) : (
-                <div className="grid h-[72px] w-[72px] place-items-center rounded-md bg-primary-soft text-xl font-semibold text-primary md:h-[84px] md:w-[84px]">
+                <div className="grid h-[76px] w-[76px] place-items-center rounded-xl bg-primary-soft text-2xl font-semibold text-primary ring-1 ring-border md:h-[92px] md:w-[92px]">
                   {initials}
                 </div>
               )}
             </div>
 
             <div className="min-w-0 flex-1">
-              <h2 className="truncate text-lg font-semibold md:text-xl">{c.full_name}</h2>
+              <h2 className="truncate text-xl font-semibold tracking-tight md:text-2xl">
+                {c.full_name}
+              </h2>
               {(ev?.job_headline || c.headline) && (
-                <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">{ev?.job_headline || c.headline}</p>
+                <p className="mt-1 line-clamp-1 text-[13px] font-medium tracking-wide text-primary">
+                  {ev?.job_headline || c.headline}
+                </p>
               )}
 
-              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-                {c.city && <Chip icon={MapPin} label="Cidade" value={c.city} />}
-                {c.age && <Chip icon={User} label="Idade" value={`${c.age} anos`} />}
-                {salary && <Chip icon={DollarSign} label="Pretensão salarial" value={salary} />}
-                {availability && (
-                  <Chip icon={Clock} label="Disponibilidade" value={availability} />
-                )}
+              <div className="mt-3 flex flex-wrap items-stretch gap-2">
+                {c.city && <Stat icon={MapPin} label="Cidade" value={c.city} />}
+                {c.age && <Stat icon={User} label="Idade" value={`${c.age} anos`} />}
+                {salary && <Stat icon={DollarSign} label="Pretensão" value={salary} />}
+                {availability && <Stat icon={Clock} label="Disponibilidade" value={availability} />}
               </div>
 
               {!ev && (
@@ -200,10 +206,12 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
 
             <div className="flex justify-end">
               {match != null ? (
-                <MatchRing value={match} size={82} label="match" />
+                <MatchRing value={match} size={96} label="match" />
               ) : (
-                <div className="grid h-[72px] w-[72px] place-items-center rounded-full border border-dashed border-border text-center text-[10px] text-muted-foreground md:h-[82px] md:w-[82px]">
-                  Match<br />pendente
+                <div className="grid h-[76px] w-[76px] place-items-center rounded-full border border-dashed border-border text-center text-[10px] text-muted-foreground md:h-[96px] md:w-[96px]">
+                  Match
+                  <br />
+                  pendente
                 </div>
               )}
             </div>
@@ -223,12 +231,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Chip({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+/** Indicador compacto: ícone discreto, rótulo pequeno e valor em destaque. */
+function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
-    <div className="flex min-w-0 items-center gap-1.5">
+    <div className="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-muted/30 px-2.5 py-1.5">
       <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-      <span className="sr-only">{label}: </span>
-      <span className="truncate text-xs text-muted-foreground">{value}</span>
+      <div className="min-w-0">
+        <div className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+          {label}
+        </div>
+        <div className="truncate text-xs font-semibold text-foreground">{value}</div>
+      </div>
     </div>
   );
 }

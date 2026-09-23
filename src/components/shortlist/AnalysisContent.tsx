@@ -4,7 +4,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MatchRing } from "@/components/candidate/MatchRing";
-import { Loader2, Save, Plus, Trash2, Check, Minus, X, HelpCircle, RefreshCw, Pencil } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  Plus,
+  Trash2,
+  Check,
+  X,
+  HelpCircle,
+  RefreshCw,
+  Pencil,
+  Gauge,
+  FileText,
+  AlertTriangle,
+  Target,
+  ListChecks,
+  ShieldCheck,
+} from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { upsertEvaluation } from "@/lib/db/shortlists.functions";
@@ -121,7 +137,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
   const candidateSummary = buildCandidateSummary(candidate);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {!readOnly && (
         <div className="flex justify-end print:hidden">
           <Button size="sm" variant="outline" onClick={generate} disabled={busy}>
@@ -148,76 +164,66 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
         </div>
       )}
 
-      {evaluation && (
+      {evaluation && !readOnly && (
         <section>
-          <SectionTitle>1. Compatibilidade</SectionTitle>
-          <div className="rounded-xl border border-border bg-card p-5">
-            <div className="flex flex-wrap items-start gap-6">
-              {match != null ? (
-                <MatchRing value={match} size={112} label="match" />
-              ) : (
-                <div className="grid h-[112px] w-[112px] shrink-0 place-items-center rounded-full border border-dashed border-border text-center text-[11px] text-muted-foreground">
-                  Avaliação
-                  <br />
-                  incompleta
+          <SectionTitle icon={Gauge}>Compatibilidade</SectionTitle>
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="flex flex-col gap-6 md:flex-row md:items-start">
+              <div className="flex shrink-0 flex-col items-center gap-2 md:w-[150px]">
+                {match != null ? (
+                  <MatchRing value={match} size={116} label="match" />
+                ) : (
+                  <div className="grid h-[116px] w-[116px] shrink-0 place-items-center rounded-full border border-dashed border-border text-center text-[11px] text-muted-foreground">
+                    Avaliação
+                    <br />
+                    incompleta
+                  </div>
+                )}
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Match geral
+                </span>
+              </div>
+
+              <div className="min-w-[240px] flex-1 space-y-4">
+                <div className="text-xs text-muted-foreground print:hidden">
+                  {!hasAnyScore
+                    ? "Atribua uma nota de 0 a 10 para cada competência abaixo."
+                    : "As notas vêm sugeridas pela análise. Ajuste o que quiser e salve."}
                 </div>
-              )}
-              {!readOnly && (
-                <div className="flex-1 min-w-[240px] space-y-3">
-                  {!hasAnyScore ? (
-                    <div className="text-xs text-muted-foreground">
-                      Atribua uma nota de 0 a 10 para cada competência abaixo.
-                    </div>
-                  ) : (
-                    <div className="text-xs text-muted-foreground print:hidden">
-                      As notas abaixo vêm sugeridas pela análise. Ajuste o que quiser e clique em
-                      Salvar avaliação.
-                    </div>
+
+                <div className="grid grid-cols-1 gap-x-8 gap-y-4 lg:grid-cols-2">
+                  {Object.entries(DIMENSION_LABELS).map(([k, label]) => (
+                    <ScoreRow
+                      key={k}
+                      label={label}
+                      value={recruiterScores[k]}
+                      onChange={(raw) => setScore(k, raw)}
+                    />
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-end gap-2 border-t border-border pt-3 print:hidden">
+                  {scoresDirty && (
+                    <span className="text-xs text-muted-foreground">Alterações não salvas</span>
                   )}
-
-                  <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-                    {Object.entries(DIMENSION_LABELS).map(([k, label]) => {
-                      const score = recruiterScores[k];
-                      return (
-                        <div key={k} className="flex items-center justify-between gap-3">
-                          <span className="text-sm font-medium text-foreground">{label}</span>
-                          <Input
-                            type="number"
-                            min={0}
-                            max={10}
-                            step={1}
-                            placeholder="–"
-                            value={score ?? ""}
-                            onChange={(e) => setScore(k, e.target.value)}
-                            className="h-8 w-16 text-center print:hidden"
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="flex items-center justify-end gap-2 border-t border-border pt-3 print:hidden">
-                    {scoresDirty && (
-                      <span className="text-xs text-muted-foreground">Alterações não salvas</span>
+                  <Button size="sm" onClick={saveScores} disabled={save.isPending || !scoresDirty}>
+                    {save.isPending ? (
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Save className="mr-1.5 h-3.5 w-3.5" />
                     )}
-                    <Button size="sm" onClick={saveScores} disabled={save.isPending || !scoresDirty}>
-                      {save.isPending ? (
-                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Save className="mr-1.5 h-3.5 w-3.5" />
-                      )}
-                      Salvar avaliação
-                    </Button>
-                  </div>
+                    Salvar avaliação
+                  </Button>
                 </div>
-              )}
-
+              </div>
             </div>
           </div>
         </section>
       )}
 
       <EditableSection
-        title="2. Parecer do recrutador"
+        title="Parecer do recrutador"
+        icon={FileText}
         value={draft.recruiter_opinion}
         onChange={(v) => setDraft({ ...draft, recruiter_opinion: v })}
         onSave={() => persist("recruiter_opinion", draft.recruiter_opinion)}
@@ -227,7 +233,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       />
 
       <section>
-        <SectionTitle>3. Riscos &amp; Trade-offs</SectionTitle>
+        <SectionTitle icon={AlertTriangle}>Riscos &amp; Trade-offs</SectionTitle>
         <RiskEditor
           items={draft.risk_items ?? []}
           onChange={(items) => {
@@ -239,7 +245,8 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       </section>
 
       <EditableSection
-        title="4. Fator motivacional para a vaga"
+        title="Fator motivacional para a vaga"
+        icon={Target}
         value={draft.motivational_factor}
         onChange={(v) => setDraft({ ...draft, motivational_factor: v })}
         onSave={() => persist("motivational_factor", draft.motivational_factor)}
@@ -249,7 +256,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       />
 
       <section>
-        <SectionTitle>5. Critérios eliminatórios</SectionTitle>
+        <SectionTitle icon={ListChecks}>Critérios eliminatórios</SectionTitle>
         <EditableBlock
           title="Critérios avaliados"
           editable={!readOnly}
@@ -259,7 +266,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
           hint="Um critério por linha: critério | situação (yes, partial, no, unknown) | evidência"
           onSave={(items) => persist("eliminatory_checklist", items)}
         >
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
             {(evaluation?.eliminatory_checklist ?? []).map((item: any, i: number) => (
               <ChecklistRow key={i} item={item} />
             ))}
@@ -305,16 +312,72 @@ function initialScores(ev: any): Record<string, number | null> {
 }
 
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function SectionTitle({ children, icon: Icon }: { children: React.ReactNode; icon?: any }) {
   return (
-    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-      {children}
-    </h3>
+    <div className="mb-3 flex items-center gap-2">
+      {Icon && <Icon className="h-3.5 w-3.5 text-primary" strokeWidth={2.25} />}
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        {children}
+      </h3>
+      <div className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
+/** Nota de 0 a 10 com barra de progresso discreta (valores idênticos aos salvos). */
+function ScoreRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number | null | undefined;
+  onChange: (raw: string) => void;
+}) {
+  const v = typeof value === "number" ? Math.max(0, Math.min(10, value)) : null;
+  const color =
+    v == null
+      ? "var(--muted)"
+      : v >= 8.5
+        ? "var(--success)"
+        : v >= 7
+          ? "var(--primary)"
+          : v >= 5
+            ? "var(--warning)"
+            : "var(--destructive)";
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-xs font-medium text-foreground">{label}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold tabular-nums" style={{ color }}>
+            {v ?? "–"}
+          </span>
+          <Input
+            type="number"
+            min={0}
+            max={10}
+            step={1}
+            placeholder="–"
+            value={value ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            className="h-7 w-14 text-center text-xs print:hidden"
+          />
+        </div>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${((v ?? 0) / 10) * 100}%`, background: color }}
+        />
+      </div>
+    </div>
   );
 }
 
 function EditableSection({
   title,
+  icon,
   value,
   onChange,
   onSave,
@@ -323,6 +386,7 @@ function EditableSection({
   rows = 4,
 }: {
   title: string;
+  icon?: any;
   value: string;
   onChange: (v: string) => void;
   onSave: () => void;
@@ -332,9 +396,9 @@ function EditableSection({
 }) {
   return (
     <section>
-      <SectionTitle>{title}</SectionTitle>
+      <SectionTitle icon={icon}>{title}</SectionTitle>
       {readOnly ? (
-        <div className="rounded-xl border border-border bg-card p-4 text-sm whitespace-pre-wrap">
+        <div className="rounded-2xl border border-border bg-card p-5 text-[13px] leading-relaxed whitespace-pre-wrap shadow-sm">
           {value || <span className="text-muted-foreground">—</span>}
         </div>
       ) : (
@@ -377,7 +441,10 @@ function CaseField({
 }
 
 function ChecklistRow({ item }: { item: any }) {
-  const cfg: Record<string, { icon: any; bg: string; text: string; label: string }> = {
+  const cfg: Record<
+    string,
+    { icon: any; glyph?: string; bg: string; text: string; label: string }
+  > = {
     yes: {
       icon: Check,
       bg: "bg-[color:var(--success)]/10",
@@ -385,7 +452,8 @@ function ChecklistRow({ item }: { item: any }) {
       label: "Atende",
     },
     partial: {
-      icon: Minus,
+      icon: null,
+      glyph: "◐",
       bg: "bg-[color:var(--warning)]/15",
       text: "text-[color:var(--warning)]",
       label: "Parcial",
@@ -401,17 +469,23 @@ function ChecklistRow({ item }: { item: any }) {
   const s = cfg[item.status] ?? cfg.unknown;
   const Icon = s.icon;
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-3">
+    <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3.5 shadow-sm">
       <div className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${s.bg} ${s.text}`}>
-        <Icon className="h-4 w-4" strokeWidth={2.5} />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium">{item.criterion}</div>
-        {item.evidence && (
-          <div className="mt-0.5 text-xs text-muted-foreground">{item.evidence}</div>
+        {Icon ? (
+          <Icon className="h-4 w-4" strokeWidth={2.5} />
+        ) : (
+          <span className="text-[13px] leading-none">{s.glyph}</span>
         )}
       </div>
-      <span className={`shrink-0 text-xs font-semibold ${s.text}`}>{s.label}</span>
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] font-semibold">{item.criterion}</div>
+        {item.evidence && (
+          <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{item.evidence}</div>
+        )}
+      </div>
+      <span className={`shrink-0 text-[11px] font-semibold uppercase tracking-wide ${s.text}`}>
+        {s.label}
+      </span>
     </div>
   );
 }
@@ -442,41 +516,60 @@ function RiskEditor({
 
   return (
     <div className="space-y-3">
-      {items.map((it, i) => (
-        <div key={i} className="rounded-xl border border-border bg-card p-4 space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Ponto de atenção
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {items.map((it, i) => (
+          <div
+            key={i}
+            className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+          >
+            <div className="flex items-start gap-3 p-4">
+              <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[color:var(--warning)]/15 text-[color:var(--warning)]">
+                <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2.5} />
+              </div>
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  Ponto de atenção
+                </div>
+                {readOnly ? (
+                  <div className="text-[13px] leading-relaxed">{it.point}</div>
+                ) : (
+                  <Textarea
+                    rows={2}
+                    value={it.point ?? ""}
+                    onChange={(e) => update(i, { point: e.target.value })}
+                  />
+                )}
+              </div>
+              {!readOnly && (
+                <Button variant="ghost" size="sm" onClick={() => remove(i)} className="print:hidden">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
             </div>
-            {!readOnly && (
-              <Button variant="ghost" size="sm" onClick={() => remove(i)} className="print:hidden">
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            )}
+            <div className="flex items-start gap-3 border-t border-border bg-muted/30 p-4">
+              <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[color:var(--success)]/10 text-[color:var(--success)]">
+                <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
+              </div>
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  Mitigação (validada na entrevista)
+                </div>
+                {readOnly ? (
+                  <div className="text-[13px] leading-relaxed text-muted-foreground">
+                    {it.mitigation}
+                  </div>
+                ) : (
+                  <Textarea
+                    rows={3}
+                    value={it.mitigation ?? ""}
+                    onChange={(e) => update(i, { mitigation: e.target.value })}
+                  />
+                )}
+              </div>
+            </div>
           </div>
-          {readOnly ? (
-            <div className="text-sm">{it.point}</div>
-          ) : (
-            <Textarea
-              rows={2}
-              value={it.point ?? ""}
-              onChange={(e) => update(i, { point: e.target.value })}
-            />
-          )}
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-primary mt-2">
-            Mitigação (validada na entrevista)
-          </div>
-          {readOnly ? (
-            <div className="text-sm text-muted-foreground">{it.mitigation}</div>
-          ) : (
-            <Textarea
-              rows={3}
-              value={it.mitigation ?? ""}
-              onChange={(e) => update(i, { mitigation: e.target.value })}
-            />
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
       {!readOnly && (
         <Button variant="outline" size="sm" onClick={add} className="print:hidden">
           <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar risco
