@@ -9,8 +9,8 @@ import {
   CandidateSectionMenu,
   type CandidateSection,
 } from "@/components/shortlist/CandidateSectionMenu";
-import { Briefcase, MapPin, Clock, Linkedin, Star, DollarSign, User } from "lucide-react";
-import { salaryLabel } from "@/lib/format";
+import { MapPin, Clock, Linkedin, DollarSign, User } from "lucide-react";
+import { salaryLabel, availabilityLabel } from "@/lib/format";
 
 interface Props {
   candidate: any;
@@ -31,6 +31,7 @@ export function PortalCandidateView({
   const [section, setSection] = useState<CandidateSection | null>(null);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
   const salary = salaryLabel(c);
+  const availability = availabilityLabel(c.professional_moment?.availability);
 
   const initials = (c.full_name ?? "")
     .split(" ")
