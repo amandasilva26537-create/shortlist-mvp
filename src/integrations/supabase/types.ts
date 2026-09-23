@@ -101,6 +101,7 @@ export type Database = {
           main_case: Json | null
           motivational_factor: string | null
           overall_match: number | null
+          prompt_version: number
           radar: Json | null
           radar_scores: Json | null
           recruiter_opinion: string | null
@@ -130,6 +131,7 @@ export type Database = {
           main_case?: Json | null
           motivational_factor?: string | null
           overall_match?: number | null
+          prompt_version?: number
           radar?: Json | null
           radar_scores?: Json | null
           recruiter_opinion?: string | null
@@ -159,6 +161,7 @@ export type Database = {
           main_case?: Json | null
           motivational_factor?: string | null
           overall_match?: number | null
+          prompt_version?: number
           radar?: Json | null
           radar_scores?: Json | null
           recruiter_opinion?: string | null
