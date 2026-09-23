@@ -195,15 +195,11 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
 
               {/* Chips essenciais */}
               <div className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                {c.current_position && <Chip icon={Briefcase} label="Cargo" value={c.current_position} />}
-                {c.area && <Chip icon={Building2} label="Área" value={c.area} />}
                 {c.city && <Chip icon={MapPin} label="Cidade" value={c.city} />}
-                {c.work_model && <Chip icon={Clock} label="Modelo" value={c.work_model} />}
                 {c.age && <Chip icon={User} label="Idade" value={`${c.age} anos`} />}
                 {salary && <Chip icon={DollarSign} label="Pretensão salarial" value={salary} />}
-
-                {c.professional_moment?.availability && (
-                  <Chip icon={Clock} label="Disponibilidade" value={c.professional_moment.availability} />
+                {availability && (
+                  <Chip icon={Clock} label="Disponibilidade" value={availability} />
                 )}
               </div>
 
