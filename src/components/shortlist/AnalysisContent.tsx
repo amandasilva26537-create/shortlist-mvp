@@ -4,7 +4,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MatchRing } from "@/components/candidate/MatchRing";
-import { Loader2, Save, Plus, Trash2, Check, Minus, X, HelpCircle, RefreshCw, Pencil } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  Plus,
+  Trash2,
+  Check,
+  Minus,
+  X,
+  HelpCircle,
+  RefreshCw,
+  Pencil,
+  Gauge,
+  FileText,
+  AlertTriangle,
+  Target,
+  ListChecks,
+  ShieldCheck,
+} from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { upsertEvaluation } from "@/lib/db/shortlists.functions";
