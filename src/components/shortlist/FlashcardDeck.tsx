@@ -52,8 +52,6 @@ export function FlashcardDeck({
   }, [links, evaluations]);
 
   const [idx, setIdx] = useState(0);
-  const [analysisCandidateId, setAnalysisCandidateId] = useState<string | null>(null);
-
   useEffect(() => {
     if (!initialCandidateId) return;
     const i = ordered.findIndex((l) => l.candidate_id === initialCandidateId);
@@ -112,7 +110,7 @@ export function FlashcardDeck({
     setIdx(safeIdx + 1);
   };
 
-  const [section, setSection] = useState<CandidateSection | null>(null);
+  const [section, setSection] = useState<CandidateSection | null>("analysis");
 
   const testResultsFn = useServerFn(listCandidateTestResults);
   const { data: candidateTestResults } = useQuery({
@@ -122,12 +120,8 @@ export function FlashcardDeck({
   const testResultsForJob = (candidateTestResults ?? []).filter((t: any) => t.job_id === jobId);
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="text-sm text-muted-foreground">
-          Candidato <b className="text-foreground">{safeIdx + 1}</b> de{" "}
-          <b className="text-foreground">{ordered.length}</b>
-        </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-end gap-3">
         <div className="flex items-center gap-1">
           {!readOnly && onReorder && (
             <>
@@ -155,6 +149,10 @@ export function FlashcardDeck({
           <Button variant="outline" size="sm" onClick={prev} disabled={safeIdx === 0}>
             <ChevronLeft className="mr-1 h-4 w-4" /> Anterior
           </Button>
+          <div className="min-w-28 text-center text-xs text-muted-foreground">
+            Candidato <b className="text-foreground">{safeIdx + 1}</b> de{" "}
+            <b className="text-foreground">{ordered.length}</b>
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -166,24 +164,7 @@ export function FlashcardDeck({
         </div>
       </div>
 
-      <div className="relative">
-        <button
-          onClick={prev}
-          disabled={safeIdx === 0}
-          className="hidden lg:grid absolute -left-14 top-1/2 -translate-y-1/2 h-12 w-12 place-items-center rounded-full border border-border bg-card shadow-sm transition hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-          aria-label="Anterior"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <button
-          onClick={next}
-          disabled={safeIdx === ordered.length - 1}
-          className="hidden lg:grid absolute -right-14 top-1/2 -translate-y-1/2 h-12 w-12 place-items-center rounded-full border border-border bg-card shadow-sm transition hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-          aria-label="Próximo"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
-
+      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
         <AnimatePresence mode="wait">
           <motion.div
             key={current.candidate_id}
@@ -203,24 +184,10 @@ export function FlashcardDeck({
               jobId={jobId}
               shortlistId={shortlistId}
             />
-            {actionsSlot && <div className="mt-4">{actionsSlot(candidate, evaluation)}</div>}
+            {actionsSlot && <div className="border-t border-border px-4 py-2">{actionsSlot(candidate, evaluation)}</div>}
           </motion.div>
         </AnimatePresence>
 
-        <div className="mt-4 flex items-center justify-center gap-1.5">
-          {ordered.map((o, i) => (
-            <button
-              key={o.candidate_id}
-              onClick={() => setIdx(i)}
-              className={`h-1.5 rounded-full transition-all ${i === safeIdx ? "w-8 bg-primary" : "w-1.5 bg-muted hover:bg-muted-foreground/40"}`}
-              aria-label={`Ir para candidato ${i + 1}`}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Menu com os três botões — abre o conteúdo na mesma tela */}
-      <div className="mt-4 space-y-4">
         <CandidateSectionMenu
           value={section}
           onChange={setSection}
@@ -228,7 +195,7 @@ export function FlashcardDeck({
         />
 
         {section === "analysis" && (
-          <div className="rounded-2xl border border-border bg-card p-4 md:p-6">
+          <div className="p-4 md:p-5">
             <AnalysisContent
               candidate={candidate}
               jobId={jobId}
@@ -240,22 +207,15 @@ export function FlashcardDeck({
         )}
 
         {section === "profile" && (
-          <ProfessionalProfileView candidate={candidate} editable={!readOnly} />
+          <div className="p-4 md:p-5"><ProfessionalProfileView candidate={candidate} editable={!readOnly} /></div>
         )}
 
-        {section === "behavior" && <DiscSection candidate={candidate} readOnly={readOnly} />}
+        {section === "behavior" && <div className="p-4 md:p-5"><DiscSection candidate={candidate} readOnly={readOnly} /></div>}
 
         {section === "test_results" && (
-          <div className="rounded-2xl border border-border bg-card p-4 md:p-6">
+          <div className="p-4 md:p-5">
             <TestResultsSection items={testResultsForJob} />
           </div>
-        )}
-
-        {!section && (
-          <p className="rounded-2xl border border-dashed border-border bg-card p-5 text-center text-sm text-muted-foreground">
-            Escolha uma das opções acima para ver a análise, o perfil completo ou o perfil
-            comportamental.
-          </p>
         )}
       </div>
     </div>
