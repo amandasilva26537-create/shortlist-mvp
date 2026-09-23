@@ -189,13 +189,13 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
               <h2 className="text-xl font-semibold tracking-tight md:text-2xl">
                 {c.full_name}
               </h2>
-              {(ev?.job_headline || c.headline) && (
+              {keywordHeadline(ev?.job_headline || c.headline) && (
                 <p className="mt-1 text-[13px] font-medium tracking-wide text-primary">
-                  {ev?.job_headline || c.headline}
+                  {keywordHeadline(ev?.job_headline || c.headline)}
                 </p>
               )}
 
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <Stat icon={MapPin} label="Cidade" value={cityLabel || "Não informado"} />
                 <Stat icon={User} label="Idade" value={c.age ? `${c.age} anos` : "Não informado"} />
                 <Stat icon={DollarSign} label="Pretensão" value={salary || "Não informado"} />
