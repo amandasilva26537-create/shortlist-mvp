@@ -161,6 +161,7 @@ export function ProfessionalProfileView({ candidate: c, editable }: { candidate:
         <SubHeading>Idiomas</SubHeading>
         <EditableBlock
           title="Idiomas"
+          hideTitle
           editable={editable}
           isEmpty={!(c.languages?.length > 0)}
           toDraft={() => objectsToLines(c.languages, LANG_FIELDS)}
