@@ -28,7 +28,10 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
   const c = candidate;
   const ev = evaluation;
   const salary = salaryLabel(c);
-  const cityLabel = [c.city, c.state].filter(Boolean).join(" - ") || null;
+  const cityLabel =
+    c.city && c.state && !String(c.city).toLowerCase().includes(String(c.state).toLowerCase())
+      ? `${c.city} - ${c.state}`
+      : c.city || c.state || null;
   const pm = c.professional_moment && typeof c.professional_moment === "object" ? c.professional_moment : {};
   const availability = availabilityLabel(pm.availability ?? c.availability);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
