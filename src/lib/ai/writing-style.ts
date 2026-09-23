@@ -1,5 +1,11 @@
 // Padrão de escrita aplicado a todo texto gerado dentro da shortlist.
 
+// Versão do padrão de escrita/estrutura dos textos da análise (resumo, parecer,
+// headline, pontos fortes, case). Toda análise gerada passa a gravar esta versão.
+// Análises antigas ficam com versão inferior (0) e NUNCA são regeradas
+// automaticamente — shortlists já criadas permanecem exatamente como estão.
+export const SUMMARY_PROMPT_VERSION = 2;
+
 export const SHORTLIST_WRITING_STYLE = `===== PADRÃO DE ESCRITA (OBRIGATÓRIO EM TODOS OS TEXTOS) =====
 Escreva como uma recrutadora experiente que leu o material do candidato e conversou com a pessoa. Tom profissional, humano e próximo.
 
