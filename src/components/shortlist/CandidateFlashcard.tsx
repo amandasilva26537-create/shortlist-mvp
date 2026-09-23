@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, DollarSign, Clock, User, Pencil, Save } from "lucide-react";
-import { salaryLabel, availabilityLabel } from "@/lib/format";
+import { salaryLabel, availabilityLabel, keywordHeadline } from "@/lib/format";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { patchCandidate } from "@/lib/db/candidates.functions";
