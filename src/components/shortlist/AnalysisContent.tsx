@@ -378,6 +378,7 @@ function ScoreRow({
 
 function EditableSection({
   title,
+  icon,
   value,
   onChange,
   onSave,
@@ -386,6 +387,7 @@ function EditableSection({
   rows = 4,
 }: {
   title: string;
+  icon?: any;
   value: string;
   onChange: (v: string) => void;
   onSave: () => void;
@@ -395,9 +397,9 @@ function EditableSection({
 }) {
   return (
     <section>
-      <SectionTitle>{title}</SectionTitle>
+      <SectionTitle icon={icon}>{title}</SectionTitle>
       {readOnly ? (
-        <div className="rounded-xl border border-border bg-card p-4 text-sm whitespace-pre-wrap">
+        <div className="rounded-2xl border border-border bg-card p-5 text-[13px] leading-relaxed whitespace-pre-wrap shadow-sm">
           {value || <span className="text-muted-foreground">—</span>}
         </div>
       ) : (
