@@ -217,20 +217,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       )}
 
       <EditableSection
-        title="2. Resumo do candidato"
-        value={draft.job_specific_summary || candidateSummary}
-        onChange={(v) => setDraft({ ...draft, job_specific_summary: v })}
-        onSave={() =>
-          persist("job_specific_summary", draft.job_specific_summary || candidateSummary)
-        }
-        placeholder="Resumo do candidato para esta vaga."
-        readOnly={readOnly}
-        rows={8}
-      />
-
-
-      <EditableSection
-        title="3. Parecer do recrutador"
+        title="2. Parecer do recrutador"
         value={draft.recruiter_opinion}
         onChange={(v) => setDraft({ ...draft, recruiter_opinion: v })}
         onSave={() => persist("recruiter_opinion", draft.recruiter_opinion)}
@@ -240,16 +227,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       />
 
       <section>
-        <SectionTitle>4. Principal case relacionado à vaga</SectionTitle>
-        <MainCaseBlock
-          value={evaluation?.main_case}
-          readOnly={readOnly}
-          onSave={(v: any) => persist("main_case", v)}
-        />
-      </section>
-
-      <section>
-        <SectionTitle>5. Riscos &amp; Trade-offs</SectionTitle>
+        <SectionTitle>3. Riscos &amp; Trade-offs</SectionTitle>
         <RiskEditor
           items={draft.risk_items ?? []}
           onChange={(items) => {
@@ -261,7 +239,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       </section>
 
       <EditableSection
-        title="6. Fator motivacional para a vaga"
+        title="4. Fator motivacional para a vaga"
         value={draft.motivational_factor}
         onChange={(v) => setDraft({ ...draft, motivational_factor: v })}
         onSave={() => persist("motivational_factor", draft.motivational_factor)}
@@ -271,7 +249,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       />
 
       <section>
-        <SectionTitle>7. Critérios eliminatórios</SectionTitle>
+        <SectionTitle>5. Critérios eliminatórios</SectionTitle>
         <EditableBlock
           title="Critérios avaliados"
           editable={!readOnly}
@@ -284,28 +262,6 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
           <div className="space-y-2">
             {(evaluation?.eliminatory_checklist ?? []).map((item: any, i: number) => (
               <ChecklistRow key={i} item={item} />
-            ))}
-          </div>
-        </EditableBlock>
-      </section>
-
-      <section>
-        <SectionTitle>8. Principais pontos fortes para esta vaga</SectionTitle>
-        <EditableBlock
-          title="Pontos fortes"
-          editable={!readOnly}
-          isEmpty={!((evaluation?.top_strengths?.length ?? 0) > 0)}
-          toDraft={() => objectsToLines(evaluation?.top_strengths ?? [], STRENGTH_FIELDS)}
-          fromDraft={(v) => linesToObjects(v, STRENGTH_FIELDS)}
-          hint="Um ponto forte por linha: título | evidência"
-          onSave={(items) => persist("top_strengths", items)}
-        >
-          <div className="space-y-2">
-            {(evaluation?.top_strengths ?? []).map((s: any, i: number) => (
-              <div key={i} className="rounded-lg border border-border bg-card p-3">
-                <div className="text-sm font-semibold">{s.title}</div>
-                {s.evidence && <div className="mt-1 text-xs text-muted-foreground">{s.evidence}</div>}
-              </div>
             ))}
           </div>
         </EditableBlock>
