@@ -95,21 +95,6 @@ export function PortalCandidateView({
               </div>
             )}
           </div>
-
-          {ev?.key_differentiator && (
-            <div
-              className="mt-5 rounded-xl border p-4"
-              style={{ background: "var(--highlight-bg)", borderColor: "var(--highlight-border)" }}
-            >
-              <div
-                className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider"
-                style={{ color: "var(--portal-strong)" }}
-              >
-                <Star className="h-3 w-3" /> Principal diferencial para a vaga
-              </div>
-              <p className="text-sm">{ev.key_differentiator}</p>
-            </div>
-          )}
         </div>
       </section>
 
