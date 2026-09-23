@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Briefcase, MapPin, Building2, DollarSign, Clock, Star, User, Pencil, Save } from "lucide-react";
-import { salaryLabel } from "@/lib/format";
+import { MapPin, DollarSign, Clock, User, Pencil, Save } from "lucide-react";
+import { salaryLabel, availabilityLabel } from "@/lib/format";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { patchCandidate } from "@/lib/db/candidates.functions";
@@ -29,6 +29,7 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
   const c = candidate;
   const ev = evaluation;
   const salary = salaryLabel(c);
+  const availability = availabilityLabel(c.professional_moment?.availability);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
   const editable = !readOnly;
 
@@ -195,27 +196,14 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
 
               {/* Chips essenciais */}
               <div className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                {c.current_position && <Chip icon={Briefcase} label="Cargo" value={c.current_position} />}
-                {c.area && <Chip icon={Building2} label="Área" value={c.area} />}
                 {c.city && <Chip icon={MapPin} label="Cidade" value={c.city} />}
-                {c.work_model && <Chip icon={Clock} label="Modelo" value={c.work_model} />}
                 {c.age && <Chip icon={User} label="Idade" value={`${c.age} anos`} />}
                 {salary && <Chip icon={DollarSign} label="Pretensão salarial" value={salary} />}
-
-                {c.professional_moment?.availability && (
-                  <Chip icon={Clock} label="Disponibilidade" value={c.professional_moment.availability} />
+                {availability && (
+                  <Chip icon={Clock} label="Disponibilidade" value={availability} />
                 )}
               </div>
 
-              {/* Diferencial */}
-              {ev?.key_differentiator && (
-                <div className="mt-5 rounded-xl border border-primary/30 bg-primary-soft/50 p-4">
-                  <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary">
-                    <Star className="h-3 w-3" /> Principal diferencial para a vaga
-                  </div>
-                  <div className="text-sm text-foreground">{ev.key_differentiator}</div>
-                </div>
-              )}
               {!ev && (
                 <div className="mt-5 rounded-xl border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
                   Análise para esta vaga ainda não disponível.

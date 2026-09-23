@@ -162,128 +162,62 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
                   incompleta
                 </div>
               )}
-              <div className="flex-1 min-w-[240px] space-y-3">
-                {!hasAnyScore ? (
-                  <div className="text-xs text-muted-foreground">
-                    {readOnly
-                      ? "A recrutadora ainda não avaliou as competências desta vaga."
-                      : "Atribua uma nota de 0 a 10 para cada competência abaixo."}
-                  </div>
-                ) : (
-                  !readOnly && (
+              {!readOnly && (
+                <div className="flex-1 min-w-[240px] space-y-3">
+                  {!hasAnyScore ? (
+                    <div className="text-xs text-muted-foreground">
+                      Atribua uma nota de 0 a 10 para cada competência abaixo.
+                    </div>
+                  ) : (
                     <div className="text-xs text-muted-foreground print:hidden">
                       As notas abaixo vêm sugeridas pela análise. Ajuste o que quiser e clique em
                       Salvar avaliação.
                     </div>
-                  )
-                )}
+                  )}
 
-
-                {readOnly ? (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
                     {Object.entries(DIMENSION_LABELS).map(([k, label]) => {
                       const score = recruiterScores[k];
                       return (
-                        <div
-                          key={k}
-                          className="rounded-lg border border-border bg-gradient-to-br from-primary-soft/40 to-transparent p-3"
-                        >
-                          <div className="mb-1.5 flex items-baseline justify-between gap-2">
-                            <span className="text-sm font-medium text-foreground">{label}</span>
-                            <span
-                              className={
-                                score == null
-                                  ? "text-xs text-muted-foreground"
-                                  : "text-xs font-semibold tabular-nums text-primary"
-                              }
-                            >
-                              {score == null ? "Não avaliado" : `${score}/10`}
-                            </span>
-                          </div>
-                          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                            {score != null && (
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${score * 10}%`,
-                                  background:
-                                    score >= 8.5
-                                      ? "var(--success)"
-                                      : score >= 7
-                                        ? "var(--primary)"
-                                        : score >= 5
-                                          ? "var(--warning)"
-                                          : "var(--destructive)",
-                                }}
-                              />
-                            )}
-                          </div>
+                        <div key={k} className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-medium text-foreground">{label}</span>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={10}
+                            step={1}
+                            placeholder="–"
+                            value={score ?? ""}
+                            onChange={(e) => setScore(k, e.target.value)}
+                            className="h-8 w-16 text-center print:hidden"
+                          />
                         </div>
                       );
                     })}
                   </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-                      {Object.entries(DIMENSION_LABELS).map(([k, label]) => {
-                        const score = recruiterScores[k];
-                        return (
-                          <div key={k} className="flex items-center justify-between gap-3">
-                            <span className="text-sm font-medium text-foreground">{label}</span>
-                            <Input
-                              type="number"
-                              min={0}
-                              max={10}
-                              step={1}
-                              placeholder="–"
-                              value={score ?? ""}
-                              onChange={(e) => setScore(k, e.target.value)}
-                              className="h-8 w-16 text-center print:hidden"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="flex items-center justify-end gap-2 border-t border-border pt-3 print:hidden">
-                      {scoresDirty && (
-                        <span className="text-xs text-muted-foreground">Alterações não salvas</span>
+                  <div className="flex items-center justify-end gap-2 border-t border-border pt-3 print:hidden">
+                    {scoresDirty && (
+                      <span className="text-xs text-muted-foreground">Alterações não salvas</span>
+                    )}
+                    <Button size="sm" onClick={saveScores} disabled={save.isPending || !scoresDirty}>
+                      {save.isPending ? (
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Save className="mr-1.5 h-3.5 w-3.5" />
                       )}
-                      <Button
-                        size="sm"
-                        onClick={saveScores}
-                        disabled={save.isPending || !scoresDirty}
-                      >
-                        {save.isPending ? (
-                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Save className="mr-1.5 h-3.5 w-3.5" />
-                        )}
-                        Salvar avaliação
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
+                      Salvar avaliação
+                    </Button>
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </section>
       )}
 
       <EditableSection
-        title="2. Resumo do candidato"
-        value={draft.job_specific_summary || candidateSummary}
-        onChange={(v) => setDraft({ ...draft, job_specific_summary: v })}
-        onSave={() =>
-          persist("job_specific_summary", draft.job_specific_summary || candidateSummary)
-        }
-        placeholder="Resumo do candidato para esta vaga."
-        readOnly={readOnly}
-        rows={8}
-      />
-
-
-      <EditableSection
-        title="3. Parecer do recrutador"
+        title="2. Parecer do recrutador"
         value={draft.recruiter_opinion}
         onChange={(v) => setDraft({ ...draft, recruiter_opinion: v })}
         onSave={() => persist("recruiter_opinion", draft.recruiter_opinion)}
@@ -293,16 +227,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       />
 
       <section>
-        <SectionTitle>4. Principal case relacionado à vaga</SectionTitle>
-        <MainCaseBlock
-          value={evaluation?.main_case}
-          readOnly={readOnly}
-          onSave={(v: any) => persist("main_case", v)}
-        />
-      </section>
-
-      <section>
-        <SectionTitle>5. Riscos &amp; Trade-offs</SectionTitle>
+        <SectionTitle>3. Riscos &amp; Trade-offs</SectionTitle>
         <RiskEditor
           items={draft.risk_items ?? []}
           onChange={(items) => {
@@ -314,7 +239,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       </section>
 
       <EditableSection
-        title="6. Fator motivacional para a vaga"
+        title="4. Fator motivacional para a vaga"
         value={draft.motivational_factor}
         onChange={(v) => setDraft({ ...draft, motivational_factor: v })}
         onSave={() => persist("motivational_factor", draft.motivational_factor)}
@@ -324,7 +249,7 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
       />
 
       <section>
-        <SectionTitle>7. Critérios eliminatórios</SectionTitle>
+        <SectionTitle>5. Critérios eliminatórios</SectionTitle>
         <EditableBlock
           title="Critérios avaliados"
           editable={!readOnly}
@@ -337,28 +262,6 @@ export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, rea
           <div className="space-y-2">
             {(evaluation?.eliminatory_checklist ?? []).map((item: any, i: number) => (
               <ChecklistRow key={i} item={item} />
-            ))}
-          </div>
-        </EditableBlock>
-      </section>
-
-      <section>
-        <SectionTitle>8. Principais pontos fortes para esta vaga</SectionTitle>
-        <EditableBlock
-          title="Pontos fortes"
-          editable={!readOnly}
-          isEmpty={!((evaluation?.top_strengths?.length ?? 0) > 0)}
-          toDraft={() => objectsToLines(evaluation?.top_strengths ?? [], STRENGTH_FIELDS)}
-          fromDraft={(v) => linesToObjects(v, STRENGTH_FIELDS)}
-          hint="Um ponto forte por linha: título | evidência"
-          onSave={(items) => persist("top_strengths", items)}
-        >
-          <div className="space-y-2">
-            {(evaluation?.top_strengths ?? []).map((s: any, i: number) => (
-              <div key={i} className="rounded-lg border border-border bg-card p-3">
-                <div className="text-sm font-semibold">{s.title}</div>
-                {s.evidence && <div className="mt-1 text-xs text-muted-foreground">{s.evidence}</div>}
-              </div>
             ))}
           </div>
         </EditableBlock>

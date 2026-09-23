@@ -9,8 +9,8 @@ import {
   CandidateSectionMenu,
   type CandidateSection,
 } from "@/components/shortlist/CandidateSectionMenu";
-import { Briefcase, MapPin, Clock, Linkedin, Star, DollarSign, User } from "lucide-react";
-import { salaryLabel } from "@/lib/format";
+import { MapPin, Clock, Linkedin, DollarSign, User } from "lucide-react";
+import { salaryLabel, availabilityLabel } from "@/lib/format";
 
 interface Props {
   candidate: any;
@@ -31,6 +31,7 @@ export function PortalCandidateView({
   const [section, setSection] = useState<CandidateSection | null>(null);
   const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
   const salary = salaryLabel(c);
+  const availability = availabilityLabel(c.professional_moment?.availability);
 
   const initials = (c.full_name ?? "")
     .split(" ")
@@ -65,16 +66,16 @@ export function PortalCandidateView({
                 <p className="mt-1 text-sm text-muted-foreground">{ev?.job_headline || c.headline}</p>
               )}
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                {c.current_position && <Chip icon={Briefcase}>{c.current_position}</Chip>}
                 {c.city && <Chip icon={MapPin}>{c.city}</Chip>}
-                {c.work_model && <Chip icon={Clock}>{c.work_model}</Chip>}
                 {c.age && <Chip icon={User}>{c.age} anos</Chip>}
                 {salary && <Chip icon={DollarSign}>Pretensão: {salary}</Chip>}
+                {availability && <Chip icon={Clock}>Disponibilidade: {availability}</Chip>}
                 {c.disc_profile && (
                   <Badge variant="secondary" className="rounded-full">
                     DISC {c.disc_profile}
                   </Badge>
                 )}
+
 
                 {c.linkedin_url && (
                   <a
@@ -94,21 +95,6 @@ export function PortalCandidateView({
               </div>
             )}
           </div>
-
-          {ev?.key_differentiator && (
-            <div
-              className="mt-5 rounded-xl border p-4"
-              style={{ background: "var(--highlight-bg)", borderColor: "var(--highlight-border)" }}
-            >
-              <div
-                className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider"
-                style={{ color: "var(--portal-strong)" }}
-              >
-                <Star className="h-3 w-3" /> Principal diferencial para a vaga
-              </div>
-              <p className="text-sm">{ev.key_differentiator}</p>
-            </div>
-          )}
         </div>
       </section>
 
