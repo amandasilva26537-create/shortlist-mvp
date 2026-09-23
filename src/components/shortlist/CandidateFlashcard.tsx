@@ -179,8 +179,8 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h2 className="text-2xl font-semibold tracking-tight">{c.full_name}</h2>
-                  {c.headline && (
-                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{c.headline}</p>
+                  {(ev?.job_headline || c.headline) && (
+                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{ev?.job_headline || c.headline}</p>
                   )}
                 </div>
                 {c.disc_profile && <Badge variant="secondary" className="text-xs">DISC {c.disc_profile}</Badge>}
