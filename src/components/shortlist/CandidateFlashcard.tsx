@@ -204,15 +204,6 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
                 )}
               </div>
 
-              {/* Diferencial */}
-              {ev?.key_differentiator && (
-                <div className="mt-5 rounded-xl border border-primary/30 bg-primary-soft/50 p-4">
-                  <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary">
-                    <Star className="h-3 w-3" /> Principal diferencial para a vaga
-                  </div>
-                  <div className="text-sm text-foreground">{ev.key_differentiator}</div>
-                </div>
-              )}
               {!ev && (
                 <div className="mt-5 rounded-xl border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
                   Análise para esta vaga ainda não disponível.
