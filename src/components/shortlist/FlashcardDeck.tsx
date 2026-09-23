@@ -250,6 +250,13 @@ export function FlashcardDeck({
             <TestResultsSection items={testResultsForJob} />
           </div>
         )}
+
+        {!section && (
+          <p className="rounded-2xl border border-dashed border-border bg-card p-5 text-center text-sm text-muted-foreground">
+            Escolha uma das opções acima para ver a análise, o perfil completo ou o perfil
+            comportamental.
+          </p>
+        )}
       </div>
     </div>
   );
