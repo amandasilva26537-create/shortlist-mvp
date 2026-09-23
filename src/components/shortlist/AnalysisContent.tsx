@@ -516,11 +516,11 @@ function RiskEditor({
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <div className="space-y-3">
         {items.map((it, i) => (
           <div
             key={i}
-            className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+            className="w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm md:grid md:grid-cols-2"
           >
             <div className="flex items-start gap-3 p-4">
               <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[color:var(--warning)]/15 text-[color:var(--warning)]">
@@ -546,7 +546,7 @@ function RiskEditor({
                 </Button>
               )}
             </div>
-            <div className="flex items-start gap-3 border-t border-border bg-muted/30 p-4">
+            <div className="flex items-start gap-3 border-t border-border bg-muted/30 p-4 md:border-l md:border-t-0">
               <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[color:var(--success)]/10 text-[color:var(--success)]">
                 <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
               </div>
