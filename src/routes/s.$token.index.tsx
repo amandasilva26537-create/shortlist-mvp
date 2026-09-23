@@ -8,7 +8,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getPortalShortlist, getPortalCandidate } from "@/lib/db/portal.functions";
 import { PortalWordmark } from "@/components/shortlist/PortusBrand";
 import { PortalCandidateView } from "@/components/shortlist/PortalCandidateView";
-import { TestResultsSidebarCard } from "@/components/shortlist/TestResultsSidebarCard";
 import {
   ClientEvaluationPanel,
   loadIdentity,
@@ -255,7 +254,6 @@ function Portal() {
                 candidateName={candidate.full_name}
                 identity={identity}
               />
-              {testResults.length > 0 && <TestResultsSidebarCard items={testResults} />}
             </div>
           </div>
         )}

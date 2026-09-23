@@ -1,16 +1,13 @@
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { MatchRing } from "@/components/candidate/MatchRing";
 import { DiscSection } from "@/components/candidate/DiscSection";
 import { TestResultsSection } from "@/components/candidate/TestResultsSection";
 import { ProfessionalProfileView } from "@/components/candidate/ProfessionalProfileView";
 import { AnalysisContent } from "@/components/shortlist/AnalysisContent";
+import { CandidateFlashcard } from "@/components/shortlist/CandidateFlashcard";
 import {
   CandidateSectionMenu,
   type CandidateSection,
 } from "@/components/shortlist/CandidateSectionMenu";
-import { MapPin, Clock, Linkedin, DollarSign, User } from "lucide-react";
-import { salaryLabel, availabilityLabel } from "@/lib/format";
 
 interface Props {
   candidate: any;
@@ -29,74 +26,18 @@ export function PortalCandidateView({
   shortlistId,
 }: Props) {
   const [section, setSection] = useState<CandidateSection | null>(null);
-  const match = typeof ev?.overall_match === "number" ? ev.overall_match : null;
-  const salary = salaryLabel(c);
-  const availability = availabilityLabel(c.professional_moment?.availability);
-
-  const initials = (c.full_name ?? "")
-    .split(" ")
-    .slice(0, 2)
-    .map((s: string) => s[0])
-    .join("")
-    .toUpperCase();
 
   return (
     <div className="space-y-4">
-      {/* Resumo principal do candidato */}
-      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <div className="h-1.5" style={{ background: "var(--portal-gradient)" }} />
-        <div className="p-5 md:p-6">
-          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 sm:flex sm:items-start">
-            {c.photo_url ? (
-              <img
-                src={c.photo_url}
-                alt={c.full_name}
-                className="h-20 w-20 shrink-0 rounded-2xl object-cover ring-1 ring-border"
-              />
-            ) : (
-              <div className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl bg-primary-soft text-xl font-semibold text-primary">
-                {initials}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <h2 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">
-                {c.full_name}
-              </h2>
-              {(ev?.job_headline || c.headline) && (
-                <p className="mt-1 text-sm text-muted-foreground">{ev?.job_headline || c.headline}</p>
-              )}
-              <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                {c.city && <Chip icon={MapPin}>{c.city}</Chip>}
-                {c.age && <Chip icon={User}>{c.age} anos</Chip>}
-                {salary && <Chip icon={DollarSign}>Pretensão: {salary}</Chip>}
-                {availability && <Chip icon={Clock}>Disponibilidade: {availability}</Chip>}
-                {c.disc_profile && (
-                  <Badge variant="secondary" className="rounded-full">
-                    DISC {c.disc_profile}
-                  </Badge>
-                )}
+      {/* Mesmo quadro compacto usado pelo recrutador (somente leitura para o cliente) */}
+      <CandidateFlashcard
+        candidate={c}
+        evaluation={ev}
+        readOnly
+        jobId={jobId}
+        shortlistId={shortlistId}
+      />
 
-
-                {c.linkedin_url && (
-                  <a
-                    href={c.linkedin_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 font-medium text-primary hover:underline"
-                  >
-                    <Linkedin className="h-3.5 w-3.5" /> LinkedIn
-                  </a>
-                )}
-              </div>
-            </div>
-            {match != null && (
-              <div className="hidden shrink-0 sm:block">
-                <MatchRing value={match} size={84} label="match" />
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
 
       {/* Menu com os botões */}
       <CandidateSectionMenu
@@ -135,14 +76,5 @@ export function PortalCandidateView({
         </p>
       )}
     </div>
-  );
-}
-
-function Chip({ icon: Icon, children }: { icon: any; children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 font-medium text-secondary-foreground">
-      <Icon className="h-3.5 w-3.5" />
-      {children}
-    </span>
   );
 }
