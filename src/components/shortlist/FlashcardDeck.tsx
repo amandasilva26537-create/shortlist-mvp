@@ -210,7 +210,7 @@ export function FlashcardDeck({
           <div className="p-4 md:p-5"><ProfessionalProfileView candidate={candidate} editable={!readOnly} /></div>
         )}
 
-        {section === "behavior" && <div className="p-4 md:p-5"><DiscSection candidate={candidate} readOnly={readOnly} /></div>}
+        {section === "behavior" && <div className="p-4 md:p-5"><DiscSection candidate={candidate} readOnly={readOnly} jobId={jobId} /></div>}
 
         {section === "test_results" && (
           <div className="p-4 md:p-5">

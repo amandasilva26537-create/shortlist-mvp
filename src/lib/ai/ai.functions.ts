@@ -764,7 +764,9 @@ Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
 // ============ Generate DISC result only ============
 export const generateDiscResult = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((v: unknown) => z.object({ candidate_id: z.string().uuid() }).parse(v))
+  .inputValidator((v: unknown) =>
+    z.object({ candidate_id: z.string().uuid(), job_id: z.string().uuid().optional() }).parse(v),
+  )
   .handler(async ({ data, context }) => {
     const { data: cand, error } = await context.supabase
       .from("candidates")
@@ -787,6 +789,25 @@ export const generateDiscResult = createServerFn({ method: "POST" })
           ? 'Use concordância masculina ("o candidato", "ele").'
           : "Use linguagem neutra, sem marcar gênero; prefira o nome da pessoa.";
 
+    let jobContext = "";
+    if (data.job_id) {
+      const { data: job } = await context.supabase
+        .from("jobs")
+        .select("title, seniority, area, description, must_have, nice_to_have, hard_skills, soft_skills")
+        .eq("id", data.job_id)
+        .maybeSingle();
+      const j: any = job;
+      if (j) {
+        jobContext = `\nVAGA DESTA SHORTLIST (use para relacionar o resultado):
+Cargo: ${j.title ?? ""} ${j.seniority ?? ""} ${j.area ?? ""}
+Descrição: ${j.description ?? ""}
+Requisitos obrigatórios: ${(j.must_have ?? []).join("; ")}
+Desejáveis: ${(j.nice_to_have ?? []).join("; ")}
+Hard skills: ${(j.hard_skills ?? []).join("; ")}
+Soft skills / comportamental desejado: ${(j.soft_skills ?? []).join("; ")}\n`;
+      }
+    }
+
     const gateway = createLovableAiGateway(requireApiKey());
     const model = gateway(AI_MODEL);
     const { text } = await generateText({
@@ -800,15 +821,19 @@ ${genderRule}
 ${genderInstruction(cAny.gender, cAny.full_name)}
 Pontuações brutas: D=${raw.D ?? "?"} I=${raw.I ?? "?"} S=${raw.S ?? "?"} C=${raw.C ?? "?"}
 Resultado bruto/relatório: ${cAny.disc_raw ?? "—"}
+${jobContext}
+REGRAS DE CONTEÚDO:
+- "behavior_summary": 3-5 linhas. Explique brevemente o perfil DISC identificado e SEMPRE relacione o resultado com a vaga desta shortlist, mostrando de forma positiva como as características comportamentais podem contribuir para a posição. NÃO inclua riscos, fragilidades ou pontos negativos neste campo.
+- "attention_points": apenas 1 ou 2 itens, em tom leve e construtivo, escritos como orientação de gestão, comunicação ou adaptação (ex.: "Pode ter melhor desempenho em ambientes com objetivos claros e autonomia para execução."). NUNCA escreva algo que leve o cliente a desclassificar a pessoa e nunca use o DISC para concluir que ela não serve para a vaga.
 
 Responda APENAS com JSON válido, sem markdown, com EXATAMENTE estas chaves:
 {
   "D": number, "I": number, "S": number, "C": number,
   "dominant": string,            // fator predominante: "Dominância" | "Influência" | "Estabilidade" | "Conformidade"
   "secondary": string,           // segundo fator, ou ""
-  "behavior_summary": string,    // resumo do resultado, 3-5 linhas
+  "behavior_summary": string,    // resumo do resultado, 3-5 linhas, relacionado à vaga, somente positivo
   "strengths": string[],         // 4-6 pontos fortes
-  "attention_points": string[],  // 3-5 pontos de atenção
+  "attention_points": string[],  // 1-2 pontos de atenção, leves e construtivos
   "communication_style": string, // forma de comunicação
   "work_style": string,          // estilo de trabalho
   "leadership_style": string,    // estilo de liderança

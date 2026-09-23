@@ -161,9 +161,10 @@ function EditableBlock({
 interface DiscSectionProps {
   candidate: any;
   readOnly?: boolean;
+  jobId?: string;
 }
 
-export function DiscSection({ candidate, readOnly = false }: DiscSectionProps) {
+export function DiscSection({ candidate, readOnly = false, jobId }: DiscSectionProps) {
   const qc = useQueryClient();
   const genFn = useServerFn(generateDiscResult);
   const saveFn = useServerFn(updateCandidateDisc);
@@ -195,7 +196,7 @@ export function DiscSection({ candidate, readOnly = false }: DiscSectionProps) {
   };
 
   const gen = useMutation({
-    mutationFn: () => genFn({ data: { candidate_id: candidate.id } }),
+    mutationFn: () => genFn({ data: { candidate_id: candidate.id, ...(jobId ? { job_id: jobId } : {}) } }),
     onSuccess: () => {
       invalidate();
       toast.success("Resultado DISC atualizado");
@@ -307,17 +308,8 @@ export function DiscSection({ candidate, readOnly = false }: DiscSectionProps) {
         )}
       </Card>
 
-      <EditableBlock title="Fator predominante" field="dominant" value={d.dominant} kind="line" readOnly={readOnly} onSave={patch} />
-      <EditableBlock title="Fator secundário" field="secondary" value={d.secondary} kind="line" readOnly={readOnly} onSave={patch} />
       <EditableBlock title="Resumo do resultado" field="behavior_summary" value={d.behavior_summary} kind="text" readOnly={readOnly} onSave={patch} />
-      <EditableBlock title="Pontos fortes" field="strengths" value={d.strengths} kind="list" readOnly={readOnly} onSave={patch} />
       <EditableBlock title="Pontos de atenção" field="attention_points" value={d.attention_points} kind="list" readOnly={readOnly} onSave={patch} />
-      <EditableBlock title="Forma de comunicação" field="communication_style" value={d.communication_style} kind="text" readOnly={readOnly} onSave={patch} />
-      <EditableBlock title="Estilo de trabalho" field="work_style" value={d.work_style} kind="text" readOnly={readOnly} onSave={patch} />
-      <EditableBlock title="Estilo de liderança" field="leadership_style" value={d.leadership_style} kind="text" readOnly={readOnly} onSave={patch} />
-      <EditableBlock title="Motivadores" field="motivators" value={d.motivators} kind="list" readOnly={readOnly} onSave={patch} />
-      <EditableBlock title="Ambiente de melhor desempenho" field="ideal_environment" value={d.ideal_environment} kind="text" readOnly={readOnly} onSave={patch} />
-      <EditableBlock title="Observações da recrutadora" field="recruiter_notes" value={d.recruiter_notes} kind="text" readOnly={readOnly} onSave={patch} />
     </div>
   );
 }
