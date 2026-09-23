@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+
 export type CandidateSection = "analysis" | "profile" | "behavior" | "test_results";
 
 const BASE_ITEMS: { key: CandidateSection; label: string }[] = [
@@ -31,19 +33,20 @@ export function CandidateSectionMenu({
       {items.map(({ key, label }) => {
         const active = value === key;
         return (
-          <button
+          <Button
             key={key}
             type="button"
+            variant="ghost"
             aria-pressed={active}
             onClick={() => onChange(key)}
-            className={`relative flex h-12 shrink-0 items-center border-b-2 px-1 text-sm font-medium transition-colors ${
+            className={`h-12 shrink-0 rounded-none border-x-0 border-t-0 border-b-2 px-1 text-sm font-medium shadow-none hover:bg-transparent ${
               active
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             {label}
-          </button>
+          </Button>
         );
       })}
     </nav>

@@ -161,6 +161,7 @@ export function FlashcardDeck({
           >
             Próximo <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
+          {actionsSlot && actionsSlot(candidate, evaluation)}
         </div>
       </div>
 
@@ -184,7 +185,6 @@ export function FlashcardDeck({
               jobId={jobId}
               shortlistId={shortlistId}
             />
-            {actionsSlot && <div className="border-t border-border px-4 py-2">{actionsSlot(candidate, evaluation)}</div>}
           </motion.div>
         </AnimatePresence>
 
