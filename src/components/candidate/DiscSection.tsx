@@ -196,7 +196,7 @@ export function DiscSection({ candidate, readOnly = false, jobId }: DiscSectionP
   };
 
   const gen = useMutation({
-    mutationFn: () => genFn({ data: { candidate_id: candidate.id } }),
+    mutationFn: () => genFn({ data: { candidate_id: candidate.id, ...(jobId ? { job_id: jobId } : {}) } }),
     onSuccess: () => {
       invalidate();
       toast.success("Resultado DISC atualizado");
