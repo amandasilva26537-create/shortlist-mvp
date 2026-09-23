@@ -725,6 +725,7 @@ Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
     // Persistir
     const patch: any = {
       overall_match: typeof output.overall_match === "number" ? Math.round(output.overall_match) : null,
+      job_headline: output.job_headline ?? null,
       key_differentiator: output.key_differentiator ?? null,
       job_specific_summary: output.job_specific_summary ?? null,
       recruiter_opinion: output.recruiter_opinion ?? null,
