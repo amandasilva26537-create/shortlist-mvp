@@ -667,7 +667,7 @@ Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
       const { text } = await generateText({
         model,
         prompt: promptText,
-        temperature: 0.5,
+        temperature: 0.25,
       });
       output = extractJson(text);
     } catch (err: any) {
