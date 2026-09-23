@@ -117,9 +117,10 @@ function ShortlistDetail() {
 
   const candidateIds = ((data as any).candidates ?? []).map((c: any) => c.candidate_id);
 
-  const refreshCandidates = () => {
-    refetch();
+  const refreshCandidates = async () => {
+    await refetch();
     qc.invalidateQueries({ queryKey: ["shortlists"] });
+    await qc.invalidateQueries({ queryKey: ["shortlist-evaluations", shortlistId] });
   };
 
   return (
