@@ -53,6 +53,7 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
       salary_expectation: c.salary_expectation != null ? String(c.salary_expectation) : "",
       availability: c.professional_moment?.availability ?? "",
       key_differentiator: ev?.key_differentiator ?? "",
+      job_headline: ev?.job_headline ?? "",
     });
     setEditing(true);
   };
