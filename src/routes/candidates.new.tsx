@@ -37,6 +37,8 @@ import {
   Trash2,
   ArrowLeft,
   RefreshCw,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import {
   getCandidate,
