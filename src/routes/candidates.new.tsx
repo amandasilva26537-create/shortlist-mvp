@@ -1625,23 +1625,11 @@ function TestResultDraftForm({
 
       <div>
         <Label className="text-xs">Vaga/shortlist relacionada</Label>
-        <Select value={draft.job_id || undefined} onValueChange={(v) => update({ job_id: v })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione a vaga" />
-          </SelectTrigger>
-          <SelectContent>
-            {(jobs ?? []).length === 0 && (
-              <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                Nenhuma vaga cadastrada nos últimos 30 dias
-              </div>
-            )}
-            {(jobs ?? []).map((j: any) => (
-              <SelectItem key={j.id} value={j.id}>
-                {j.clients?.name ? `${j.clients.name} | ${j.title}` : j.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <JobSearchSelect
+          jobs={jobs ?? []}
+          value={draft.job_id || ""}
+          onChange={(v) => update({ job_id: v })}
+        />
       </div>
 
       {selectedFormat && selectedFormat.value === "link" && (
