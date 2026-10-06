@@ -15,6 +15,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { toast } from "sonner";
 import { uploadFileViaServer } from "@/lib/upload";
 import {
@@ -27,6 +36,8 @@ import {
   Trash2,
   ArrowLeft,
   RefreshCw,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import {
   getCandidate,
@@ -1400,14 +1411,10 @@ function TestResultsEditor({
   const jobsFn = useServerFn(listJobs);
 
   const { data: allJobs } = useQuery({ queryKey: ["jobs-picker"], queryFn: () => jobsFn() });
-  // Só vagas cadastradas nos últimos 30 dias, mais recentes primeiro.
+  // Todas as vagas abertas/ativas, independente da data de criação.
   const jobs = (allJobs ?? [])
-    .filter((j: any) => {
-      if (!j.created_at) return false;
-      const days = (Date.now() - new Date(j.created_at).getTime()) / 86400000;
-      return days <= 30;
-    })
-    .sort((a: any, b: any) => +new Date(b.created_at) - +new Date(a.created_at));
+    .filter((j: any) => !["arquivada", "encerrada", "closed", "archived"].includes(j.status))
+    .sort((a: any, b: any) => +new Date(b.created_at ?? 0) - +new Date(a.created_at ?? 0));
 
   const { data: results, isLoading } = useQuery({
     queryKey: ["candidate-test-results", candidateId],
@@ -1545,6 +1552,79 @@ function TestResultsEditor({
   );
 }
 
+function jobLabel(j: any) {
+  return j.clients?.name ? `${j.clients.name} | ${j.title}` : j.title;
+}
+
+/** Seletor de vagas abertas com busca — filtra por cliente ou nome da vaga conforme digita. */
+function JobSearchSelect({
+  jobs,
+  value,
+  onChange,
+}: {
+  jobs: any[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const selected = jobs.find((j: any) => j.id === value);
+
+  const term = query.trim().toLowerCase();
+  const filtered = term
+    ? jobs.filter((j: any) =>
+        [j.title, j.clients?.name].filter(Boolean).join(" ").toLowerCase().includes(term),
+      )
+    : jobs;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between font-normal"
+        >
+          <span className="min-w-0 truncate">
+            {selected ? jobLabel(selected) : <span className="text-muted-foreground">Selecione a vaga</span>}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput placeholder="Buscar por vaga ou cliente…" value={query} onValueChange={setQuery} />
+          <CommandList>
+            {filtered.length === 0 ? (
+              <CommandEmpty>Nenhuma vaga aberta encontrada.</CommandEmpty>
+            ) : (
+              <CommandGroup>
+                {filtered.map((j: any) => (
+                  <CommandItem
+                    key={j.id}
+                    value={j.id}
+                    onSelect={() => {
+                      onChange(j.id);
+                      setQuery("");
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={`mr-2 h-4 w-4 shrink-0 ${j.id === value ? "opacity-100" : "opacity-0"}`}
+                    />
+                    <span className="min-w-0 truncate">{jobLabel(j)}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function TestResultDraftForm({
   candidateId,
   draft,
@@ -1618,23 +1698,11 @@ function TestResultDraftForm({
 
       <div>
         <Label className="text-xs">Vaga/shortlist relacionada</Label>
-        <Select value={draft.job_id || undefined} onValueChange={(v) => update({ job_id: v })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione a vaga" />
-          </SelectTrigger>
-          <SelectContent>
-            {(jobs ?? []).length === 0 && (
-              <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                Nenhuma vaga cadastrada nos últimos 30 dias
-              </div>
-            )}
-            {(jobs ?? []).map((j: any) => (
-              <SelectItem key={j.id} value={j.id}>
-                {j.clients?.name ? `${j.clients.name} | ${j.title}` : j.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <JobSearchSelect
+          jobs={jobs ?? []}
+          value={draft.job_id || ""}
+          onChange={(v) => update({ job_id: v })}
+        />
       </div>
 
       {selectedFormat && selectedFormat.value === "link" && (
