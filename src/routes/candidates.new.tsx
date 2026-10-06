@@ -24,7 +24,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Badge } from "@/components/ui/popover-placeholder";
 import { toast } from "sonner";
 import { uploadFileViaServer } from "@/lib/upload";
 import {
