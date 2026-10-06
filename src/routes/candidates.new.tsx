@@ -1399,6 +1399,7 @@ function TestResultsEditor({
   const deleteFn = useServerFn(deleteCandidateTestResult);
   const jobsFn = useServerFn(listJobs);
 
+  const { data: allJobs } = useQuery({ queryKey: ["jobs-picker"], queryFn: () => jobsFn() });
   // Todas as vagas abertas/ativas, independente da data de criação.
   const jobs = (allJobs ?? [])
     .filter((j: any) => !["arquivada", "encerrada", "closed", "archived"].includes(j.status))
