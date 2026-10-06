@@ -1399,15 +1399,10 @@ function TestResultsEditor({
   const deleteFn = useServerFn(deleteCandidateTestResult);
   const jobsFn = useServerFn(listJobs);
 
-  const { data: allJobs } = useQuery({ queryKey: ["jobs-picker"], queryFn: () => jobsFn() });
-  // Só vagas cadastradas nos últimos 30 dias, mais recentes primeiro.
+  // Todas as vagas abertas/ativas, independente da data de criação.
   const jobs = (allJobs ?? [])
-    .filter((j: any) => {
-      if (!j.created_at) return false;
-      const days = (Date.now() - new Date(j.created_at).getTime()) / 86400000;
-      return days <= 30;
-    })
-    .sort((a: any, b: any) => +new Date(b.created_at) - +new Date(a.created_at));
+    .filter((j: any) => !["arquivada", "encerrada", "closed", "archived"].includes(j.status))
+    .sort((a: any, b: any) => +new Date(b.created_at ?? 0) - +new Date(a.created_at ?? 0));
 
   const { data: results, isLoading } = useQuery({
     queryKey: ["candidate-test-results", candidateId],
