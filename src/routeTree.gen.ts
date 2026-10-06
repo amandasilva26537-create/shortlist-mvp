@@ -9,56 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TeamRouteImport } from './routes/team'
-import { Route as TagsRouteImport } from './routes/tags'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as CompareRouteImport } from './routes/compare'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ShortlistsIndexRouteImport } from './routes/shortlists.index'
-import { Route as JobsIndexRouteImport } from './routes/jobs.index'
-import { Route as ClientsIndexRouteImport } from './routes/clients.index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CompareRouteImport } from './routes/compare'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TagsRouteImport } from './routes/tags'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as CandidatesIndexRouteImport } from './routes/candidates.index'
-import { Route as ShortlistsNewRouteImport } from './routes/shortlists.new'
-import { Route as ShortlistsShortlistIdRouteImport } from './routes/shortlists.$shortlistId'
-import { Route as STokenRouteImport } from './routes/s.$token'
-import { Route as PdfCandidateIdRouteImport } from './routes/pdf.$candidateId'
-import { Route as JobsNewRouteImport } from './routes/jobs.new'
-import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
-import { Route as ClientsNewRouteImport } from './routes/clients.new'
-import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
-import { Route as CandidatesNewRouteImport } from './routes/candidates.new'
 import { Route as CandidatesCandidateIdRouteImport } from './routes/candidates.$candidateId'
-import { Route as ShortlistsShortlistIdIndexRouteImport } from './routes/shortlists.$shortlistId.index'
+import { Route as CandidatesNewRouteImport } from './routes/candidates.new'
+import { Route as ClientsIndexRouteImport } from './routes/clients.index'
+import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
+import { Route as ClientsNewRouteImport } from './routes/clients.new'
+import { Route as JobsIndexRouteImport } from './routes/jobs.index'
+import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
+import { Route as JobsNewRouteImport } from './routes/jobs.new'
+import { Route as PdfCandidateIdRouteImport } from './routes/pdf.$candidateId'
+import { Route as STokenRouteImport } from './routes/s.$token'
+import { Route as ShortlistsIndexRouteImport } from './routes/shortlists.index'
+import { Route as ShortlistsShortlistIdRouteImport } from './routes/shortlists.$shortlistId'
+import { Route as ShortlistsNewRouteImport } from './routes/shortlists.new'
 import { Route as STokenIndexRouteImport } from './routes/s.$token.index'
-import { Route as ShortlistsShortlistIdAnalysisCandidateIdRouteImport } from './routes/shortlists.$shortlistId.analysis.$candidateId'
-import { Route as STokenCCandidateIdRouteImport } from './routes/s.$token.c.$candidateId'
+import { Route as ShortlistsShortlistIdIndexRouteImport } from './routes/shortlists.$shortlistId.index'
 import { Route as STokenAnalysisCandidateIdRouteImport } from './routes/s.$token.analysis.$candidateId'
+import { Route as STokenCCandidateIdRouteImport } from './routes/s.$token.c.$candidateId'
+import { Route as ShortlistsShortlistIdAnalysisCandidateIdRouteImport } from './routes/shortlists.$shortlistId.analysis.$candidateId'
 
-const TeamRoute = TeamRouteImport.update({
-  id: '/team',
-  path: '/team',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TagsRoute = TagsRouteImport.update({
-  id: '/tags',
-  path: '/tags',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CompareRoute = CompareRouteImport.update({
-  id: '/compare',
-  path: '/compare',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -66,24 +46,29 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ShortlistsIndexRoute = ShortlistsIndexRouteImport.update({
-  id: '/shortlists/',
-  path: '/shortlists/',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const JobsIndexRoute = JobsIndexRouteImport.update({
-  id: '/jobs/',
-  path: '/jobs/',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ClientsIndexRoute = ClientsIndexRouteImport.update({
-  id: '/clients/',
-  path: '/clients/',
+const TagsRoute = TagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CandidatesIndexRoute = CandidatesIndexRouteImport.update({
@@ -91,44 +76,9 @@ const CandidatesIndexRoute = CandidatesIndexRouteImport.update({
   path: '/candidates/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ShortlistsNewRoute = ShortlistsNewRouteImport.update({
-  id: '/shortlists/new',
-  path: '/shortlists/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShortlistsShortlistIdRoute = ShortlistsShortlistIdRouteImport.update({
-  id: '/shortlists/$shortlistId',
-  path: '/shortlists/$shortlistId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const STokenRoute = STokenRouteImport.update({
-  id: '/s/$token',
-  path: '/s/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PdfCandidateIdRoute = PdfCandidateIdRouteImport.update({
-  id: '/pdf/$candidateId',
-  path: '/pdf/$candidateId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JobsNewRoute = JobsNewRouteImport.update({
-  id: '/jobs/new',
-  path: '/jobs/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JobsJobIdRoute = JobsJobIdRouteImport.update({
-  id: '/jobs/$jobId',
-  path: '/jobs/$jobId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClientsNewRoute = ClientsNewRouteImport.update({
-  id: '/clients/new',
-  path: '/clients/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClientsClientIdRoute = ClientsClientIdRouteImport.update({
-  id: '/clients/$clientId',
-  path: '/clients/$clientId',
+const CandidatesCandidateIdRoute = CandidatesCandidateIdRouteImport.update({
+  id: '/candidates/$candidateId',
+  path: '/candidates/$candidateId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CandidatesNewRoute = CandidatesNewRouteImport.update({
@@ -136,10 +86,65 @@ const CandidatesNewRoute = CandidatesNewRouteImport.update({
   path: '/candidates/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CandidatesCandidateIdRoute = CandidatesCandidateIdRouteImport.update({
-  id: '/candidates/$candidateId',
-  path: '/candidates/$candidateId',
+const ClientsIndexRoute = ClientsIndexRouteImport.update({
+  id: '/clients/',
+  path: '/clients/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ClientsClientIdRoute = ClientsClientIdRouteImport.update({
+  id: '/clients/$clientId',
+  path: '/clients/$clientId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientsNewRoute = ClientsNewRouteImport.update({
+  id: '/clients/new',
+  path: '/clients/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsIndexRoute = JobsIndexRouteImport.update({
+  id: '/jobs/',
+  path: '/jobs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsJobIdRoute = JobsJobIdRouteImport.update({
+  id: '/jobs/$jobId',
+  path: '/jobs/$jobId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsNewRoute = JobsNewRouteImport.update({
+  id: '/jobs/new',
+  path: '/jobs/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PdfCandidateIdRoute = PdfCandidateIdRouteImport.update({
+  id: '/pdf/$candidateId',
+  path: '/pdf/$candidateId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const STokenRoute = STokenRouteImport.update({
+  id: '/s/$token',
+  path: '/s/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShortlistsIndexRoute = ShortlistsIndexRouteImport.update({
+  id: '/shortlists/',
+  path: '/shortlists/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShortlistsShortlistIdRoute = ShortlistsShortlistIdRouteImport.update({
+  id: '/shortlists/$shortlistId',
+  path: '/shortlists/$shortlistId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShortlistsNewRoute = ShortlistsNewRouteImport.update({
+  id: '/shortlists/new',
+  path: '/shortlists/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const STokenIndexRoute = STokenIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => STokenRoute,
 } as any)
 const ShortlistsShortlistIdIndexRoute =
   ShortlistsShortlistIdIndexRouteImport.update({
@@ -147,9 +152,15 @@ const ShortlistsShortlistIdIndexRoute =
     path: '/',
     getParentRoute: () => ShortlistsShortlistIdRoute,
   } as any)
-const STokenIndexRoute = STokenIndexRouteImport.update({
-  id: '/',
-  path: '/',
+const STokenAnalysisCandidateIdRoute =
+  STokenAnalysisCandidateIdRouteImport.update({
+    id: '/analysis/$candidateId',
+    path: '/analysis/$candidateId',
+    getParentRoute: () => STokenRoute,
+  } as any)
+const STokenCCandidateIdRoute = STokenCCandidateIdRouteImport.update({
+  id: '/c/$candidateId',
+  path: '/c/$candidateId',
   getParentRoute: () => STokenRoute,
 } as any)
 const ShortlistsShortlistIdAnalysisCandidateIdRoute =
@@ -157,17 +168,6 @@ const ShortlistsShortlistIdAnalysisCandidateIdRoute =
     id: '/analysis/$candidateId',
     path: '/analysis/$candidateId',
     getParentRoute: () => ShortlistsShortlistIdRoute,
-  } as any)
-const STokenCCandidateIdRoute = STokenCCandidateIdRouteImport.update({
-  id: '/c/$candidateId',
-  path: '/c/$candidateId',
-  getParentRoute: () => STokenRoute,
-} as any)
-const STokenAnalysisCandidateIdRoute =
-  STokenAnalysisCandidateIdRouteImport.update({
-    id: '/analysis/$candidateId',
-    path: '/analysis/$candidateId',
-    getParentRoute: () => STokenRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -364,39 +364,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/team': {
-      id: '/team'
-      path: '/team'
-      fullPath: '/team'
-      preLoaderRoute: typeof TeamRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tags': {
-      id: '/tags'
-      path: '/tags'
-      fullPath: '/tags'
-      preLoaderRoute: typeof TagsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/compare': {
-      id: '/compare'
-      path: '/compare'
-      fullPath: '/compare'
-      preLoaderRoute: typeof CompareRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -406,32 +378,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/shortlists/': {
-      id: '/shortlists/'
-      path: '/shortlists'
-      fullPath: '/shortlists/'
-      preLoaderRoute: typeof ShortlistsIndexRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/jobs/': {
-      id: '/jobs/'
-      path: '/jobs'
-      fullPath: '/jobs/'
-      preLoaderRoute: typeof JobsIndexRouteImport
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/clients/': {
-      id: '/clients/'
-      path: '/clients'
-      fullPath: '/clients/'
-      preLoaderRoute: typeof ClientsIndexRouteImport
+    '/tags': {
+      id: '/tags'
+      path: '/tags'
+      fullPath: '/tags'
+      preLoaderRoute: typeof TagsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/candidates/': {
@@ -441,60 +420,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CandidatesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/shortlists/new': {
-      id: '/shortlists/new'
-      path: '/shortlists/new'
-      fullPath: '/shortlists/new'
-      preLoaderRoute: typeof ShortlistsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/shortlists/$shortlistId': {
-      id: '/shortlists/$shortlistId'
-      path: '/shortlists/$shortlistId'
-      fullPath: '/shortlists/$shortlistId'
-      preLoaderRoute: typeof ShortlistsShortlistIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/s/$token': {
-      id: '/s/$token'
-      path: '/s/$token'
-      fullPath: '/s/$token'
-      preLoaderRoute: typeof STokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pdf/$candidateId': {
-      id: '/pdf/$candidateId'
-      path: '/pdf/$candidateId'
-      fullPath: '/pdf/$candidateId'
-      preLoaderRoute: typeof PdfCandidateIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/jobs/new': {
-      id: '/jobs/new'
-      path: '/jobs/new'
-      fullPath: '/jobs/new'
-      preLoaderRoute: typeof JobsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/jobs/$jobId': {
-      id: '/jobs/$jobId'
-      path: '/jobs/$jobId'
-      fullPath: '/jobs/$jobId'
-      preLoaderRoute: typeof JobsJobIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clients/new': {
-      id: '/clients/new'
-      path: '/clients/new'
-      fullPath: '/clients/new'
-      preLoaderRoute: typeof ClientsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clients/$clientId': {
-      id: '/clients/$clientId'
-      path: '/clients/$clientId'
-      fullPath: '/clients/$clientId'
-      preLoaderRoute: typeof ClientsClientIdRouteImport
+    '/candidates/$candidateId': {
+      id: '/candidates/$candidateId'
+      path: '/candidates/$candidateId'
+      fullPath: '/candidates/$candidateId'
+      preLoaderRoute: typeof CandidatesCandidateIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/candidates/new': {
@@ -504,19 +434,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CandidatesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/candidates/$candidateId': {
-      id: '/candidates/$candidateId'
-      path: '/candidates/$candidateId'
-      fullPath: '/candidates/$candidateId'
-      preLoaderRoute: typeof CandidatesCandidateIdRouteImport
+    '/clients/': {
+      id: '/clients/'
+      path: '/clients'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof ClientsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/shortlists/$shortlistId/': {
-      id: '/shortlists/$shortlistId/'
-      path: '/'
-      fullPath: '/shortlists/$shortlistId/'
-      preLoaderRoute: typeof ShortlistsShortlistIdIndexRouteImport
-      parentRoute: typeof ShortlistsShortlistIdRoute
+    '/clients/$clientId': {
+      id: '/clients/$clientId'
+      path: '/clients/$clientId'
+      fullPath: '/clients/$clientId'
+      preLoaderRoute: typeof ClientsClientIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients/new': {
+      id: '/clients/new'
+      path: '/clients/new'
+      fullPath: '/clients/new'
+      preLoaderRoute: typeof ClientsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs/': {
+      id: '/jobs/'
+      path: '/jobs'
+      fullPath: '/jobs/'
+      preLoaderRoute: typeof JobsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs/$jobId': {
+      id: '/jobs/$jobId'
+      path: '/jobs/$jobId'
+      fullPath: '/jobs/$jobId'
+      preLoaderRoute: typeof JobsJobIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs/new': {
+      id: '/jobs/new'
+      path: '/jobs/new'
+      fullPath: '/jobs/new'
+      preLoaderRoute: typeof JobsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pdf/$candidateId': {
+      id: '/pdf/$candidateId'
+      path: '/pdf/$candidateId'
+      fullPath: '/pdf/$candidateId'
+      preLoaderRoute: typeof PdfCandidateIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/s/$token': {
+      id: '/s/$token'
+      path: '/s/$token'
+      fullPath: '/s/$token'
+      preLoaderRoute: typeof STokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shortlists/': {
+      id: '/shortlists/'
+      path: '/shortlists'
+      fullPath: '/shortlists/'
+      preLoaderRoute: typeof ShortlistsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shortlists/$shortlistId': {
+      id: '/shortlists/$shortlistId'
+      path: '/shortlists/$shortlistId'
+      fullPath: '/shortlists/$shortlistId'
+      preLoaderRoute: typeof ShortlistsShortlistIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shortlists/new': {
+      id: '/shortlists/new'
+      path: '/shortlists/new'
+      fullPath: '/shortlists/new'
+      preLoaderRoute: typeof ShortlistsNewRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/s/$token/': {
       id: '/s/$token/'
@@ -525,12 +518,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof STokenIndexRouteImport
       parentRoute: typeof STokenRoute
     }
-    '/shortlists/$shortlistId/analysis/$candidateId': {
-      id: '/shortlists/$shortlistId/analysis/$candidateId'
-      path: '/analysis/$candidateId'
-      fullPath: '/shortlists/$shortlistId/analysis/$candidateId'
-      preLoaderRoute: typeof ShortlistsShortlistIdAnalysisCandidateIdRouteImport
+    '/shortlists/$shortlistId/': {
+      id: '/shortlists/$shortlistId/'
+      path: '/'
+      fullPath: '/shortlists/$shortlistId/'
+      preLoaderRoute: typeof ShortlistsShortlistIdIndexRouteImport
       parentRoute: typeof ShortlistsShortlistIdRoute
+    }
+    '/s/$token/analysis/$candidateId': {
+      id: '/s/$token/analysis/$candidateId'
+      path: '/analysis/$candidateId'
+      fullPath: '/s/$token/analysis/$candidateId'
+      preLoaderRoute: typeof STokenAnalysisCandidateIdRouteImport
+      parentRoute: typeof STokenRoute
     }
     '/s/$token/c/$candidateId': {
       id: '/s/$token/c/$candidateId'
@@ -539,12 +539,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof STokenCCandidateIdRouteImport
       parentRoute: typeof STokenRoute
     }
-    '/s/$token/analysis/$candidateId': {
-      id: '/s/$token/analysis/$candidateId'
+    '/shortlists/$shortlistId/analysis/$candidateId': {
+      id: '/shortlists/$shortlistId/analysis/$candidateId'
       path: '/analysis/$candidateId'
-      fullPath: '/s/$token/analysis/$candidateId'
-      preLoaderRoute: typeof STokenAnalysisCandidateIdRouteImport
-      parentRoute: typeof STokenRoute
+      fullPath: '/shortlists/$shortlistId/analysis/$candidateId'
+      preLoaderRoute: typeof ShortlistsShortlistIdAnalysisCandidateIdRouteImport
+      parentRoute: typeof ShortlistsShortlistIdRoute
     }
   }
 }
