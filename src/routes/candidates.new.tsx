@@ -24,7 +24,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Badge } from "@/components/ui/popover-placeholder";
 import { toast } from "sonner";
 import { uploadFileViaServer } from "@/lib/upload";
 import {
