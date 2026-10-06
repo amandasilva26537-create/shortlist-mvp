@@ -1552,6 +1552,79 @@ function TestResultsEditor({
   );
 }
 
+function jobLabel(j: any) {
+  return j.clients?.name ? `${j.clients.name} | ${j.title}` : j.title;
+}
+
+/** Seletor de vagas abertas com busca — filtra por cliente ou nome da vaga conforme digita. */
+function JobSearchSelect({
+  jobs,
+  value,
+  onChange,
+}: {
+  jobs: any[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const selected = jobs.find((j: any) => j.id === value);
+
+  const term = query.trim().toLowerCase();
+  const filtered = term
+    ? jobs.filter((j: any) =>
+        [j.title, j.clients?.name].filter(Boolean).join(" ").toLowerCase().includes(term),
+      )
+    : jobs;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between font-normal"
+        >
+          <span className="min-w-0 truncate">
+            {selected ? jobLabel(selected) : <span className="text-muted-foreground">Selecione a vaga</span>}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput placeholder="Buscar por vaga ou cliente…" value={query} onValueChange={setQuery} />
+          <CommandList>
+            {filtered.length === 0 ? (
+              <CommandEmpty>Nenhuma vaga aberta encontrada.</CommandEmpty>
+            ) : (
+              <CommandGroup>
+                {filtered.map((j: any) => (
+                  <CommandItem
+                    key={j.id}
+                    value={j.id}
+                    onSelect={() => {
+                      onChange(j.id);
+                      setQuery("");
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={`mr-2 h-4 w-4 shrink-0 ${j.id === value ? "opacity-100" : "opacity-0"}`}
+                    />
+                    <span className="min-w-0 truncate">{jobLabel(j)}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function TestResultDraftForm({
   candidateId,
   draft,
