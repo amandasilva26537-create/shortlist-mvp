@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 
 export function KpiCard({
@@ -6,15 +7,18 @@ export function KpiCard({
   icon: Icon,
   suffix,
   trend,
+  to,
 }: {
   label: string;
   value: string | number;
   icon: LucideIcon;
   suffix?: string;
   trend?: string;
+  /** Se informado, o card inteiro vira um link para esta rota. */
+  to?: string;
 }) {
-  return (
-    <div className="card-soft p-5">
+  const card = (
+    <div className={"card-soft p-5" + (to ? " transition hover:shadow-[var(--shadow-elevated)]" : "")}>
       <div className="flex items-center justify-between">
         <div className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
           {label}
@@ -29,5 +33,12 @@ export function KpiCard({
       </div>
       {trend && <div className="mt-1 text-xs text-[color:var(--success)]">{trend}</div>}
     </div>
+  );
+  return to ? (
+    <Link to={to} className="block rounded-[inherit] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+      {card}
+    </Link>
+  ) : (
+    card
   );
 }

@@ -71,12 +71,12 @@ function Dashboard() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7 mb-8">
-          <KpiCard label="Clientes" value={data?.clients.length ?? 0} icon={Users} />
-          <KpiCard label="Vagas abertas" value={openJobs} icon={Briefcase} />
-          <KpiCard label="Vagas fechadas" value={closedJobs} icon={CheckCircle2} />
-          <KpiCard label="Candidatos" value={data?.candidates.length ?? 0} icon={FilePlus} />
-          <KpiCard label="Shortlists enviadas" value={sent} icon={Send} />
-          <KpiCard label="Rascunhos" value={drafts} icon={FileText} />
+          <KpiCard label="Clientes" value={data?.clients.length ?? 0} icon={Users} to="/clients" />
+          <KpiCard label="Vagas abertas" value={openJobs} icon={Briefcase} to="/jobs" />
+          <KpiCard label="Vagas fechadas" value={closedJobs} icon={CheckCircle2} to="/jobs" />
+          <KpiCard label="Candidatos" value={data?.candidates.length ?? 0} icon={FilePlus} to="/candidates" />
+          <KpiCard label="Shortlists enviadas" value={sent} icon={Send} to="/shortlists" />
+          <KpiCard label="Rascunhos" value={drafts} icon={FileText} to="/shortlists" />
           <KpiCard label="Feedbacks" value={0} icon={MessageSquare} />
         </div>
 
