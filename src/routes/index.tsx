@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { KpiCard } from "@/components/KpiCard";
+import { normalizeJobStatus } from "@/lib/job-status";
 import { Button } from "@/components/ui/button";
 import { listClients } from "@/lib/db/clients.functions";
 import { listJobs } from "@/lib/db/jobs.functions";
@@ -42,6 +43,8 @@ function Dashboard() {
 
   const data = q.data;
   const sent = data?.shortlists.filter((s: any) => s.status === "sent").length ?? 0;
+  // Vagas abertas = somente "Em andamento" (pausadas, canceladas e fechadas não entram)
+  const openJobs = (data?.jobs ?? []).filter((j: any) => normalizeJobStatus(j.status) === "open").length;
   // Vagas únicas com status "Fechada" (cada vaga é uma linha única na tabela de vagas)
   const closedJobs = new Set((data?.jobs ?? []).filter((j: any) => j.status === "closed").map((j: any) => j.id)).size;
   const drafts = data?.shortlists.filter((s: any) => s.status === "draft").length ?? 0;
@@ -69,7 +72,7 @@ function Dashboard() {
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7 mb-8">
           <KpiCard label="Clientes" value={data?.clients.length ?? 0} icon={Users} />
-          <KpiCard label="Vagas abertas" value={data?.jobs.length ?? 0} icon={Briefcase} />
+          <KpiCard label="Vagas abertas" value={openJobs} icon={Briefcase} />
           <KpiCard label="Vagas fechadas" value={closedJobs} icon={CheckCircle2} />
           <KpiCard label="Candidatos" value={data?.candidates.length ?? 0} icon={FilePlus} />
           <KpiCard label="Shortlists enviadas" value={sent} icon={Send} />
