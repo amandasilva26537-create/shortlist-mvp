@@ -3,7 +3,7 @@ import { useQuery, useSuspenseQuery, queryOptions } from "@tanstack/react-query"
 import { useServerFn } from "@tanstack/react-start";
 import {
   Users, Briefcase, ListChecks, MessageSquare, Sparkles, ArrowUpRight,
-  FilePlus, UserPlus, FileText, Send,
+  FilePlus, UserPlus, FileText, Send, CheckCircle2,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { KpiCard } from "@/components/KpiCard";
@@ -42,6 +42,8 @@ function Dashboard() {
 
   const data = q.data;
   const sent = data?.shortlists.filter((s: any) => s.status === "sent").length ?? 0;
+  // Vagas únicas com status "Fechada" (cada vaga é uma linha única na tabela de vagas)
+  const closedJobs = new Set((data?.jobs ?? []).filter((j: any) => j.status === "closed").map((j: any) => j.id)).size;
   const drafts = data?.shortlists.filter((s: any) => s.status === "draft").length ?? 0;
 
   return (
@@ -65,9 +67,10 @@ function Dashboard() {
           <QuickAction to="/shortlists" icon={FileText} label="Continuar rascunho" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6 mb-8">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7 mb-8">
           <KpiCard label="Clientes" value={data?.clients.length ?? 0} icon={Users} />
           <KpiCard label="Vagas abertas" value={data?.jobs.length ?? 0} icon={Briefcase} />
+          <KpiCard label="Vagas fechadas" value={closedJobs} icon={CheckCircle2} />
           <KpiCard label="Candidatos" value={data?.candidates.length ?? 0} icon={FilePlus} />
           <KpiCard label="Shortlists enviadas" value={sent} icon={Send} />
           <KpiCard label="Rascunhos" value={drafts} icon={FileText} />

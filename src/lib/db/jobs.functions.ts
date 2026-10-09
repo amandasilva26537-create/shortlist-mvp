@@ -74,3 +74,14 @@ export const deleteJob = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const updateJobStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z.object({ id: z.string().uuid(), status: z.enum(["open", "paused", "cancelled", "closed"]) }).parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("jobs").update({ status: data.status }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });

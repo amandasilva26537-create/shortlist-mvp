@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import { uploadFileViaServer } from "@/lib/upload";
 import { Sparkles, Loader2, Wand2, Paperclip, X, Plus, Trash2 } from "lucide-react";
 import { listClients } from "@/lib/db/clients.functions";
-import { upsertJob, getJob } from "@/lib/db/jobs.functions";
+import { upsertJob, getJob, updateJobStatus } from "@/lib/db/jobs.functions";
+import { JOB_STATUSES, normalizeJobStatus, type JobStatus } from "@/lib/job-status";
 import { structureJob, refineJobSection } from "@/lib/ai/ai.functions";
 
 export const Route = createFileRoute("/jobs/new")({
@@ -35,6 +36,7 @@ function NewJob() {
   const aiFn = useServerFn(structureJob);
   const refineFn = useServerFn(refineJobSection);
   const getJobFn = useServerFn(getJob);
+  const statusFn = useServerFn(updateJobStatus);
   const editId = search.edit;
   const isEdit = !!editId;
 
@@ -56,6 +58,7 @@ function NewJob() {
     salary_max: "",
     manager_name: "",
   });
+  const [jobStatus, setJobStatus] = useState<JobStatus>("open");
   const [documents, setDocuments] = useState<DocRef[]>([]);
   const [pastedText, setPastedText] = useState("");
   const [aiInstruction, setAiInstruction] = useState("");
@@ -81,6 +84,7 @@ function NewJob() {
     setDocuments(Array.isArray(j.documents) ? j.documents : []);
     setPastedText(j.pasted_text ?? "");
     setStructure(j.ai_structure ?? null);
+    setJobStatus(normalizeJobStatus(j.status));
     setJobId(j.id);
   }, [existingJob]);
 
@@ -109,7 +113,7 @@ function NewJob() {
 
   const removeDoc = (idx: number) => setDocuments((p) => p.filter((_, i) => i !== idx));
 
-  const ensureSaved = async (status = "draft") => {
+  const ensureSaved = async (_legacyStatus = "draft") => {
     if (!basic.client_id) throw new Error("Selecione um cliente");
     if (!basic.title.trim()) throw new Error("Informe o nome da vaga");
     const payload: any = {
@@ -126,11 +130,28 @@ function NewJob() {
       pasted_text: pastedText || null,
       documents,
       ai_structure: structure,
-      status,
+      status: jobStatus,
     };
     const row: any = await saveFn({ data: payload });
     setJobId(row.id);
     return row.id as string;
+  };
+
+  /** Salva o status automaticamente assim que é alterado (vaga já existente). */
+  const changeStatus = async (next: JobStatus) => {
+    const prev = jobStatus;
+    setJobStatus(next);
+    if (!jobId) return; // vaga nova: será salva junto com o restante
+    try {
+      await statusFn({ data: { id: jobId, status: next } });
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["job", jobId] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Status da vaga atualizado");
+    } catch (e: any) {
+      setJobStatus(prev);
+      toast.error(e.message ?? "Erro ao atualizar o status");
+    }
   };
 
   const runAi = async () => {
@@ -148,6 +169,7 @@ function NewJob() {
     try {
       await ensureSaved("open");
       qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Vaga salva");
       navigate({ to: "/jobs" });
     } catch (e: any) { toast.error(e.message); }
@@ -187,6 +209,18 @@ function NewJob() {
               </div>
             </div>
             <div className="sm:col-span-2"><Label>Nome da vaga *</Label><Input value={basic.title} onChange={setB("title")} /></div>
+            <div className="sm:col-span-2"><Label>Status da vaga</Label>
+              <Select value={jobStatus} onValueChange={(v) => changeStatus(v as JobStatus)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {JOB_STATUSES.map((st) => (
+                    <SelectItem key={st.value} value={st.value}>
+                      <span className="inline-flex items-center gap-2"><span className={"h-2 w-2 rounded-full " + st.dot} />{st.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div><Label>Área</Label><Input value={basic.area} onChange={setB("area")} /></div>
             <div><Label>Cidade</Label><Input value={basic.location} onChange={setB("location")} /></div>
             <div><Label>Modelo de trabalho</Label>
