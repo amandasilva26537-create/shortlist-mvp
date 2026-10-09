@@ -32,6 +32,7 @@ import { Route as ShortlistsIndexRouteImport } from './routes/shortlists.index'
 import { Route as ShortlistsShortlistIdRouteImport } from './routes/shortlists.$shortlistId'
 import { Route as ShortlistsNewRouteImport } from './routes/shortlists.new'
 import { Route as STokenIndexRouteImport } from './routes/s.$token.index'
+import { Route as STokenCompareRouteImport } from './routes/s.$token.compare'
 import { Route as ShortlistsShortlistIdIndexRouteImport } from './routes/shortlists.$shortlistId.index'
 import { Route as STokenAnalysisCandidateIdRouteImport } from './routes/s.$token.analysis.$candidateId'
 import { Route as STokenCCandidateIdRouteImport } from './routes/s.$token.c.$candidateId'
@@ -152,6 +153,11 @@ const STokenIndexRoute = STokenIndexRouteImport.update({
   path: '/',
   getParentRoute: () => STokenRoute,
 } as any)
+const STokenCompareRoute = STokenCompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => STokenRoute,
+} as any)
 const ShortlistsShortlistIdIndexRoute =
   ShortlistsShortlistIdIndexRouteImport.update({
     id: '/',
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/clients/': typeof ClientsIndexRoute
   '/jobs/': typeof JobsIndexRoute
   '/shortlists/': typeof ShortlistsIndexRoute
+  '/s/$token/compare': typeof STokenCompareRoute
   '/s/$token/': typeof STokenIndexRoute
   '/shortlists/$shortlistId/': typeof ShortlistsShortlistIdIndexRoute
   '/s/$token/analysis/$candidateId': typeof STokenAnalysisCandidateIdRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByTo {
   '/clients': typeof ClientsIndexRoute
   '/jobs': typeof JobsIndexRoute
   '/shortlists': typeof ShortlistsIndexRoute
+  '/s/$token/compare': typeof STokenCompareRoute
   '/s/$token': typeof STokenIndexRoute
   '/shortlists/$shortlistId': typeof ShortlistsShortlistIdIndexRoute
   '/s/$token/analysis/$candidateId': typeof STokenAnalysisCandidateIdRoute
@@ -256,6 +264,7 @@ export interface FileRoutesById {
   '/clients/': typeof ClientsIndexRoute
   '/jobs/': typeof JobsIndexRoute
   '/shortlists/': typeof ShortlistsIndexRoute
+  '/s/$token/compare': typeof STokenCompareRoute
   '/s/$token/': typeof STokenIndexRoute
   '/shortlists/$shortlistId/': typeof ShortlistsShortlistIdIndexRoute
   '/s/$token/analysis/$candidateId': typeof STokenAnalysisCandidateIdRoute
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
     | '/clients/'
     | '/jobs/'
     | '/shortlists/'
+    | '/s/$token/compare'
     | '/s/$token/'
     | '/shortlists/$shortlistId/'
     | '/s/$token/analysis/$candidateId'
@@ -314,6 +324,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/jobs'
     | '/shortlists'
+    | '/s/$token/compare'
     | '/s/$token'
     | '/shortlists/$shortlistId'
     | '/s/$token/analysis/$candidateId'
@@ -343,6 +354,7 @@ export interface FileRouteTypes {
     | '/clients/'
     | '/jobs/'
     | '/shortlists/'
+    | '/s/$token/compare'
     | '/s/$token/'
     | '/shortlists/$shortlistId/'
     | '/s/$token/analysis/$candidateId'
@@ -538,6 +550,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof STokenIndexRouteImport
       parentRoute: typeof STokenRoute
     }
+    '/s/$token/compare': {
+      id: '/s/$token/compare'
+      path: '/compare'
+      fullPath: '/s/$token/compare'
+      preLoaderRoute: typeof STokenCompareRouteImport
+      parentRoute: typeof STokenRoute
+    }
     '/shortlists/$shortlistId/': {
       id: '/shortlists/$shortlistId/'
       path: '/'
@@ -570,12 +589,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface STokenRouteChildren {
+  STokenCompareRoute: typeof STokenCompareRoute
   STokenIndexRoute: typeof STokenIndexRoute
   STokenAnalysisCandidateIdRoute: typeof STokenAnalysisCandidateIdRoute
   STokenCCandidateIdRoute: typeof STokenCCandidateIdRoute
 }
 
 const STokenRouteChildren: STokenRouteChildren = {
+  STokenCompareRoute: STokenCompareRoute,
   STokenIndexRoute: STokenIndexRoute,
   STokenAnalysisCandidateIdRoute: STokenAnalysisCandidateIdRoute,
   STokenCCandidateIdRoute: STokenCCandidateIdRoute,

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -170,6 +170,11 @@ function Portal() {
             <span>
               Avaliando como <b className="text-foreground">{identity.name}</b> · {identity.role}
             </span>
+            {ordered.length >= 2 && (
+              <Link to="/s/$token/compare" params={{ token }} className="font-medium underline hover:text-foreground">
+                Comparar candidatos
+              </Link>
+            )}
             <button
               className="underline hover:text-foreground"
               onClick={() => {
