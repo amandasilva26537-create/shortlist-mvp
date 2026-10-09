@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, GitCompare } from "lucide-react";
 import { getPortalShortlist, getPortalCandidate } from "@/lib/db/portal.functions";
+import { isCompareV2 } from "@/lib/compare";
 import { PortalWordmark } from "@/components/shortlist/PortusBrand";
 import { PortalCandidateView } from "@/components/shortlist/PortalCandidateView";
 import {
@@ -17,12 +18,16 @@ import {
 
 export const Route = createFileRoute("/s/$token/")({
   ssr: false,
+  validateSearch: (s: Record<string, unknown>): { cursor?: string } => ({
+    cursor: typeof s.cursor === "string" ? s.cursor : undefined,
+  }),
   head: () => ({ meta: [{ title: "Shortlist executiva" }] }),
   component: Portal,
 });
 
 function Portal() {
   const { token } = Route.useParams();
+  const { cursor } = Route.useSearch();
   const getFn = useServerFn(getPortalShortlist);
   const { data } = useQuery({
     queryKey: ["portal", token],
@@ -48,6 +53,14 @@ function Portal() {
       return (a.position ?? 0) - (b.position ?? 0);
     });
   }, [data]);
+
+  // Ao voltar da comparação, mantém o candidato que estava selecionado
+  useEffect(() => {
+    if (!cursor || ordered.length === 0) return;
+    const i = ordered.findIndex((l: any) => l.candidate_id === cursor);
+    if (i >= 0) setIdx(i);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursor, ordered.length]);
 
   const safeIdx = Math.max(0, Math.min(idx, ordered.length - 1));
   const currentLink = ordered[safeIdx];
@@ -125,6 +138,9 @@ function Portal() {
     );
   }
 
+  // Botão de comparação: só em shortlists novas e com 2+ candidatos publicados
+  const compareEnabled = ordered.length >= 2 && isCompareV2((data.shortlist as any).created_at);
+
   const goto = (i: number) => {
     setIdx(Math.max(0, Math.min(ordered.length - 1, i)));
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
@@ -170,11 +186,6 @@ function Portal() {
             <span>
               Avaliando como <b className="text-foreground">{identity.name}</b> · {identity.role}
             </span>
-            {ordered.length >= 2 && (
-              <Link to="/s/$token/compare" params={{ token }} className="font-medium underline hover:text-foreground">
-                Comparar candidatos
-              </Link>
-            )}
             <button
               className="underline hover:text-foreground"
               onClick={() => {
@@ -205,6 +216,14 @@ function Portal() {
                     <b className="text-foreground">{ordered.length}</b>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
+                    {compareEnabled && (
+                      <Link to="/s/$token/compare" params={{ token }} search={{ back: currentId }}>
+                        <Button variant="outline" size="sm">
+                          <GitCompare className="h-4 w-4" />
+                          <span className="ml-1.5">Comparar candidatos</span>
+                        </Button>
+                      </Link>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"

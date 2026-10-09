@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -10,9 +10,10 @@ import { CompareView } from "@/components/compare/CompareView";
 import { PortalWordmark } from "@/components/shortlist/PortusBrand";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { initials } from "@/lib/format";
+import { isCompareV2 } from "@/lib/compare";
 
 export const Route = createFileRoute("/s/$token/compare")({
-  validateSearch: z.object({ ids: z.string().optional() }),
+  validateSearch: z.object({ ids: z.string().optional(), back: z.string().optional() }),
   head: () => ({ meta: [{ title: "Comparar candidatos" }] }),
   component: PortalCompare,
 });
@@ -21,7 +22,7 @@ const MAX = 3;
 
 function PortalCompare() {
   const { token } = Route.useParams();
-  const { ids } = Route.useSearch();
+  const { ids, back } = Route.useSearch();
   const navigate = Route.useNavigate();
   const getFn = useServerFn(getPortalShortlist);
   const insightsFn = useServerFn(generatePortalCompareInsights);
@@ -47,12 +48,16 @@ function PortalCompare() {
 
   if (!data) return <div className="portus-theme grid min-h-screen place-items-center text-sm text-muted-foreground">Carregando…</div>;
 
+  // Comparação do cliente existe somente nas novas shortlists
+  if (!isCompareV2((data.shortlist as any).created_at)) return <Navigate to="/s/$token" params={{ token }} replace />;
+
   const brand = (data.shortlist as any)?.brand ?? (data.shortlist.clients as any)?.brand ?? "portus";
   const themeClass = brand === "moove" ? "moove-theme" : "portus-theme";
   const setSel = (next: string[]) => {
     setPicked(next);
-    navigate({ search: { ids: next.join(",") || undefined }, replace: true });
+    navigate({ search: { ids: next.join(",") || undefined, back }, replace: true });
   };
+  const matchOf = (id: string) => ((data.evaluations as any[]) ?? []).find((e) => e.candidate_id === id)?.overall_match;
   const available = pool.filter((c) => !selectedIds.includes(c.id));
 
   return (
@@ -74,7 +79,7 @@ function PortalCompare() {
         </div>
 
         {items.length >= 2 && (
-          <CompareView items={items} analysis={analysis} analysisLoading={analysisLoading} onRemove={(id) => setSel(selectedIds.filter((x) => x !== id))} />
+          <CompareView items={items} analysis={analysis} analysisLoading={analysisLoading} v2 onRemove={(id) => setSel(selectedIds.filter((x) => x !== id))} />
         )}
 
         {selectedIds.length < MAX && available.length > 0 && (
@@ -84,15 +89,16 @@ function PortalCompare() {
               {available.map((c) => (
                 <button key={c.id} onClick={() => setSel([...selectedIds, c.id])}
                   className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/40">
-                  <Avatar className="h-5 w-5"><AvatarImage src={c.photo_url ?? undefined} /><AvatarFallback className="text-[9px]">{initials(c.full_name)}</AvatarFallback></Avatar>
+                  <Avatar className="h-6 w-6"><AvatarImage src={c.photo_url ?? undefined} /><AvatarFallback className="text-[9px]">{initials(c.full_name)}</AvatarFallback></Avatar>
                   <Plus className="h-3 w-3" /> {c.full_name}
+                  {typeof matchOf(c.id) === "number" && <span className="rounded-full bg-primary-soft px-1.5 py-0.5 text-[10px] font-semibold text-primary">{matchOf(c.id)}%</span>}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        <Link to="/s/$token" params={{ token }} className="text-xs text-muted-foreground hover:underline">← Voltar para a shortlist</Link>
+        <Link to="/s/$token" params={{ token }} search={{ cursor: back }} className="inline-flex h-9 items-center rounded-md border border-border bg-card px-3 text-sm font-medium hover:bg-secondary">← Voltar à shortlist</Link>
       </div>
     </div>
   );

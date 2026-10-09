@@ -19,16 +19,18 @@ const STATUS: Record<string, { cls: string; icon: any; glyph?: string; label: st
 };
 
 export function CompareView({
-  items, analysis, analysisLoading, onRemove,
+  items, analysis, analysisLoading, onRemove, v2 = false,
 }: {
   items: CompareItem[];
   analysis: CompareAnalysis | undefined;
   analysisLoading: boolean;
   onRemove?: (candidateId: string) => void;
+  /** Novas regras (somente shortlists criadas após a atualização). */
+  v2?: boolean;
 }) {
   const first = (c: any) => String(c?.full_name ?? "").trim().split(/\s+/)[0] || "Candidato";
   const radar = buildRadar(items);
-  const table = buildTable(items);
+  const table = buildTable(items, v2);
   const checklist = buildChecklist(items);
   const cols = COLS[items.length] ?? COLS[3];
 
@@ -113,6 +115,7 @@ export function CompareView({
       </section>
 
       {/* Matriz de evidências */}
+      {!(v2 && !analysisLoading && (!analysis || analysis.matrix.length === 0)) && (
       <section className="card-soft overflow-hidden">
         <div className="border-b border-border p-5">
           <h3 className="text-base font-semibold">Matriz de evidências da vaga</h3>
@@ -141,7 +144,7 @@ export function CompareView({
                       const ev = row.cells.find((c) => c.candidate_id === it.candidate.id)?.evidence;
                       return (
                         <td key={it.candidate.id} className="p-4 align-top">
-                          {ev ?? <span className="text-xs text-muted-foreground">Não identificado nas informações disponíveis</span>}
+                          {ev ?? (v2 ? <span className="text-muted-foreground">—</span> : <span className="text-xs text-muted-foreground">Não identificado nas informações disponíveis</span>)}
                         </td>
                       );
                     })}
@@ -152,6 +155,7 @@ export function CompareView({
           </div>
         )}
       </section>
+      )}
 
       {/* Radar */}
       <section className="card-soft p-6">

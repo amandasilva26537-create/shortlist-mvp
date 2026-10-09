@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { initials } from "@/lib/format";
 import { getShortlist, listShortlists, listEvaluationsForShortlist } from "@/lib/db/shortlists.functions";
 import { generateCompareInsights } from "@/lib/ai/compare.functions";
+import { isCompareV2 } from "@/lib/compare";
 
 const searchSchema = z.object({ shortlist: z.string().optional(), ids: z.string().optional() });
 
@@ -113,7 +114,7 @@ function ComparePage() {
         {selected.length < 2 ? (
           <p className="text-sm text-muted-foreground">Selecione de 2 a 3 candidatos desta shortlist para uma análise lado a lado.</p>
         ) : (
-          <CompareView items={items} analysis={analysis} analysisLoading={analysisLoading} onRemove={remove} />
+          <CompareView items={items} analysis={analysis} analysisLoading={analysisLoading} onRemove={remove} v2={isCompareV2((sl as any).created_at)} />
         )}
 
         {selected.length < MAX && available.length > 0 && (

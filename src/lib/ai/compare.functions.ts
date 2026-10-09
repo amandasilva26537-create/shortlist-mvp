@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-access";
 import { generateText } from "ai";
 import { z } from "zod";
+import { isCompareV2 } from "@/lib/compare";
 import { AI_MODEL, createLovableAiGateway, requireApiKey } from "./gateway.server";
 
 export type CompareAnalysis = {
@@ -12,7 +13,7 @@ export type CompareAnalysis = {
 const clean = (v: any): string | null => (typeof v === "string" && v.trim() ? v.trim() : null);
 
 /** Análise comparativa: diferenciais, contribuição, pontos de atenção e matriz de evidências — só com dados da shortlist. */
-async function buildAnalysis(job: any, rows: { candidate: any; evaluation: any | null }[]): Promise<CompareAnalysis> {
+async function buildAnalysis(job: any, rows: { candidate: any; evaluation: any | null }[], v2 = false): Promise<CompareAnalysis> {
   const jobCtx = {
     titulo: job?.title,
     descricao: job?.description ?? job?.ai_structure?.summary ?? null,
@@ -39,6 +40,8 @@ async function buildAnalysis(job: any, rows: { candidate: any; evaluation: any |
     especialidades: c.specialties ?? null,
     competencias: c.competencies ?? null,
     formacao: c.education ?? null,
+    // v2: transcrição COMPLETA da entrevista (somente leitura da IA; nunca devolvida ao navegador)
+    ...(v2 ? { transcricao_completa_da_entrevista: c.transcript ?? null } : {}),
   }));
 
   const gateway = createLovableAiGateway(requireApiKey());
@@ -59,7 +62,9 @@ Entregue:
    - "attention": um ponto de atenção relevante e real, SOMENTE se houver base nos dados (riscos registrados, critério parcial/não atendido, lacuna clara). Caso contrário, null.
 2) "matrix": os 4 ou 5 requisitos MAIS IMPORTANTES da vaga. Para cada requisito, em "cells", uma evidência objetiva e curta (máx. 12 palavras, ex.: "Gestão de 20 pessoas", "Abertura de novos mercados") por candidato.
    - Se não houver evidência suficiente nos dados, use exatamente null. Ausência de informação NÃO significa ausência de competência: nunca escreva que a pessoa "não tem" algo.
-
+${v2 ? `   - Inclua SOMENTE requisitos para os quais pelo menos DOIS candidatos tenham evidência concreta, de modo que a comparação seja útil. Priorize experiências, resultados, projetos, ferramentas e competências que realmente diferenciem os candidatos. Omita requisitos sem informação suficiente (pode haver menos de 4 linhas, ou nenhuma).
+   - ENTREVISTA: analise a "transcricao_completa_da_entrevista" de cada candidato por inteiro e cruze com currículo (trajetoria, resultados), requisitos da vaga e análise individual. Extraia experiências, resultados, ferramentas, projetos e diferenciais REAIS citados. Use apenas fatos profissionais; não reproduza pretensão salarial, opiniões internas nem trechos sensíveis.
+` : ""}
 Regras:
 - Use somente informações presentes nos dados. NÃO invente experiências, empresas, números ou resultados.
 - Explique diferenças reais entre os candidatos; não repita descrições genéricas nem os mesmos textos em candidatos diferentes.
@@ -93,7 +98,11 @@ Retorne APENAS JSON válido:
         evidence: clean((Array.isArray(m.cells) ? m.cells : []).find((x: any) => x?.candidate_id === r.candidate.id)?.evidence),
       })),
     }));
-  return { cards, matrix };
+  // v2: só mantém requisitos com evidência concreta em pelo menos 2 candidatos
+  const finalMatrix = v2
+    ? matrix.filter((m: any) => m.cells.filter((c: any) => c.evidence).length >= 2)
+    : matrix;
+  return { cards, matrix: finalMatrix };
 }
 
 const IdsInput = z.array(z.string().uuid()).min(2).max(3);
@@ -102,7 +111,7 @@ export const generateCompareInsights = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => z.object({ shortlist_id: z.string().uuid(), candidate_ids: IdsInput }).parse(v))
   .handler(async ({ data, context }) => {
-    const { data: sl } = await context.supabase.from("shortlists").select("job_id, jobs(*)").eq("id", data.shortlist_id).maybeSingle();
+    const { data: sl } = await context.supabase.from("shortlists").select("job_id, created_at, jobs(*)").eq("id", data.shortlist_id).maybeSingle();
     if (!sl) throw new Error("Shortlist não encontrada");
     const { data: links } = await context.supabase
       .from("shortlist_candidates")
@@ -119,7 +128,7 @@ export const generateCompareInsights = createServerFn({ method: "POST" })
       evaluation: (evals ?? []).find((e: any) => e.candidate_id === l.candidate_id) ?? null,
     }));
     if (rows.length < 2) throw new Error("Selecione candidatos da mesma shortlist");
-    return { analysis: await buildAnalysis((sl as any).jobs, rows) };
+    return { analysis: await buildAnalysis((sl as any).jobs, rows, isCompareV2((sl as any).created_at)) };
   });
 
 /** Versão do portal do cliente: valida o token da shortlist enviada. */
@@ -129,15 +138,17 @@ export const generatePortalCompareInsights = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: sl } = await supabaseAdmin
       .from("shortlists")
-      .select("id, job_id, jobs(*)")
+      .select("id, job_id, created_at, jobs(*)")
       .eq("share_token", data.token)
       .eq("status", "sent")
       .maybeSingle();
     if (!sl) throw new Error("Shortlist não encontrada");
+    // Comparação do cliente existe somente nas novas shortlists
+    if (!isCompareV2((sl as any).created_at)) throw new Error("Comparação indisponível para esta shortlist");
     const { data: links } = await supabaseAdmin
       .from("shortlist_candidates")
       .select(
-        "candidate_id, candidates(id, full_name, headline, trajectory, current_position, current_company, disc_profile, main_results, achievements, specialties, competencies, education)",
+        "candidate_id, candidates(id, full_name, headline, trajectory, current_position, current_company, disc_profile, main_results, achievements, specialties, competencies, education, transcript)",
       )
       .eq("shortlist_id", (sl as any).id)
       .in("candidate_id", data.candidate_ids);
@@ -152,7 +163,7 @@ export const generatePortalCompareInsights = createServerFn({ method: "POST" })
       evaluation: pickClientSafe((evals ?? []).find((e: any) => e.candidate_id === l.candidate_id)),
     }));
     if (rows.length < 2) throw new Error("Selecione candidatos da mesma shortlist");
-    return { analysis: await buildAnalysis((sl as any).jobs, rows) };
+    return { analysis: await buildAnalysis((sl as any).jobs, rows, isCompareV2((sl as any).created_at)) };
   });
 
 function pickClientSafe(e: any) {

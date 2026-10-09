@@ -12,6 +12,17 @@ export const DIMENSION_LABELS: Record<string, string> = {
   adaptability: "Potencial de adaptação",
 };
 
+/**
+ * Novas regras do comparativo (sem "Modelo de trabalho", matriz só com evidências, uso da transcrição
+ * da entrevista e botão no portal do cliente) valem SOMENTE para shortlists criadas a partir deste instante.
+ * Shortlists anteriores permanecem exatamente como estavam. Não há migração nem alteração de dados.
+ */
+export const COMPARE_V2_CUTOFF = "2026-10-09T19:20:00Z";
+export function isCompareV2(shortlistCreatedAt?: string | null): boolean {
+  if (!shortlistCreatedAt) return false;
+  return new Date(shortlistCreatedAt).getTime() >= new Date(COMPARE_V2_CUTOFF).getTime();
+}
+
 export type CompareItem = { candidate: any; evaluation: any | null };
 
 const isNum = (v: any): v is number => typeof v === "number" && !Number.isNaN(v);
@@ -87,12 +98,12 @@ function experienceLabel(c: any): string | null {
 }
 
 /** Dados objetivos. As notas por competência ficam somente no radar. Só entram linhas com dado real. */
-export function buildTable(items: CompareItem[]): TableRow[] {
+export function buildTable(items: CompareItem[], v2 = false): TableRow[] {
   const rows: TableRow[] = [
     { label: "Match geral", values: items.map((it) => (isNum(it.evaluation?.overall_match) ? `${it.evaluation.overall_match}%` : null)) },
     { label: "DISC", values: items.map((it) => it.candidate?.disc_profile || null) },
     { label: "Cidade", values: items.map((it) => cityLabel(it.candidate)) },
-    { label: "Modelo de trabalho", values: items.map((it) => it.candidate?.work_model || null) },
+    ...(v2 ? [] : [{ label: "Modelo de trabalho", values: items.map((it) => it.candidate?.work_model || null) }]),
     { label: "Pretensão salarial", values: items.map((it) => salaryLabel(it.candidate)) },
     {
       label: "Disponibilidade",
