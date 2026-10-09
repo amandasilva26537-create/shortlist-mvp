@@ -6,6 +6,7 @@ export const PROCESS_STAGES = [
   { value: "interviews", label: "Entrevistas" },
   { value: "tests", label: "Testes e avaliações" },
   { value: "shortlist_sent", label: "Shortlist enviada" },
+  { value: "hiring_manager_interview", label: "Entrevista com o contratante" },
   { value: "post_interview_feedback", label: "Feedback pós-entrevista" },
   { value: "decision_offer", label: "Decisão e proposta" },
   { value: "closed", label: "Vaga encerrada" },

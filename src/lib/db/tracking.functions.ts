@@ -4,7 +4,7 @@ import { z } from "zod";
 
 const STAGES = [
   "published", "receiving_cvs", "screening", "interviews", "tests",
-  "shortlist_sent", "post_interview_feedback", "decision_offer", "closed",
+  "shortlist_sent", "hiring_manager_interview", "post_interview_feedback", "decision_offer", "closed",
 ] as const;
 
 const MIGRATION_HINT = "Recurso de acompanhamento ainda não ativado no banco de dados (migração pendente).";
