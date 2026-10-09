@@ -344,3 +344,17 @@ export const listCandidateClientFeedback = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
+
+// ============ Central de feedbacks (todos os feedbacks de clientes, uso interno) ============
+export const listAllClientFeedback = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("manager_feedback")
+      .select(
+        "id, shortlist_id, candidate_id, client_identifier, client_role, comment, decision, favorite, rating, created_at, updated_at, candidates(id, full_name), shortlists(id, number, title, brand, jobs(id, title), clients(id, name, brand))",
+      )
+      .order("updated_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });

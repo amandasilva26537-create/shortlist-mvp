@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -8,6 +8,9 @@ import {
 import { AppShell } from "@/components/layout/AppShell";
 import { KpiCard } from "@/components/KpiCard";
 import { normalizeJobStatus } from "@/lib/job-status";
+import { FeedbackItem } from "@/components/feedback/FeedbackItem";
+import { feedbackDate, useFeedbackReads, type FeedbackRow } from "@/lib/feedback-center";
+import { listAllClientFeedback } from "@/lib/db/shortlists.functions";
 import { Button } from "@/components/ui/button";
 import { listClients } from "@/lib/db/clients.functions";
 import { listJobs } from "@/lib/db/jobs.functions";
@@ -31,13 +34,16 @@ function useAll() {
 
 function Dashboard() {
   const fns = useAll();
+  const navigate = useNavigate();
+  const feedbackFn = useServerFn(listAllClientFeedback);
+  const reads = useFeedbackReads();
   const q = useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {
-      const [clients, jobs, shortlists, candidates, drafts] = await Promise.all([
-        fns.clients(), fns.jobs(), fns.shortlists(), fns.cands(), fns.drafts(),
+      const [clients, jobs, shortlists, candidates, drafts, feedbacks] = await Promise.all([
+        fns.clients(), fns.jobs(), fns.shortlists(), fns.cands(), fns.drafts(), feedbackFn(),
       ]);
-      return { clients, jobs, shortlists, candidates, drafts };
+      return { clients, jobs, shortlists, candidates, drafts, feedbacks };
     },
   });
 
@@ -47,6 +53,10 @@ function Dashboard() {
   const openJobs = (data?.jobs ?? []).filter((j: any) => normalizeJobStatus(j.status) === "open").length;
   // Vagas únicas com status "Fechada" (cada vaga é uma linha única na tabela de vagas)
   const closedJobs = new Set((data?.jobs ?? []).filter((j: any) => j.status === "closed").map((j: any) => j.id)).size;
+  const feedbacks = ((data?.feedbacks ?? []) as unknown as FeedbackRow[]).sort(
+    (a, b) => +new Date(feedbackDate(b)) - +new Date(feedbackDate(a)),
+  );
+  const unreadFeedbacks = feedbacks.filter((f) => !reads.isRead(f)).length;
   const drafts = data?.shortlists.filter((s: any) => s.status === "draft").length ?? 0;
 
   return (
@@ -77,7 +87,31 @@ function Dashboard() {
           <KpiCard label="Candidatos" value={data?.candidates.length ?? 0} icon={FilePlus} to="/candidates" />
           <KpiCard label="Shortlists enviadas" value={sent} icon={Send} to="/shortlists" />
           <KpiCard label="Rascunhos" value={drafts} icon={FileText} to="/shortlists" />
-          <KpiCard label="Feedbacks" value={0} icon={MessageSquare} />
+          <KpiCard label="Feedbacks não lidos" value={unreadFeedbacks} icon={MessageSquare} to="/feedbacks" />
+        </div>
+
+        <div className="card-soft mb-6">
+          <div className="flex items-center justify-between border-b border-border p-5">
+            <div>
+              <h2 className="text-base font-semibold">Feedbacks</h2>
+              <p className="text-xs text-muted-foreground">
+                {unreadFeedbacks > 0 ? `${unreadFeedbacks} não lidos · ` : ""}Avaliações enviadas pelos clientes nas shortlists
+              </p>
+            </div>
+            <Link to="/feedbacks" className="text-xs font-medium text-primary hover:underline">Ver todos</Link>
+          </div>
+          {feedbacks.length === 0 ? (
+            <div className="p-5 text-sm text-muted-foreground">Nenhum feedback recebido ainda.</div>
+          ) : (
+            <div className="divide-y divide-border">
+              {feedbacks.slice(0, 5).map((f) => (
+                <FeedbackItem key={f.id} r={f} unread={!reads.isRead(f)} onOpen={() => {
+                  reads.markRead(f);
+                  navigate({ to: "/shortlists/$shortlistId", params: { shortlistId: f.shortlist_id }, search: { cursor: f.candidate_id } as any });
+                }} />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
