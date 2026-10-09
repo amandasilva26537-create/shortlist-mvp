@@ -86,9 +86,8 @@ function experienceLabel(c: any): string | null {
   return null;
 }
 
-/** Linhas da tabela: só entram linhas em que ao menos um candidato tem dado real. */
+/** Dados objetivos. As notas por competência ficam somente no radar. Só entram linhas com dado real. */
 export function buildTable(items: CompareItem[]): TableRow[] {
-  const dims = items.map((it) => dimensionScores(it.evaluation));
   const rows: TableRow[] = [
     { label: "Match geral", values: items.map((it) => (isNum(it.evaluation?.overall_match) ? `${it.evaluation.overall_match}%` : null)) },
     { label: "DISC", values: items.map((it) => it.candidate?.disc_profile || null) },
@@ -103,10 +102,6 @@ export function buildTable(items: CompareItem[]): TableRow[] {
       }),
     },
     { label: "Experiência relevante", values: items.map((it) => experienceLabel(it.candidate)) },
-    ...Object.entries(DIMENSION_LABELS).map(([k, label]) => ({
-      label,
-      values: dims.map((d) => (k in d ? `${d[k]}/10` : null)),
-    })),
   ];
   return rows.filter((r) => r.values.some((v) => v != null));
 }

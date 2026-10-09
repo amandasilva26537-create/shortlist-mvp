@@ -36,9 +36,9 @@ function PortalCompare() {
   }));
 
   const key = [...selectedIds].sort().join(",");
-  const { data: insights, isLoading } = useQuery({
+  const { data: analysis, isLoading: analysisLoading } = useQuery({
     queryKey: ["portal-compare-insights", token, key],
-    queryFn: async () => (await insightsFn({ data: { token, candidate_ids: selectedIds } })).insights,
+    queryFn: async () => (await insightsFn({ data: { token, candidate_ids: selectedIds } })).analysis,
     enabled: selectedIds.length >= 2,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
@@ -74,7 +74,7 @@ function PortalCompare() {
         </div>
 
         {items.length >= 2 && (
-          <CompareView items={items} insights={insights} insightsLoading={isLoading} onRemove={(id) => setSel(selectedIds.filter((x) => x !== id))} />
+          <CompareView items={items} analysis={analysis} analysisLoading={analysisLoading} onRemove={(id) => setSel(selectedIds.filter((x) => x !== id))} />
         )}
 
         {selectedIds.length < MAX && available.length > 0 && (

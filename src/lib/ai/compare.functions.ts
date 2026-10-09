@@ -4,16 +4,21 @@ import { generateText } from "ai";
 import { z } from "zod";
 import { AI_MODEL, createLovableAiGateway, requireApiKey } from "./gateway.server";
 
-type Insight = { candidate_id: string; text: string };
+export type CompareAnalysis = {
+  cards: { candidate_id: string; differential: string; contribution: string; attention: string | null }[];
+  matrix: { requirement: string; cells: { candidate_id: string; evidence: string | null }[] }[];
+};
 
-/** Gera, para cada candidato, o principal ponto forte em relação à vaga, usando só dados da shortlist. */
-async function buildInsights(job: any, rows: { candidate: any; evaluation: any | null }[]): Promise<Insight[]> {
+const clean = (v: any): string | null => (typeof v === "string" && v.trim() ? v.trim() : null);
+
+/** Análise comparativa: diferenciais, contribuição, pontos de atenção e matriz de evidências — só com dados da shortlist. */
+async function buildAnalysis(job: any, rows: { candidate: any; evaluation: any | null }[]): Promise<CompareAnalysis> {
   const jobCtx = {
     titulo: job?.title,
-    criterios_eliminatorios_e_requisitos: job?.must_have ?? [],
-    desejaveis: job?.nice_to_have ?? [],
+    descricao: job?.description ?? job?.ai_structure?.summary ?? null,
+    requisitos_e_criterios: { eliminatorios: job?.must_have ?? [], desejaveis: job?.nice_to_have ?? [], hard_skills: job?.hard_skills ?? [], soft_skills: job?.soft_skills ?? [] },
     competencias_avaliadas: job?.radar_competencies ?? [],
-    resumo: job?.ai_structure?.summary ?? job?.description ?? null,
+    estrutura_da_vaga: job?.ai_structure ?? null,
   };
   const people = rows.map(({ candidate: c, evaluation: e }) => ({
     candidate_id: c.id,
@@ -22,43 +27,73 @@ async function buildInsights(job: any, rows: { candidate: any; evaluation: any |
     diferencial: e?.key_differentiator ?? null,
     pontos_fortes: Array.isArray(e?.top_strengths) ? e.top_strengths : [],
     resumo_para_a_vaga: e?.job_specific_summary ?? null,
-    trajetoria: Array.isArray(c.trajectory) ? c.trajectory.slice(0, 6) : [],
+    parecer: e?.recruiter_opinion ?? null,
+    case_principal: e?.main_case ?? null,
+    riscos_ja_registrados: Array.isArray(e?.risk_items) ? e.risk_items : [],
     criterios_eliminatorios: Array.isArray(e?.eliminatory_checklist) ? e.eliminatory_checklist : [],
     notas: e?.recruiter_scores ?? e?.dimension_scores ?? {},
+    disc: c.disc_profile ?? null,
+    cargo_atual: [c.current_position, c.current_company].filter(Boolean).join(" · ") || null,
+    trajetoria: Array.isArray(c.trajectory) ? c.trajectory.slice(0, 8) : [],
+    resultados: c.main_results ?? c.achievements ?? null,
+    especialidades: c.specialties ?? null,
+    competencias: c.competencies ?? null,
+    formacao: c.education ?? null,
   }));
 
   const gateway = createLovableAiGateway(requireApiKey());
   const { text } = await generateText({
     model: gateway(AI_MODEL),
-    prompt: `Você é uma recrutadora sênior preparando uma comparação imparcial entre candidatos de UMA shortlist, para ajudar o cliente a entender os diferentes pontos fortes de cada profissional.
+    prompt: `Você é uma recrutadora sênior. Prepare uma comparação imparcial entre candidatos de UMA shortlist, para o cliente entender o que cada um oferece de DIFERENTE para a vaga e decidir com mais segurança.
 
 VAGA:
 ${JSON.stringify(jobCtx, null, 2)}
 
-CANDIDATOS (única fonte de verdade):
+CANDIDATOS (única fonte de verdade — currículo, análise e entrevista já consolidados na shortlist):
 ${JSON.stringify(people, null, 2)}
 
-Para CADA candidato, escreva UM texto curto (1 a 2 frases, máx. 45 palavras) explicando o PRINCIPAL PONTO FORTE em relação aos requisitos desta vaga.
+Entregue:
+1) "cards": para CADA candidato
+   - "differential": UMA frase curta (máx. 18 palavras) com o principal diferencial para esta vaga.
+   - "contribution": a experiência ou competência que mais contribui para a vaga, com a evidência concreta (máx. 30 palavras).
+   - "attention": um ponto de atenção relevante e real, SOMENTE se houver base nos dados (riscos registrados, critério parcial/não atendido, lacuna clara). Caso contrário, null.
+2) "matrix": os 4 ou 5 requisitos MAIS IMPORTANTES da vaga. Para cada requisito, em "cells", uma evidência objetiva e curta (máx. 12 palavras, ex.: "Gestão de 20 pessoas", "Abertura de novos mercados") por candidato.
+   - Se não houver evidência suficiente nos dados, use exatamente null. Ausência de informação NÃO significa ausência de competência: nunca escreva que a pessoa "não tem" algo.
 
 Regras:
-- Use somente evidências presentes nos dados acima (experiências, pontos fortes, resumo, critérios, notas). NÃO invente experiências, empresas, números ou resultados.
-- Relacione o ponto forte a um requisito/competência da vaga e cite a evidência concreta.
-- Cada candidato deve ter um diferencial próprio; destaque o que o distingue dos demais.
-- Sem elogios genéricos, sem adjetivos vazios, sem linguagem promocional.
-- NÃO declare vencedor, ranking ou "melhor candidato". Não compare notas entre pessoas.
-- Comece o texto pelo primeiro nome da pessoa. Português do Brasil.
-- Se os dados de um candidato forem insuficientes para afirmar um ponto forte, devolva text vazio ("").
+- Use somente informações presentes nos dados. NÃO invente experiências, empresas, números ou resultados.
+- Explique diferenças reais entre os candidatos; não repita descrições genéricas nem os mesmos textos em candidatos diferentes.
+- Linguagem profissional, objetiva, baseada em evidências. Sem elogios genéricos nem interpretações exageradas.
+- NÃO declare vencedor, ranking ou "melhor candidato".
+- Comece "differential" pelo primeiro nome da pessoa. Português do Brasil.
 
-Retorne APENAS JSON válido: {"insights":[{"candidate_id":"<id>","text":"..."}]}`,
+Retorne APENAS JSON válido:
+{"cards":[{"candidate_id":"<id>","differential":"...","contribution":"...","attention":null}],"matrix":[{"requirement":"...","cells":[{"candidate_id":"<id>","evidence":"..." }]}]}`,
   });
   const cleaned = text.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
   const first = cleaned.indexOf("{");
   const last = cleaned.lastIndexOf("}");
   const parsed = JSON.parse(first !== -1 ? cleaned.slice(first, last + 1) : cleaned);
   const valid = new Set(rows.map((r) => r.candidate.id));
-  return (Array.isArray(parsed?.insights) ? parsed.insights : [])
-    .filter((i: any) => valid.has(i?.candidate_id) && typeof i?.text === "string" && i.text.trim())
-    .map((i: any) => ({ candidate_id: i.candidate_id, text: i.text.trim() }));
+  const cards = (Array.isArray(parsed?.cards) ? parsed.cards : [])
+    .filter((c: any) => valid.has(c?.candidate_id))
+    .map((c: any) => ({
+      candidate_id: c.candidate_id,
+      differential: clean(c.differential) ?? "",
+      contribution: clean(c.contribution) ?? "",
+      attention: clean(c.attention),
+    }));
+  const matrix = (Array.isArray(parsed?.matrix) ? parsed.matrix : [])
+    .filter((m: any) => clean(m?.requirement))
+    .slice(0, 5)
+    .map((m: any) => ({
+      requirement: String(m.requirement).trim(),
+      cells: rows.map((r) => ({
+        candidate_id: r.candidate.id as string,
+        evidence: clean((Array.isArray(m.cells) ? m.cells : []).find((x: any) => x?.candidate_id === r.candidate.id)?.evidence),
+      })),
+    }));
+  return { cards, matrix };
 }
 
 const IdsInput = z.array(z.string().uuid()).min(2).max(3);
@@ -84,7 +119,7 @@ export const generateCompareInsights = createServerFn({ method: "POST" })
       evaluation: (evals ?? []).find((e: any) => e.candidate_id === l.candidate_id) ?? null,
     }));
     if (rows.length < 2) throw new Error("Selecione candidatos da mesma shortlist");
-    return { insights: await buildInsights((sl as any).jobs, rows) };
+    return { analysis: await buildAnalysis((sl as any).jobs, rows) };
   });
 
 /** Versão do portal do cliente: valida o token da shortlist enviada. */
@@ -102,7 +137,7 @@ export const generatePortalCompareInsights = createServerFn({ method: "POST" })
     const { data: links } = await supabaseAdmin
       .from("shortlist_candidates")
       .select(
-        "candidate_id, candidates(id, full_name, headline, trajectory, current_position, current_company)",
+        "candidate_id, candidates(id, full_name, headline, trajectory, current_position, current_company, disc_profile, main_results, achievements, specialties, competencies, education)",
       )
       .eq("shortlist_id", (sl as any).id)
       .in("candidate_id", data.candidate_ids);
@@ -117,7 +152,7 @@ export const generatePortalCompareInsights = createServerFn({ method: "POST" })
       evaluation: pickClientSafe((evals ?? []).find((e: any) => e.candidate_id === l.candidate_id)),
     }));
     if (rows.length < 2) throw new Error("Selecione candidatos da mesma shortlist");
-    return { insights: await buildInsights((sl as any).jobs, rows) };
+    return { analysis: await buildAnalysis((sl as any).jobs, rows) };
   });
 
 function pickClientSafe(e: any) {
@@ -127,6 +162,9 @@ function pickClientSafe(e: any) {
     key_differentiator: e.key_differentiator,
     top_strengths: e.top_strengths,
     job_specific_summary: e.job_specific_summary,
+    recruiter_opinion: e.recruiter_opinion,
+    main_case: e.main_case,
+    risk_items: e.risk_items,
     eliminatory_checklist: e.eliminatory_checklist,
     dimension_scores: e.dimension_scores,
     recruiter_scores: e.recruiter_scores,

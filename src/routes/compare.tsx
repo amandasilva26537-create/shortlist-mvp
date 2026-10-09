@@ -50,9 +50,9 @@ function ComparePage() {
   }));
 
   const insightsKey = [...selectedIds].sort().join(",");
-  const { data: insights, isLoading: insightsLoading } = useQuery({
+  const { data: analysis, isLoading: analysisLoading } = useQuery({
     queryKey: ["compare-insights", shortlistId, insightsKey],
-    queryFn: async () => (await insightsFn({ data: { shortlist_id: shortlistId!, candidate_ids: selectedIds } })).insights,
+    queryFn: async () => (await insightsFn({ data: { shortlist_id: shortlistId!, candidate_ids: selectedIds } })).analysis,
     enabled: !!shortlistId && selectedIds.length >= 2 && evaluations !== undefined,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
@@ -113,7 +113,7 @@ function ComparePage() {
         {selected.length < 2 ? (
           <p className="text-sm text-muted-foreground">Selecione de 2 a 3 candidatos desta shortlist para uma análise lado a lado.</p>
         ) : (
-          <CompareView items={items} insights={insights} insightsLoading={insightsLoading} onRemove={remove} />
+          <CompareView items={items} analysis={analysis} analysisLoading={analysisLoading} onRemove={remove} />
         )}
 
         {selected.length < MAX && available.length > 0 && (
