@@ -536,6 +536,41 @@ export type Database = {
         }
         Relationships: []
       }
+      job_stage_history: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          job_id: string
+          note: string | null
+          stage: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_id: string
+          note?: string | null
+          stage: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_id?: string
+          note?: string | null
+          stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_stage_history_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           ai_structure: Json | null
@@ -555,14 +590,17 @@ export type Database = {
           must_have: string[] | null
           nice_to_have: string[] | null
           pasted_text: string | null
+          process_stage: string | null
           radar_competencies: Json | null
           recruiter_notes: string | null
           salary_max: number | null
           salary_min: number | null
           seniority: string | null
+          shortlist_due_date: string | null
           soft_skills: string[] | null
           status: string
           title: string
+          tracking_token: string | null
           updated_at: string
           work_model: string | null
         }
@@ -584,14 +622,17 @@ export type Database = {
           must_have?: string[] | null
           nice_to_have?: string[] | null
           pasted_text?: string | null
+          process_stage?: string | null
           radar_competencies?: Json | null
           recruiter_notes?: string | null
           salary_max?: number | null
           salary_min?: number | null
           seniority?: string | null
+          shortlist_due_date?: string | null
           soft_skills?: string[] | null
           status?: string
           title: string
+          tracking_token?: string | null
           updated_at?: string
           work_model?: string | null
         }
@@ -613,14 +654,17 @@ export type Database = {
           must_have?: string[] | null
           nice_to_have?: string[] | null
           pasted_text?: string | null
+          process_stage?: string | null
           radar_competencies?: Json | null
           recruiter_notes?: string | null
           salary_max?: number | null
           salary_min?: number | null
           seniority?: string | null
+          shortlist_due_date?: string | null
           soft_skills?: string[] | null
           status?: string
           title?: string
+          tracking_token?: string | null
           updated_at?: string
           work_model?: string | null
         }
