@@ -13,6 +13,7 @@ import { uploadFileViaServer } from "@/lib/upload";
 import { Sparkles, Loader2, Wand2, Paperclip, X, Plus, Trash2 } from "lucide-react";
 import { listClients } from "@/lib/db/clients.functions";
 import { upsertJob, getJob, updateJobStatus } from "@/lib/db/jobs.functions";
+import { ProcessTrackingEditor } from "@/components/jobs/ProcessTrackingEditor";
 import { JOB_STATUSES, normalizeJobStatus, type JobStatus } from "@/lib/job-status";
 import { structureJob, refineJobSection } from "@/lib/ai/ai.functions";
 
@@ -239,6 +240,9 @@ function NewJob() {
             <div><Label>Salário máximo (opcional)</Label><Input type="number" value={basic.salary_max} onChange={setB("salary_max")} /></div>
             <div className="sm:col-span-2"><Label>Gestor responsável (opcional)</Label><Input value={basic.manager_name} onChange={setB("manager_name")} /></div>
           </div>
+
+          {/* ============ Acompanhamento do processo (vaga já salva) ============ */}
+          {existingJob && jobId ? <ProcessTrackingEditor key={jobId} job={existingJob} /> : null}
 
           {/* ============ Attachments ============ */}
           <div className="rounded-xl border border-dashed border-border bg-muted/40 p-5">

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Briefcase, Eye, Pencil, Trash2 } from "lucide-react";
 import { listJobs, deleteJob } from "@/lib/db/jobs.functions";
 import { toast } from "sonner";
+import { stageLabel } from "@/lib/process-stages";
 import { JOB_STATUSES, jobStatusInfo, normalizeJobStatus } from "@/lib/job-status";
 
 export const Route = createFileRoute("/jobs/")({
@@ -91,6 +92,11 @@ function JobsPage() {
                     <span className={"h-1.5 w-1.5 rounded-full " + jobStatusInfo(j.status).dot} />
                     {jobStatusInfo(j.status).label}
                   </span>
+                  {stageLabel(j.process_stage) && (
+                    <span className="inline-flex shrink-0 items-center rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                      Etapa: {stageLabel(j.process_stage)}
+                    </span>
+                  )}
                 </div>
                 <div className="truncate text-xs text-muted-foreground">{j.clients?.name} · {j.area || "—"} · {j.work_model || "—"}</div>
               </div>

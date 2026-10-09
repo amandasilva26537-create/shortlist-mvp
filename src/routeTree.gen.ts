@@ -17,6 +17,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TagsRouteImport } from './routes/tags'
 import { Route as TeamRouteImport } from './routes/team'
+import { Route as AcompanhamentoTokenRouteImport } from './routes/acompanhamento.$token'
 import { Route as CandidatesIndexRouteImport } from './routes/candidates.index'
 import { Route as CandidatesCandidateIdRouteImport } from './routes/candidates.$candidateId'
 import { Route as CandidatesNewRouteImport } from './routes/candidates.new'
@@ -76,6 +77,11 @@ const TagsRoute = TagsRouteImport.update({
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcompanhamentoTokenRoute = AcompanhamentoTokenRouteImport.update({
+  id: '/acompanhamento/$token',
+  path: '/acompanhamento/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CandidatesIndexRoute = CandidatesIndexRouteImport.update({
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tags': typeof TagsRoute
   '/team': typeof TeamRoute
+  '/acompanhamento/$token': typeof AcompanhamentoTokenRoute
   '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/candidates/new': typeof CandidatesNewRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tags': typeof TagsRoute
   '/team': typeof TeamRoute
+  '/acompanhamento/$token': typeof AcompanhamentoTokenRoute
   '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/candidates/new': typeof CandidatesNewRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -250,6 +258,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tags': typeof TagsRoute
   '/team': typeof TeamRoute
+  '/acompanhamento/$token': typeof AcompanhamentoTokenRoute
   '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/candidates/new': typeof CandidatesNewRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -282,6 +291,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tags'
     | '/team'
+    | '/acompanhamento/$token'
     | '/candidates/$candidateId'
     | '/candidates/new'
     | '/clients/$clientId'
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tags'
     | '/team'
+    | '/acompanhamento/$token'
     | '/candidates/$candidateId'
     | '/candidates/new'
     | '/clients/$clientId'
@@ -340,6 +351,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tags'
     | '/team'
+    | '/acompanhamento/$token'
     | '/candidates/$candidateId'
     | '/candidates/new'
     | '/clients/$clientId'
@@ -371,6 +383,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TagsRoute: typeof TagsRoute
   TeamRoute: typeof TeamRoute
+  AcompanhamentoTokenRoute: typeof AcompanhamentoTokenRoute
   CandidatesCandidateIdRoute: typeof CandidatesCandidateIdRoute
   CandidatesNewRoute: typeof CandidatesNewRoute
   ClientsClientIdRoute: typeof ClientsClientIdRoute
@@ -443,6 +456,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/team'
       preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acompanhamento/$token': {
+      id: '/acompanhamento/$token'
+      path: '/acompanhamento/$token'
+      fullPath: '/acompanhamento/$token'
+      preLoaderRoute: typeof AcompanhamentoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/candidates/': {
@@ -630,6 +650,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TagsRoute: TagsRoute,
   TeamRoute: TeamRoute,
+  AcompanhamentoTokenRoute: AcompanhamentoTokenRoute,
   CandidatesCandidateIdRoute: CandidatesCandidateIdRoute,
   CandidatesNewRoute: CandidatesNewRoute,
   ClientsClientIdRoute: ClientsClientIdRoute,
