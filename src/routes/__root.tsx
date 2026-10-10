@@ -130,7 +130,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 /** Rotas públicas: login, portal do cliente (link com token), PDF e sitemap. */
-const PUBLIC_PREFIXES = ["/auth", "/reset-password", "/s/", "/pdf/", "/sitemap"];
+const PUBLIC_PREFIXES = ["/auth", "/reset-password", "/s/", "/acompanhamento/", "/pdf/", "/sitemap"];
 
 function InternalGate({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s: any) => s.location.pathname as string });
