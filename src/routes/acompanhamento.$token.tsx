@@ -64,6 +64,11 @@ function TrackingPage() {
               <span className={"h-1.5 w-1.5 rounded-full " + status.dot} /> {status.label}
             </span>
           </div>
+          {data.last_update && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              Última atualização: {new Date(data.last_update).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+            </div>
+          )}
         </div>
       </div>
 

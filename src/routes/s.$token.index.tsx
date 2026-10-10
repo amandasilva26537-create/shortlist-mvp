@@ -177,6 +177,15 @@ function Portal() {
           <p className="mt-1 text-sm text-muted-foreground">
             {data.shortlist.jobs?.title} · {ordered.length} candidatos apresentados
           </p>
+          {(data.shortlist.jobs as any)?.tracking_token && (
+            <a
+              href={`/acompanhamento/${(data.shortlist.jobs as any).tracking_token}`}
+              className="mt-2 inline-block text-xs font-medium underline hover:text-foreground"
+              style={{ color: "var(--portal-strong)" }}
+            >
+              Ver acompanhamento do processo
+            </a>
+          )}
           {data.shortlist.message && (
             <p className="mt-3 rounded-xl border border-border bg-card p-3 text-sm">
               {data.shortlist.message}

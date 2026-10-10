@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { Plus, Briefcase, Eye, Pencil, Trash2 } from "lucide-react";
+import { Plus, Briefcase, Eye, Pencil, Trash2, ListChecks } from "lucide-react";
 import { listJobs, deleteJob } from "@/lib/db/jobs.functions";
 import { toast } from "sonner";
 import { stageLabel } from "@/lib/process-stages";
@@ -100,7 +100,14 @@ function JobsPage() {
                 </div>
                 <div className="truncate text-xs text-muted-foreground">{j.clients?.name} · {j.area || "—"} · {j.work_model || "—"}</div>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-1">
+                {j.tracking_token && (
+                  <a href={`/acompanhamento/${j.tracking_token}`} target="_blank" rel="noreferrer">
+                    <Button size="sm" variant="ghost" aria-label={`Visualizar acompanhamento de ${j.title}`}>
+                      <ListChecks className="mr-1.5 h-4 w-4" /> Visualizar acompanhamento
+                    </Button>
+                  </a>
+                )}
                 <Button
                   size="sm"
                   variant="ghost"

@@ -87,5 +87,6 @@ export const getPublicTracking = createServerFn({ method: "GET" })
       stage_dates: stageDates,
       latest_note: lastWithNote ? { text: lastWithNote.note!, date: lastWithNote.created_at } : null,
       closed_at: stageDates["closed"] ?? null,
+      last_update: rows.length ? rows[rows.length - 1]!.created_at : null,
     };
   });
