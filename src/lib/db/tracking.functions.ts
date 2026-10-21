@@ -90,3 +90,20 @@ export const getPublicTracking = createServerFn({ method: "GET" })
       last_update: rows.length ? rows[rows.length - 1]!.created_at : null,
     };
   });
+
+/** Garante que a vaga tenha o código do link de acompanhamento (gera só se estiver vazio) e devolve o código. */
+export const ensureJobTrackingToken = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => z.object({ job_id: z.string().uuid() }).parse(v))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const { data: job, error } = await sb.from("jobs").select("tracking_token").eq("id", data.job_id).maybeSingle();
+    if (error) throw new Error(isMissing(error.message) ? MIGRATION_HINT : error.message);
+    if (!job) throw new Error("Vaga não encontrada");
+    if (job.tracking_token) return { token: job.tracking_token as string };
+    const token = crypto.randomUUID().replace(/-/g, "");
+    const { error: upErr } = await sb.from("jobs").update({ tracking_token: token }).eq("id", data.job_id).is("tracking_token", null);
+    if (upErr) throw new Error(upErr.message);
+    const { data: again } = await sb.from("jobs").select("tracking_token").eq("id", data.job_id).maybeSingle();
+    return { token: (again?.tracking_token ?? token) as string };
+  });

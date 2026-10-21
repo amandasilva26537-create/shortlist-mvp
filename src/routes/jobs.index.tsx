@@ -4,8 +4,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { Plus, Briefcase, Eye, Pencil, Trash2, ListChecks } from "lucide-react";
+import { Plus, Briefcase, Eye, Pencil, Trash2, ListChecks, Copy } from "lucide-react";
 import { listJobs, deleteJob } from "@/lib/db/jobs.functions";
+import { ensureJobTrackingToken } from "@/lib/db/tracking.functions";
 import { toast } from "sonner";
 import { stageLabel } from "@/lib/process-stages";
 import { JOB_STATUSES, jobStatusInfo, normalizeJobStatus } from "@/lib/job-status";
@@ -28,11 +29,34 @@ export const Route = createFileRoute("/jobs/")({
 function JobsPage() {
   const fn = useServerFn(listJobs);
   const delFn = useServerFn(deleteJob);
+  const tokenFn = useServerFn(ensureJobTrackingToken);
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { data: allJobs } = useQuery({ queryKey: ["jobs"], queryFn: () => fn() });
   const [filter, setFilter] = useState<string>("all");
   const jobs = allJobs?.filter((j: any) => filter === "all" || normalizeJobStatus(j.status) === filter);
+
+  /** Copia o link público de acompanhamento (gera o código se a vaga ainda não tiver). */
+  const copyTrackingLink = async (j: any) => {
+    try {
+      const token: string = j.tracking_token ?? (await tokenFn({ data: { job_id: j.id } })).token;
+      await navigator.clipboard.writeText(`${window.location.origin}/acompanhamento/${token}`);
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      toast.success("Link de acompanhamento copiado");
+    } catch (e: any) {
+      toast.error(e.message ?? "Não foi possível copiar o link");
+    }
+  };
+
+  const openTracking = async (j: any) => {
+    try {
+      const token: string = j.tracking_token ?? (await tokenFn({ data: { job_id: j.id } })).token;
+      window.open(`/acompanhamento/${token}`, "_blank", "noopener");
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+    } catch (e: any) {
+      toast.error(e.message ?? "Não foi possível abrir o acompanhamento");
+    }
+  };
 
   const onDelete = async (id: string, title: string) => {
     if (!confirm(`Excluir a vaga "${title}"? Esta ação não pode ser desfeita.`)) return;
@@ -101,13 +125,12 @@ function JobsPage() {
                 <div className="truncate text-xs text-muted-foreground">{j.clients?.name} · {j.area || "—"} · {j.work_model || "—"}</div>
               </div>
               <div className="flex flex-wrap items-center gap-1">
-                {j.tracking_token && (
-                  <a href={`/acompanhamento/${j.tracking_token}`} target="_blank" rel="noreferrer">
-                    <Button size="sm" variant="ghost" aria-label={`Visualizar acompanhamento de ${j.title}`}>
-                      <ListChecks className="mr-1.5 h-4 w-4" /> Visualizar acompanhamento
-                    </Button>
-                  </a>
-                )}
+                <Button size="sm" variant="ghost" onClick={() => openTracking(j)} aria-label={`Visualizar acompanhamento de ${j.title}`}>
+                  <ListChecks className="mr-1.5 h-4 w-4" /> Visualizar acompanhamento
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => copyTrackingLink(j)} aria-label={`Copiar link de acompanhamento de ${j.title}`}>
+                  <Copy className="mr-1.5 h-4 w-4" /> Copiar link
+                </Button>
                 <Button
                   size="sm"
                   variant="ghost"
