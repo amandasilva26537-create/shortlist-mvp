@@ -107,57 +107,46 @@ function JobsPage() {
 
         <div className="card-soft divide-y divide-border">
           {jobs?.map((j: any) => (
-            <div key={j.id} className="flex flex-wrap items-center gap-4 p-5">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-primary"><Briefcase className="h-5 w-5" /></div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <div className="truncate font-semibold">{j.title}</div>
-                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                    <span className={"h-1.5 w-1.5 rounded-full " + jobStatusInfo(j.status).dot} />
-                    {jobStatusInfo(j.status).label}
-                  </span>
-                  {stageLabel(j.process_stage) && (
-                    <span className="inline-flex shrink-0 items-center rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                      Etapa: {stageLabel(j.process_stage)}
+            <div key={j.id} className="p-5">
+              <div className="flex flex-wrap items-start gap-4">
+                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary"><Briefcase className="h-5 w-5" /></div>
+                <div className="min-w-0 flex-1 basis-64">
+                  <div className="font-semibold leading-snug">{j.title}</div>
+                  <div className="mt-1 truncate text-xs text-muted-foreground">{j.clients?.name} · {j.area || "—"} · {j.work_model || "—"}</div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                      <span className={"h-1.5 w-1.5 rounded-full " + jobStatusInfo(j.status).dot} />
+                      {jobStatusInfo(j.status).label}
                     </span>
-                  )}
+                    {stageLabel(j.process_stage) && (
+                      <span className="inline-flex shrink-0 items-center rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                        Etapa: {stageLabel(j.process_stage)}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="truncate text-xs text-muted-foreground">{j.clients?.name} · {j.area || "—"} · {j.work_model || "—"}</div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => navigate({ to: "/jobs/$jobId", params: { jobId: j.id } })} aria-label={`Ver ${j.title}`}>
+                    <Eye className="mr-1.5 h-4 w-4" /> Ver
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => navigate({ to: "/jobs/new", search: { edit: j.id } as any })} aria-label={`Editar ${j.title}`}>
+                    <Pencil className="mr-1.5 h-4 w-4" /> Editar
+                  </Button>
+                  <Link to="/shortlists/new" search={{ job: j.id }}>
+                    <Button size="sm" variant="outline">Shortlist</Button>
+                  </Link>
+                  <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => onDelete(j.id, j.title)} aria-label={`Excluir ${j.title}`}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-1">
-                <Button size="sm" variant="ghost" onClick={() => openTracking(j)} aria-label={`Visualizar acompanhamento de ${j.title}`}>
-                  <ListChecks className="mr-1.5 h-4 w-4" /> Visualizar acompanhamento
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3 sm:ml-[60px]">
+                <span className="mr-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Acompanhamento</span>
+                <Button size="sm" variant="outline" className="h-8" onClick={() => openTracking(j)} aria-label={`Visualizar acompanhamento de ${j.title}`}>
+                  <ListChecks className="mr-1.5 h-4 w-4" /> Visualizar
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => copyTrackingLink(j)} aria-label={`Copiar link de acompanhamento de ${j.title}`}>
+                <Button size="sm" variant="outline" className="h-8" onClick={() => copyTrackingLink(j)} aria-label={`Copiar link de acompanhamento de ${j.title}`}>
                   <Copy className="mr-1.5 h-4 w-4" /> Copiar link
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => navigate({ to: "/jobs/$jobId", params: { jobId: j.id } })}
-                  aria-label={`Ver ${j.title}`}
-                >
-                  <Eye className="mr-1.5 h-4 w-4" /> Ver
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => navigate({ to: "/jobs/new", search: { edit: j.id } as any })}
-                  aria-label={`Editar ${j.title}`}
-                >
-                  <Pencil className="mr-1.5 h-4 w-4" /> Editar
-                </Button>
-                <Link to="/shortlists/new" search={{ job: j.id }}>
-                  <Button size="sm" variant="outline">Shortlist</Button>
-                </Link>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => onDelete(j.id, j.title)}
-                  aria-label={`Excluir ${j.title}`}
-                >
-                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </div>
