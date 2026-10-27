@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Printer, User } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
+import { DownloadPdfMenu } from "@/components/pdf/DownloadPdfMenu";
 import { Button } from "@/components/ui/button";
 import { AnalysisContent } from "@/components/shortlist/AnalysisContent";
 import { getShortlist, listEvaluationsForShortlist } from "@/lib/db/shortlists.functions";
@@ -59,9 +60,7 @@ function AnalysisPage() {
             })}>
               <User className="mr-1.5 h-4 w-4" /> Ver perfil completo
             </Button>
-            <Button size="sm" onClick={() => window.print()}>
-              <Printer className="mr-1.5 h-4 w-4" /> Baixar PDF
-            </Button>
+            <DownloadPdfMenu basePath={`/shortlists/${shortlistId}/pdf/${candidateId}`} />
           </div>
         </div>
       </header>

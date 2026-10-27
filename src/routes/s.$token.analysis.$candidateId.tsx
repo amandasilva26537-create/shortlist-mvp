@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Printer } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { DownloadPdfMenu } from "@/components/pdf/DownloadPdfMenu";
 import { AnalysisContent } from "@/components/shortlist/AnalysisContent";
 import { getPortalShortlist } from "@/lib/db/portal.functions";
 import { ClientEvaluationPanel, loadIdentity, type PortalIdentity } from "@/components/shortlist/ClientEvaluationPanel";
@@ -41,9 +41,7 @@ function PortalAnalysisPage() {
             <ArrowLeft className="h-3.5 w-3.5" /> Voltar para a shortlist
           </Link>
           <div className="ml-auto">
-            <Button size="sm" onClick={() => window.print()}>
-              <Printer className="mr-1.5 h-4 w-4" /> Baixar PDF
-            </Button>
+            <DownloadPdfMenu basePath={`/s/${token}/pdf/${candidateId}`} />
           </div>
         </div>
       </header>

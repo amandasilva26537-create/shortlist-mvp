@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { DownloadPdfMenu } from "@/components/pdf/DownloadPdfMenu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Linkedin, ExternalLink } from "lucide-react";
 import { getPortalCandidate } from "@/lib/db/portal.functions";
@@ -54,6 +54,7 @@ function PortalCandidatePage() {
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Voltar para a shortlist
           </Link>
+          <div className="ml-auto"><DownloadPdfMenu basePath={`/s/${token}/pdf/${candidateId}`} /></div>
         </div>
       </header>
 

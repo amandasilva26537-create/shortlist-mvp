@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DownloadPdfMenu } from "@/components/pdf/DownloadPdfMenu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -245,6 +246,10 @@ function CandidatePage() {
             );
           })()}
           <div className="flex items-center gap-2 flex-wrap">
+            {(() => {
+              const m = typeof returnTo === "string" ? returnTo.match(/^\/shortlists\/([0-9a-f-]{36})/i) : null;
+              return m ? <DownloadPdfMenu size="default" basePath={`/shortlists/${m[1]}/pdf/${candidateId}`} /> : null;
+            })()}
             <Button variant="outline" onClick={() => setAddOpen(true)}>
               <ListPlus className="mr-1.5 h-4 w-4" /> Adicionar à shortlist
             </Button>
