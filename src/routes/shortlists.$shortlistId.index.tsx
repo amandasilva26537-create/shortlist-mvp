@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { DownloadPdfMenu } from "@/components/pdf/DownloadPdfMenu";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 
@@ -174,7 +175,8 @@ function ShortlistDetail() {
           initialCandidateId={search.cursor}
           onReorder={reorder}
           actionsSlot={(candidate) => (
-            <div className="flex justify-end">
+            <div className="flex items-center justify-end gap-2">
+              <DownloadPdfMenu basePath={`/shortlists/${shortlistId}/pdf/${candidate.id}`} />
               <Button
                 variant="outline"
                 size="sm"

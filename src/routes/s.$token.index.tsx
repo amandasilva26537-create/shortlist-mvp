@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { DownloadPdfMenu } from "@/components/pdf/DownloadPdfMenu";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -225,6 +226,7 @@ function Portal() {
                     <b className="text-foreground">{ordered.length}</b>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
+                    {currentId && <DownloadPdfMenu basePath={`/s/${token}/pdf/${currentId}`} />}
                     {compareEnabled && (
                       <Link to="/s/$token/compare" params={{ token }} search={{ back: currentId }}>
                         <Button variant="outline" size="sm">
