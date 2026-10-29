@@ -23,9 +23,9 @@ $$;
 
 -- Acesso por marca (moove | portus). Admin enxerga as duas.
 CREATE TABLE IF NOT EXISTS public.user_brand_access (
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL,
   brand text NOT NULL CHECK (brand IN ('moove','portus')),
-  granted_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  granted_by uuid,
   created_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id, brand)
 );
@@ -61,10 +61,10 @@ CREATE TABLE IF NOT EXISTS public.applications (
   status text NOT NULL DEFAULT 'active'
     CHECK (status IN ('active','rejected','withdrawn','hired')),
   rejection_reason text,
-  responsible_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,    -- recrutador responsável
-  last_changed_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  responsible_user_id uuid,    -- recrutador responsável
+  last_changed_by uuid,
   applied_at timestamptz NOT NULL DEFAULT now(),
-  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_by uuid,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (job_id, candidate_id)
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS public.application_stage_history (
   to_stage text NOT NULL,
   from_status text,
   to_status text NOT NULL,
-  changed_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  changed_by uuid,
   note text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
@@ -137,10 +137,8 @@ CREATE TRIGGER trg_app_hist_immutable BEFORE UPDATE OR DELETE ON public.applicat
 --    A tabela guarda só o caminho no bucket. Links temporários (60–300 s)
 --    são gerados pelo backend a cada acesso e registrados na auditoria.
 -- ---------------------------------------------------------------------
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES ('ats-resumes', 'ats-resumes', false, 10485760,
-        ARRAY['application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
-ON CONFLICT (id) DO NOTHING;
+-- Bucket privado "ats-resumes": criado pelo backend (service role) no primeiro envio, sem políticas públicas.
+-- (Não é criado por SQL.)
 -- Propositalmente NENHUMA política em storage.objects para este bucket:
 -- anon/authenticated não leem nem gravam; apenas o backend (service role).
 
@@ -158,7 +156,7 @@ CREATE TABLE IF NOT EXISTS public.candidate_resumes (
   scan_status text NOT NULL DEFAULT 'pending' CHECK (scan_status IN ('pending','clean','rejected')),
   scan_flags text[] NOT NULL DEFAULT '{}',      -- ex.: pdf_javascript, docx_macro, injection_signal
   extracted_text_at timestamptz,
-  uploaded_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  uploaded_by uuid,
   deleted_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   CHECK (storage_path !~ '\.\.' AND storage_path !~ '^/')
@@ -177,13 +175,7 @@ CREATE TABLE IF NOT EXISTS public.data_processing_purposes (
   active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-INSERT INTO public.data_processing_purposes (code, name, description, requires_consent) VALUES
- ('selection_process','Processo seletivo','Avaliar o candidato para a vaga à qual se candidatou.', false),
- ('talent_pool','Banco de talentos','Manter dados após o fim do processo para futuras oportunidades.', true),
- ('client_sharing','Compartilhamento com a empresa contratante','Enviar perfil/análise do candidato à empresa cliente via shortlist.', true),
- ('ai_analysis','Análise assistida por IA','Enviar dados do candidato a provedores de IA para estruturar perfil e análise.', true),
- ('international_transfer','Transferência internacional','Tratamento por prestadores localizados fora do Brasil.', true)
-ON CONFLICT (code) DO NOTHING;
+-- (dados iniciais em 20261029121000_ats_seed.sql)
 
 CREATE TABLE IF NOT EXISTS public.consent_records (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -194,7 +186,7 @@ CREATE TABLE IF NOT EXISTS public.consent_records (
   policy_version text NOT NULL,
   channel text NOT NULL DEFAULT 'manual' CHECK (channel IN ('form','manual','email','import','moovelist')),
   evidence jsonb NOT NULL DEFAULT '{}'::jsonb,                            -- texto exibido, user-agent etc. (sem dados sensíveis)
-  recorded_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  recorded_by uuid,
   granted_at timestamptz NOT NULL DEFAULT now(),
   revoked_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now()
@@ -226,13 +218,7 @@ CREATE TABLE IF NOT EXISTS public.retention_policies (
   active boolean NOT NULL DEFAULT false,         -- só ativar depois de definido com jurídico
   updated_at timestamptz NOT NULL DEFAULT now()
 );
-INSERT INTO public.retention_policies (data_category, retention_months, action_after, legal_note, active) VALUES
- ('candidate_profile', NULL, 'review', 'Prazo a definir (processo seletivo vs. banco de talentos).', false),
- ('resume_file', NULL, 'delete', 'Prazo a definir.', false),
- ('application', NULL, 'anonymize', 'Prazo a definir.', false),
- ('consent_record', NULL, 'review', 'Manter como prova pelo prazo legal definido pelo jurídico.', false),
- ('access_audit_log', NULL, 'review', 'Prazo a definir.', false)
-ON CONFLICT (data_category) DO NOTHING;
+-- (dados iniciais em 20261029121000_ats_seed.sql)
 
 CREATE TABLE IF NOT EXISTS public.candidate_retention (
   candidate_id uuid PRIMARY KEY REFERENCES public.candidates(id) ON DELETE CASCADE,
@@ -255,7 +241,7 @@ CREATE TABLE IF NOT EXISTS public.data_subject_requests (
   received_at timestamptz NOT NULL DEFAULT now(),
   due_at timestamptz NOT NULL DEFAULT (now() + interval '15 days'),   -- confirmar prazo com o jurídico
   completed_at timestamptz,
-  handled_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  handled_by uuid,
   resolution_notes text,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
@@ -325,17 +311,7 @@ CREATE TABLE IF NOT EXISTS public.external_processors (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 -- Itens identificados no código (campos a confirmar ficam NULL / false):
-INSERT INTO public.external_processors (name, service, data_categories, purpose, notes) VALUES
- ('Supabase (Lovable Cloud)','Banco de dados, autenticação e arquivos',
-   ARRAY['dados cadastrais','currículos','avaliações'],'Armazenamento e autenticação','Região do projeto a confirmar.'),
- ('Lovable AI Gateway','Intermediário de chamadas de IA',
-   ARRAY['dados cadastrais','texto de currículo','PDF/DOCX/imagens','transcrições'],'Análise e estruturação de perfis','Repassa ao provedor do modelo.'),
- ('Google (Gemini) — modelo google/gemini-3-flash-preview','Modelo de IA generativa',
-   ARRAY['dados cadastrais','texto de currículo','PDF/DOCX/imagens','transcrições'],'Análise e estruturação de perfis','Confirmar retenção/treinamento e região.'),
- ('Lovable (hospedagem e relatório de erros)','Publicação e telemetria de erros',
-   ARRAY['dados técnicos de navegação'],'Hospedagem','Confirmar o que o relatório de erros captura.'),
- ('Google Fonts','Fontes web',ARRAY['IP do navegador'],'Tipografia','Carregado no navegador de todos os visitantes.')
-ON CONFLICT (name) DO NOTHING;
+-- (dados iniciais em 20261029121000_ats_seed.sql)
 
 -- ---------------------------------------------------------------------
 -- 6. RLS e permissões
