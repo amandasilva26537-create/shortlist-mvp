@@ -131,6 +131,87 @@ export type Database = {
         }
         Relationships: []
       }
+      application_matches: {
+        Row: {
+          analyzed_at: string
+          application_id: string
+          assessments: Json
+          breakdown: Json
+          coverage: number
+          job_id: string
+          match_version: string
+          method: string
+          model: string | null
+          prescreened: boolean
+          profile: Json
+          requirements_hash: string
+          resume_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          score: number
+          score_max: number
+          warnings: Json
+          weights: Json
+        }
+        Insert: {
+          analyzed_at?: string
+          application_id: string
+          assessments?: Json
+          breakdown?: Json
+          coverage: number
+          job_id: string
+          match_version: string
+          method: string
+          model?: string | null
+          prescreened?: boolean
+          profile?: Json
+          requirements_hash: string
+          resume_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score: number
+          score_max: number
+          warnings?: Json
+          weights?: Json
+        }
+        Update: {
+          analyzed_at?: string
+          application_id?: string
+          assessments?: Json
+          breakdown?: Json
+          coverage?: number
+          job_id?: string
+          match_version?: string
+          method?: string
+          model?: string | null
+          prescreened?: boolean
+          profile?: Json
+          requirements_hash?: string
+          resume_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score?: number
+          score_max?: number
+          warnings?: Json
+          weights?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_matches_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_matches_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       application_stage_history: {
         Row: {
           application_id: string
@@ -1057,6 +1138,38 @@ export type Database = {
           transfer_mechanism?: string | null
         }
         Relationships: []
+      }
+      job_match_settings: {
+        Row: {
+          job_id: string
+          prescreen_min: number
+          updated_at: string
+          updated_by: string | null
+          weights: Json
+        }
+        Insert: {
+          job_id: string
+          prescreen_min?: number
+          updated_at?: string
+          updated_by?: string | null
+          weights?: Json
+        }
+        Update: {
+          job_id?: string
+          prescreen_min?: number
+          updated_at?: string
+          updated_by?: string | null
+          weights?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_match_settings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_postings: {
         Row: {
