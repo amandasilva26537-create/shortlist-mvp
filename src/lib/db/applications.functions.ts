@@ -149,7 +149,7 @@ export const listJobApplications = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: apps, error } = await sb.from("applications")
-      .select("id, candidate_id, stage, status, rejection_reason, source, applied_at, candidates(full_name, email, phone, linkedin_url, city), candidate_resumes(id, original_filename, size_bytes, scan_flags, deleted_at)")
+      .select("id, candidate_id, stage, status, rejection_reason, source, applied_at, candidates(full_name, email, phone, linkedin_url, city, salary_expectation), candidate_resumes(id, original_filename, size_bytes, scan_flags, deleted_at)")
       .eq("job_id", data.job_id).order("applied_at", { ascending: false });
     if (error) return { missing: isMissing(error.message), items: [] as any[] };
     const ids = [...new Set((apps ?? []).map((a: any) => a.candidate_id))] as string[];
