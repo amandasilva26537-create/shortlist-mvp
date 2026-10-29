@@ -184,8 +184,9 @@ export function buildSnapshot(src: PostingSources, content: PostingContent, sour
       salary_max: content.show_salary ? src.salary_max : null,
     },
     company: {
-      name: content.show_company_name ? src.company.name || null : null,
-      segment: src.company.segment, city: src.company.city, state: src.company.state, brand: src.company.brand,
+      // Todas as vagas são divulgadas em nome da Moove Talent: o nome do cliente nunca é publicado.
+      name: null,
+      segment: src.company.segment, city: src.company.city, state: src.company.state, brand: "moove",
     },
     source_hash: sourceHash,
   };
@@ -269,13 +270,11 @@ export function contentToCheckText(c: PostingContent): string {
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const bullets = (l: string[]) => l.map((x) => `• ${x}`).join("\n");
 
-export function companyDisplay(s: ApprovedSnapshot): string {
-  if (s.company.name) return s.company.name;
-  const seg = s.company.segment ? ` do segmento ${s.company.segment}` : "";
-  return `Empresa${seg} (confidencial)`;
+export function companyDisplay(_s: ApprovedSnapshot): string {
+  return "Moove Talent";
 }
 
-export function brandName(brand: "moove" | "portus"): string { return brand === "moove" ? "Moove Talent" : "Portus"; }
+export function brandName(_brand?: "moove" | "portus"): string { return "Moove Talent"; }
 
 /** Texto organizado para colar no LinkedIn e em sites de emprego. */
 export function buildPlainText(s: ApprovedSnapshot, link: string | null): string {
@@ -314,7 +313,7 @@ export function buildJobPostingJsonLd(s: ApprovedSnapshot, o: { url: string; dat
     "@context": "https://schema.org", "@type": "JobPosting",
     title: c.title, description: html.join("") || esc(c.title),
     datePosted: o.datePosted, url: o.url, directApply: false,
-    hiringOrganization: { "@type": "Organization", name: s.company.name ?? brandName(s.company.brand) },
+    hiringOrganization: { "@type": "Organization", name: "Moove Talent" },
     identifier: { "@type": "PropertyValue", name: brandName(s.company.brand), value: o.url.split("/").pop() },
   };
   const et = EMPLOYMENT_TYPE.find(([re]) => re.test(s.employment.contract_type ?? ""))?.[1];
@@ -348,3 +347,13 @@ export function slugify(title: string, rand: string): string {
   return `${base}-${rand}`;
 }
 export const isValidSlug = (s: string) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s) && s.length >= 8 && s.length <= 80;
+
+/** Texto institucional (employer brand) exibido na Página de Carreiras. Sem números ou promessas. */
+export const MOOVE_EMPLOYER_BRAND = {
+  headline: "Conectamos pessoas e empresas sem fronteiras.",
+  paragraphs: [
+    "A Moove Talent é uma consultoria de recrutamento especializada em times remotos e contratação global. Acreditamos que o talento certo pode estar em qualquer lugar — e que um bom processo seletivo é claro, humano e respeitoso com quem se candidata.",
+    "Trabalhamos lado a lado com empresas para entender o contexto de cada posição, o perfil da equipe e o que realmente importa para o sucesso na função. Do lado de quem busca uma oportunidade, valorizamos transparência, feedback e uma comunicação honesta em cada etapa.",
+  ],
+  values: ["Transparência", "Respeito ao candidato", "Trabalho remoto e global", "Decisões baseadas em evidências"],
+};

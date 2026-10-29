@@ -32,6 +32,7 @@ import { Route as STokenRouteImport } from './routes/s.$token'
 import { Route as ShortlistsIndexRouteImport } from './routes/shortlists.index'
 import { Route as ShortlistsShortlistIdRouteImport } from './routes/shortlists.$shortlistId'
 import { Route as ShortlistsNewRouteImport } from './routes/shortlists.new'
+import { Route as VagasIndexRouteImport } from './routes/vagas.index'
 import { Route as VagasSlugRouteImport } from './routes/vagas.$slug'
 import { Route as STokenIndexRouteImport } from './routes/s.$token.index'
 import { Route as STokenCompareRouteImport } from './routes/s.$token.compare'
@@ -157,6 +158,11 @@ const ShortlistsNewRoute = ShortlistsNewRouteImport.update({
   path: '/shortlists/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VagasIndexRoute = VagasIndexRouteImport.update({
+  id: '/vagas/',
+  path: '/vagas/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VagasSlugRoute = VagasSlugRouteImport.update({
   id: '/vagas/$slug',
   path: '/vagas/$slug',
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/clients/': typeof ClientsIndexRoute
   '/jobs/': typeof JobsIndexRoute
   '/shortlists/': typeof ShortlistsIndexRoute
+  '/vagas/': typeof VagasIndexRoute
   '/s/$token/compare': typeof STokenCompareRoute
   '/s/$token/': typeof STokenIndexRoute
   '/shortlists/$shortlistId/': typeof ShortlistsShortlistIdIndexRoute
@@ -264,6 +271,7 @@ export interface FileRoutesByTo {
   '/clients': typeof ClientsIndexRoute
   '/jobs': typeof JobsIndexRoute
   '/shortlists': typeof ShortlistsIndexRoute
+  '/vagas': typeof VagasIndexRoute
   '/s/$token/compare': typeof STokenCompareRoute
   '/s/$token': typeof STokenIndexRoute
   '/shortlists/$shortlistId': typeof ShortlistsShortlistIdIndexRoute
@@ -299,6 +307,7 @@ export interface FileRoutesById {
   '/clients/': typeof ClientsIndexRoute
   '/jobs/': typeof JobsIndexRoute
   '/shortlists/': typeof ShortlistsIndexRoute
+  '/vagas/': typeof VagasIndexRoute
   '/s/$token/compare': typeof STokenCompareRoute
   '/s/$token/': typeof STokenIndexRoute
   '/shortlists/$shortlistId/': typeof ShortlistsShortlistIdIndexRoute
@@ -335,6 +344,7 @@ export interface FileRouteTypes {
     | '/clients/'
     | '/jobs/'
     | '/shortlists/'
+    | '/vagas/'
     | '/s/$token/compare'
     | '/s/$token/'
     | '/shortlists/$shortlistId/'
@@ -367,6 +377,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/jobs'
     | '/shortlists'
+    | '/vagas'
     | '/s/$token/compare'
     | '/s/$token'
     | '/shortlists/$shortlistId'
@@ -401,6 +412,7 @@ export interface FileRouteTypes {
     | '/clients/'
     | '/jobs/'
     | '/shortlists/'
+    | '/vagas/'
     | '/s/$token/compare'
     | '/s/$token/'
     | '/shortlists/$shortlistId/'
@@ -436,6 +448,7 @@ export interface RootRouteChildren {
   ClientsIndexRoute: typeof ClientsIndexRoute
   JobsIndexRoute: typeof JobsIndexRoute
   ShortlistsIndexRoute: typeof ShortlistsIndexRoute
+  VagasIndexRoute: typeof VagasIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -601,6 +614,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShortlistsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vagas/': {
+      id: '/vagas/'
+      path: '/vagas'
+      fullPath: '/vagas/'
+      preLoaderRoute: typeof VagasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vagas/$slug': {
       id: '/vagas/$slug'
       path: '/vagas/$slug'
@@ -730,6 +750,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClientsIndexRoute: ClientsIndexRoute,
   JobsIndexRoute: JobsIndexRoute,
   ShortlistsIndexRoute: ShortlistsIndexRoute,
+  VagasIndexRoute: VagasIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

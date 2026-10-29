@@ -31,12 +31,13 @@ assert.equal(d.show_salary, false); assert.equal(d.show_company_name, false);
 const h = P.hashSources(src);
 let snap = P.buildSnapshot(src, d, h);
 assert.equal(snap.employment.salary_min, null); assert.equal(snap.company.name, null);
-assert.ok(P.companyDisplay(snap).includes("confidencial"));
+assert.equal(P.companyDisplay(snap), "Moove Talent");
 assert.ok(!P.employmentLines(snap).some((l) => l.label === "Remuneração"));
 assert.ok(!P.buildPlainText(snap, null).includes("Acqualive") && !P.buildPlainText(snap, null).includes("R$"));
 snap = P.buildSnapshot(src, { ...d, show_salary: true, show_company_name: true }, h);
 assert.ok(P.employmentLines(snap).some((l) => l.label === "Remuneração" && /4\.000/.test(l.value) && /6\.000/.test(l.value)));
-assert.ok(P.buildPlainText(snap, "https://x/vagas/a").includes("Acqualive"));
+assert.ok(!P.buildPlainText(snap, "https://x/vagas/a").includes("Acqualive") && P.buildPlainText(snap, null).includes("Moove Talent"));
+assert.equal(snap.company.brand, "moove");
 assert.notEqual(P.hashSources(P.collectSources({ ...job, title: "Outro" }, client)), h);
 assert.equal(P.hashSources(P.collectSources(job, client)), h);
 
@@ -57,7 +58,7 @@ assert.equal(P.normalizeContent({ apply_url: "javascript:alert(1)", title: "x" }
 
 const ld: any = P.buildJobPostingJsonLd(snap, { url: "https://s.com/vagas/consultor-de-vendas-ab12cd34", datePosted: "2026-10-29" });
 assert.equal(ld["@type"], "JobPosting"); assert.equal(ld.employmentType, "FULL_TIME");
-assert.equal(ld.hiringOrganization.name, "Acqualive"); assert.equal(ld.baseSalary.value.minValue, 4000);
+assert.equal(ld.hiringOrganization.name, "Moove Talent"); assert.equal(ld.baseSalary.value.minValue, 4000);
 assert.equal(ld.jobLocation.address.addressLocality, "São Paulo - SP");
 const hidden: any = P.buildJobPostingJsonLd(P.buildSnapshot(src, d, h), { url: "https://s.com/vagas/x", datePosted: "2026-10-29" });
 assert.equal(hidden.hiringOrganization.name, "Moove Talent"); assert.equal(hidden.baseSalary, undefined);
