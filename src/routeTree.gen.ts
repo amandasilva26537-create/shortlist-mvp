@@ -11,12 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CandidaturasRouteImport } from './routes/candidaturas'
+import { Route as CarreirasRouteImport } from './routes/carreiras'
 import { Route as CompareRouteImport } from './routes/compare'
+import { Route as DivulgacaoRouteImport } from './routes/divulgacao'
 import { Route as FeedbacksRouteImport } from './routes/feedbacks'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TagsRouteImport } from './routes/tags'
 import { Route as TeamRouteImport } from './routes/team'
+import { Route as AcompanhamentoIndexRouteImport } from './routes/acompanhamento.index'
 import { Route as AcompanhamentoTokenRouteImport } from './routes/acompanhamento.$token'
 import { Route as CandidatesIndexRouteImport } from './routes/candidates.index'
 import { Route as CandidatesCandidateIdRouteImport } from './routes/candidates.$candidateId'
@@ -53,9 +57,24 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CandidaturasRoute = CandidaturasRouteImport.update({
+  id: '/candidaturas',
+  path: '/candidaturas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarreirasRoute = CarreirasRouteImport.update({
+  id: '/carreiras',
+  path: '/carreiras',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DivulgacaoRoute = DivulgacaoRouteImport.update({
+  id: '/divulgacao',
+  path: '/divulgacao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedbacksRoute = FeedbacksRouteImport.update({
@@ -81,6 +100,11 @@ const TagsRoute = TagsRouteImport.update({
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcompanhamentoIndexRoute = AcompanhamentoIndexRouteImport.update({
+  id: '/acompanhamento/',
+  path: '/acompanhamento/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AcompanhamentoTokenRoute = AcompanhamentoTokenRouteImport.update({
@@ -216,7 +240,10 @@ const ShortlistsShortlistIdPdfCandidateIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/candidaturas': typeof CandidaturasRoute
+  '/carreiras': typeof CarreirasRoute
   '/compare': typeof CompareRoute
+  '/divulgacao': typeof DivulgacaoRoute
   '/feedbacks': typeof FeedbacksRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -234,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/shortlists/$shortlistId': typeof ShortlistsShortlistIdRouteWithChildren
   '/shortlists/new': typeof ShortlistsNewRoute
   '/vagas/$slug': typeof VagasSlugRoute
+  '/acompanhamento/': typeof AcompanhamentoIndexRoute
   '/candidates/': typeof CandidatesIndexRoute
   '/clients/': typeof ClientsIndexRoute
   '/jobs/': typeof JobsIndexRoute
@@ -251,7 +279,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/candidaturas': typeof CandidaturasRoute
+  '/carreiras': typeof CarreirasRoute
   '/compare': typeof CompareRoute
+  '/divulgacao': typeof DivulgacaoRoute
   '/feedbacks': typeof FeedbacksRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -267,6 +298,7 @@ export interface FileRoutesByTo {
   '/pdf/$candidateId': typeof PdfCandidateIdRoute
   '/shortlists/new': typeof ShortlistsNewRoute
   '/vagas/$slug': typeof VagasSlugRoute
+  '/acompanhamento': typeof AcompanhamentoIndexRoute
   '/candidates': typeof CandidatesIndexRoute
   '/clients': typeof ClientsIndexRoute
   '/jobs': typeof JobsIndexRoute
@@ -285,7 +317,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/candidaturas': typeof CandidaturasRoute
+  '/carreiras': typeof CarreirasRoute
   '/compare': typeof CompareRoute
+  '/divulgacao': typeof DivulgacaoRoute
   '/feedbacks': typeof FeedbacksRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -303,6 +338,7 @@ export interface FileRoutesById {
   '/shortlists/$shortlistId': typeof ShortlistsShortlistIdRouteWithChildren
   '/shortlists/new': typeof ShortlistsNewRoute
   '/vagas/$slug': typeof VagasSlugRoute
+  '/acompanhamento/': typeof AcompanhamentoIndexRoute
   '/candidates/': typeof CandidatesIndexRoute
   '/clients/': typeof ClientsIndexRoute
   '/jobs/': typeof JobsIndexRoute
@@ -322,7 +358,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/candidaturas'
+    | '/carreiras'
     | '/compare'
+    | '/divulgacao'
     | '/feedbacks'
     | '/reset-password'
     | '/sitemap.xml'
@@ -340,6 +379,7 @@ export interface FileRouteTypes {
     | '/shortlists/$shortlistId'
     | '/shortlists/new'
     | '/vagas/$slug'
+    | '/acompanhamento/'
     | '/candidates/'
     | '/clients/'
     | '/jobs/'
@@ -357,7 +397,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/candidaturas'
+    | '/carreiras'
     | '/compare'
+    | '/divulgacao'
     | '/feedbacks'
     | '/reset-password'
     | '/sitemap.xml'
@@ -373,6 +416,7 @@ export interface FileRouteTypes {
     | '/pdf/$candidateId'
     | '/shortlists/new'
     | '/vagas/$slug'
+    | '/acompanhamento'
     | '/candidates'
     | '/clients'
     | '/jobs'
@@ -390,7 +434,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth'
+    | '/candidaturas'
+    | '/carreiras'
     | '/compare'
+    | '/divulgacao'
     | '/feedbacks'
     | '/reset-password'
     | '/sitemap.xml'
@@ -408,6 +455,7 @@ export interface FileRouteTypes {
     | '/shortlists/$shortlistId'
     | '/shortlists/new'
     | '/vagas/$slug'
+    | '/acompanhamento/'
     | '/candidates/'
     | '/clients/'
     | '/jobs/'
@@ -426,7 +474,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  CandidaturasRoute: typeof CandidaturasRoute
+  CarreirasRoute: typeof CarreirasRoute
   CompareRoute: typeof CompareRoute
+  DivulgacaoRoute: typeof DivulgacaoRoute
   FeedbacksRoute: typeof FeedbacksRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -444,6 +495,7 @@ export interface RootRouteChildren {
   ShortlistsShortlistIdRoute: typeof ShortlistsShortlistIdRouteWithChildren
   ShortlistsNewRoute: typeof ShortlistsNewRoute
   VagasSlugRoute: typeof VagasSlugRoute
+  AcompanhamentoIndexRoute: typeof AcompanhamentoIndexRoute
   CandidatesIndexRoute: typeof CandidatesIndexRoute
   ClientsIndexRoute: typeof ClientsIndexRoute
   JobsIndexRoute: typeof JobsIndexRoute
@@ -467,11 +519,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/candidaturas': {
+      id: '/candidaturas'
+      path: '/candidaturas'
+      fullPath: '/candidaturas'
+      preLoaderRoute: typeof CandidaturasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carreiras': {
+      id: '/carreiras'
+      path: '/carreiras'
+      fullPath: '/carreiras'
+      preLoaderRoute: typeof CarreirasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/compare': {
       id: '/compare'
       path: '/compare'
       fullPath: '/compare'
       preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/divulgacao': {
+      id: '/divulgacao'
+      path: '/divulgacao'
+      fullPath: '/divulgacao'
+      preLoaderRoute: typeof DivulgacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feedbacks': {
@@ -507,6 +580,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/team'
       preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acompanhamento/': {
+      id: '/acompanhamento/'
+      path: '/acompanhamento'
+      fullPath: '/acompanhamento/'
+      preLoaderRoute: typeof AcompanhamentoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/acompanhamento/$token': {
@@ -728,7 +808,10 @@ const ShortlistsShortlistIdRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  CandidaturasRoute: CandidaturasRoute,
+  CarreirasRoute: CarreirasRoute,
   CompareRoute: CompareRoute,
+  DivulgacaoRoute: DivulgacaoRoute,
   FeedbacksRoute: FeedbacksRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -746,6 +829,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShortlistsShortlistIdRoute: ShortlistsShortlistIdRouteWithChildren,
   ShortlistsNewRoute: ShortlistsNewRoute,
   VagasSlugRoute: VagasSlugRoute,
+  AcompanhamentoIndexRoute: AcompanhamentoIndexRoute,
   CandidatesIndexRoute: CandidatesIndexRoute,
   ClientsIndexRoute: ClientsIndexRoute,
   JobsIndexRoute: JobsIndexRoute,

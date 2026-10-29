@@ -3,7 +3,7 @@ import { useQuery, useSuspenseQuery, queryOptions } from "@tanstack/react-query"
 import { useServerFn } from "@tanstack/react-start";
 import {
   Users, Briefcase, ListChecks, MessageSquare, Sparkles, ArrowUpRight,
-  FilePlus, UserPlus, FileText, Send, CheckCircle2,
+  FilePlus, UserPlus, FileText, Send, CheckCircle2, Inbox, Megaphone, Radar, ScanSearch, Activity,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { KpiCard } from "@/components/KpiCard";
@@ -17,6 +17,7 @@ import { listJobs } from "@/lib/db/jobs.functions";
 import { listShortlists } from "@/lib/db/shortlists.functions";
 import { listCandidates } from "@/lib/db/candidates.functions";
 import { listDrafts } from "@/lib/db/drafts.functions";
+import { getApplicationsOverview, getRecentActivities } from "@/lib/db/overview.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Dashboard · Moove List" }] }),
@@ -37,6 +38,11 @@ function Dashboard() {
   const navigate = useNavigate();
   const feedbackFn = useServerFn(listAllClientFeedback);
   const reads = useFeedbackReads();
+  const appsFn = useServerFn(getApplicationsOverview);
+  const actFn = useServerFn(getRecentActivities);
+  // Indicadores novos (candidaturas/atividades): falha aqui nunca afeta o restante do painel.
+  const apps = useQuery({ queryKey: ["applications-overview"], queryFn: () => appsFn(), retry: false });
+  const acts = useQuery({ queryKey: ["recent-activities"], queryFn: () => actFn(), retry: false });
   const q = useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {
@@ -71,23 +77,31 @@ function Dashboard() {
         </header>
 
         {/* Ações rápidas */}
-        <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+        <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
           <QuickAction to="/clients/new" icon={UserPlus} label="Novo cliente" />
           <QuickAction to="/jobs/new" icon={Briefcase} label="Nova vaga" />
+          <QuickAction to="/divulgacao" icon={Megaphone} label="Divulgação de vaga" />
+          <QuickAction to="/candidaturas" icon={Inbox} label="Candidaturas" />
           <QuickAction to="/shortlists/new" icon={Sparkles} label="Nova shortlist" primary />
+          <QuickAction to="/acompanhamento" icon={Radar} label="Acompanhamento de vagas" />
           <QuickAction to="/candidates/new" icon={FilePlus} label="Novo candidato" />
           <QuickAction to="/shortlists" icon={ListChecks} label="Shortlists enviadas" />
           <QuickAction to="/shortlists" icon={FileText} label="Continuar rascunho" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7 mb-8">
-          <KpiCard label="Clientes" value={data?.clients.length ?? 0} icon={Users} to="/clients" />
+        {/* Prioridades */}
+        <div className="mb-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
           <KpiCard label="Vagas abertas" value={openJobs} icon={Briefcase} to="/jobs" />
           <KpiCard label="Vagas fechadas" value={closedJobs} icon={CheckCircle2} to="/jobs" />
-          <KpiCard label="Candidatos" value={data?.candidates.length ?? 0} icon={FilePlus} to="/candidates" />
+          <KpiCard label="Novas candidaturas" value={apps.data?.newLast7d ?? 0} icon={Inbox} to="/candidaturas" suffix="7 dias" />
+          <KpiCard label="Candidatos pré-triados" value={apps.data?.prescreened ?? 0} icon={ScanSearch} to="/candidaturas" />
           <KpiCard label="Shortlists enviadas" value={sent} icon={Send} to="/shortlists" />
-          <KpiCard label="Rascunhos" value={drafts} icon={FileText} to="/shortlists" />
           <KpiCard label="Feedbacks não lidos" value={unreadFeedbacks} icon={MessageSquare} to="/feedbacks" />
+        </div>
+        <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3">
+          <KpiCard label="Clientes" value={data?.clients.length ?? 0} icon={Users} to="/clients" />
+          <KpiCard label="Candidatos" value={data?.candidates.length ?? 0} icon={FilePlus} to="/candidates" />
+          <KpiCard label="Rascunhos" value={drafts} icon={FileText} to="/shortlists" />
         </div>
 
         <div className="card-soft mb-6">
@@ -163,6 +177,31 @@ function Dashboard() {
               </ul>
             )}
           </div>
+        </div>
+
+        <div className="card-soft mt-6">
+          <div className="border-b border-border p-5">
+            <h2 className="flex items-center gap-2 text-base font-semibold"><Activity className="h-4 w-4 text-primary" />Atividades recentes</h2>
+            <p className="text-xs text-muted-foreground">Novas candidaturas e movimentos de divulgação</p>
+          </div>
+          {((apps.data?.recent ?? []).length === 0 && (acts.data ?? []).length === 0) ? (
+            <div className="p-5 text-sm text-muted-foreground">Nenhuma atividade recente.</div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {(apps.data?.recent ?? []).map((r: any) => (
+                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
+                  <span><b>{r.name}</b> se candidatou a <Link to="/jobs/$jobId" params={{ jobId: r.job_id }} hash="candidaturas" className="text-primary hover:underline">{r.job}</Link>{r.client ? ` · ${r.client}` : ""}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(r.applied_at).toLocaleString("pt-BR")}</span>
+                </li>
+              ))}
+              {(acts.data ?? []).map((a: any) => (
+                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
+                  <span>{({ "job_posting.publish": "Vaga publicada", "job_posting.unpublish": "Vaga retirada da página de carreiras", "job_posting.approve": "Texto de divulgação aprovado", "job_posting.create": "Divulgação criada", "job_posting.generate": "Texto de divulgação gerado" } as Record<string, string>)[a.action] ?? a.action}{a.entity_id ? <> · <Link to="/jobs/$jobId" params={{ jobId: a.entity_id }} hash="divulgacao" className="text-primary hover:underline">ver vaga</Link></> : null}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString("pt-BR")}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </AppShell>
