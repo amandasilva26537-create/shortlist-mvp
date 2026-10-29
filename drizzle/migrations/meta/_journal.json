@@ -15,6 +15,20 @@
       "when": 1793312966045,
       "tag": "0001_job_postings",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793315509523,
+      "tag": "0002_ats_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793315529725,
+      "tag": "0003_ats_intake",
+      "breakpoints": true
     }
   ]
 }
