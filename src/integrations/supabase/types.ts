@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_audit_log: {
+        Row: {
+          action: string
+          actor_kind: string
+          actor_user_id: string | null
+          brand: string | null
+          candidate_id: string | null
+          entity_id: string | null
+          entity_type: string
+          id: number
+          metadata: Json
+          occurred_at: string
+        }
+        Insert: {
+          action: string
+          actor_kind?: string
+          actor_user_id?: string | null
+          brand?: string | null
+          candidate_id?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: number
+          metadata?: Json
+          occurred_at?: string
+        }
+        Update: {
+          action?: string
+          actor_kind?: string
+          actor_user_id?: string | null
+          brand?: string | null
+          candidate_id?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: number
+          metadata?: Json
+          occurred_at?: string
+        }
+        Relationships: []
+      }
       activities: {
         Row: {
           action: string
@@ -43,6 +82,184 @@ export type Database = {
           metadata?: Json | null
         }
         Relationships: []
+      }
+      ai_processing_log: {
+        Row: {
+          actor_user_id: string | null
+          candidate_id: string | null
+          entity_id: string | null
+          entity_type: string | null
+          function_name: string
+          id: number
+          injection_signals: string[]
+          input_chars: number | null
+          input_files: number | null
+          model: string
+          occurred_at: string
+          provider: string
+          status: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          candidate_id?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          function_name: string
+          id?: number
+          injection_signals?: string[]
+          input_chars?: number | null
+          input_files?: number | null
+          model: string
+          occurred_at?: string
+          provider: string
+          status?: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          candidate_id?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          function_name?: string
+          id?: number
+          injection_signals?: string[]
+          input_chars?: number | null
+          input_files?: number | null
+          model?: string
+          occurred_at?: string
+          provider?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      application_stage_history: {
+        Row: {
+          application_id: string
+          changed_by: string | null
+          created_at: string
+          from_stage: string | null
+          from_status: string | null
+          id: number
+          note: string | null
+          to_stage: string
+          to_status: string
+        }
+        Insert: {
+          application_id: string
+          changed_by?: string | null
+          created_at?: string
+          from_stage?: string | null
+          from_status?: string | null
+          id?: number
+          note?: string | null
+          to_stage: string
+          to_status: string
+        }
+        Update: {
+          application_id?: string
+          changed_by?: string | null
+          created_at?: string
+          from_stage?: string | null
+          from_status?: string | null
+          id?: number
+          note?: string | null
+          to_stage?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_stage_history_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      applications: {
+        Row: {
+          applied_at: string
+          brand: string
+          candidate_id: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          job_id: string
+          last_changed_by: string | null
+          rejection_reason: string | null
+          responsible_user_id: string | null
+          shortlist_id: string | null
+          source: string
+          stage: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          applied_at?: string
+          brand: string
+          candidate_id: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_id: string
+          last_changed_by?: string | null
+          rejection_reason?: string | null
+          responsible_user_id?: string | null
+          shortlist_id?: string | null
+          source?: string
+          stage?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          applied_at?: string
+          brand?: string
+          candidate_id?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_id?: string
+          last_changed_by?: string | null
+          rejection_reason?: string | null
+          responsible_user_id?: string | null
+          shortlist_id?: string | null
+          source?: string
+          stage?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_shortlist_id_fkey"
+            columns: ["shortlist_id"]
+            isOneToOne: false
+            referencedRelation: "shortlists"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       candidate_documents: {
         Row: {
@@ -194,6 +411,120 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "shortlists"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_resumes: {
+        Row: {
+          application_id: string | null
+          brand: string
+          candidate_id: string
+          created_at: string
+          deleted_at: string | null
+          extracted_text_at: string | null
+          id: string
+          mime_type: string
+          original_filename: string | null
+          scan_flags: string[]
+          scan_status: string
+          sha256: string | null
+          size_bytes: number
+          storage_bucket: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          brand: string
+          candidate_id: string
+          created_at?: string
+          deleted_at?: string | null
+          extracted_text_at?: string | null
+          id?: string
+          mime_type: string
+          original_filename?: string | null
+          scan_flags?: string[]
+          scan_status?: string
+          sha256?: string | null
+          size_bytes: number
+          storage_bucket?: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          brand?: string
+          candidate_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          extracted_text_at?: string | null
+          id?: string
+          mime_type?: string
+          original_filename?: string | null
+          scan_flags?: string[]
+          scan_status?: string
+          sha256?: string | null
+          size_bytes?: number
+          storage_bucket?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_resumes_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_resumes_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_retention: {
+        Row: {
+          candidate_id: string
+          last_activity_at: string
+          purpose_code: string
+          retain_until: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          last_activity_at?: string
+          purpose_code?: string
+          retain_until?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          last_activity_at?: string
+          purpose_code?: string
+          retain_until?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_retention_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_retention_purpose_code_fkey"
+            columns: ["purpose_code"]
+            isOneToOne: false
+            referencedRelation: "data_processing_purposes"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -506,6 +837,152 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_records: {
+        Row: {
+          candidate_id: string | null
+          channel: string
+          created_at: string
+          evidence: Json
+          granted: boolean
+          granted_at: string
+          id: string
+          policy_version: string
+          purpose_code: string
+          recorded_by: string | null
+          revoked_at: string | null
+          subject_email_hash: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          channel?: string
+          created_at?: string
+          evidence?: Json
+          granted: boolean
+          granted_at?: string
+          id?: string
+          policy_version: string
+          purpose_code: string
+          recorded_by?: string | null
+          revoked_at?: string | null
+          subject_email_hash?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          channel?: string
+          created_at?: string
+          evidence?: Json
+          granted?: boolean
+          granted_at?: string
+          id?: string
+          policy_version?: string
+          purpose_code?: string
+          recorded_by?: string | null
+          revoked_at?: string | null
+          subject_email_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_records_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_records_purpose_code_fkey"
+            columns: ["purpose_code"]
+            isOneToOne: false
+            referencedRelation: "data_processing_purposes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      data_processing_purposes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string
+          legal_basis: string | null
+          name: string
+          requires_consent: boolean
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description: string
+          legal_basis?: string | null
+          name: string
+          requires_consent?: boolean
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string
+          legal_basis?: string | null
+          name?: string
+          requires_consent?: boolean
+        }
+        Relationships: []
+      }
+      data_subject_requests: {
+        Row: {
+          candidate_id: string | null
+          completed_at: string | null
+          created_at: string
+          due_at: string
+          handled_by: string | null
+          id: string
+          received_at: string
+          request_type: string
+          requester_email: string | null
+          requester_name: string | null
+          resolution_notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          due_at?: string
+          handled_by?: string | null
+          id?: string
+          received_at?: string
+          request_type: string
+          requester_email?: string | null
+          requester_name?: string | null
+          resolution_notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          due_at?: string
+          handled_by?: string | null
+          id?: string
+          received_at?: string
+          request_type?: string
+          requester_email?: string | null
+          requester_name?: string | null
+          resolution_notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_subject_requests_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drafts: {
         Row: {
           entity_id: string | null
@@ -533,6 +1010,51 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      external_processors: {
+        Row: {
+          created_at: string
+          data_categories: string[]
+          dpa_signed: boolean
+          id: string
+          name: string
+          notes: string | null
+          processing_country: string | null
+          purpose: string | null
+          service: string
+          status: string
+          trains_on_data: string | null
+          transfer_mechanism: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_categories?: string[]
+          dpa_signed?: boolean
+          id?: string
+          name: string
+          notes?: string | null
+          processing_country?: string | null
+          purpose?: string | null
+          service: string
+          status?: string
+          trains_on_data?: string | null
+          transfer_mechanism?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_categories?: string[]
+          dpa_signed?: boolean
+          id?: string
+          name?: string
+          notes?: string | null
+          processing_country?: string | null
+          purpose?: string | null
+          service?: string
+          status?: string
+          trains_on_data?: string | null
+          transfer_mechanism?: string | null
         }
         Relationships: []
       }
@@ -827,6 +1349,33 @@ export type Database = {
         }
         Relationships: []
       }
+      retention_policies: {
+        Row: {
+          action_after: string
+          active: boolean
+          data_category: string
+          legal_note: string | null
+          retention_months: number | null
+          updated_at: string
+        }
+        Insert: {
+          action_after?: string
+          active?: boolean
+          data_category: string
+          legal_note?: string | null
+          retention_months?: number | null
+          updated_at?: string
+        }
+        Update: {
+          action_after?: string
+          active?: boolean
+          data_category?: string
+          legal_note?: string | null
+          retention_months?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shortlist_candidates: {
         Row: {
           added_at: string
@@ -962,6 +1511,27 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_brand_access: {
+        Row: {
+          brand: string
+          created_at: string
+          granted_by: string | null
+          user_id: string
+        }
+        Insert: {
+          brand: string
+          created_at?: string
+          granted_by?: string | null
+          user_id: string
+        }
+        Update: {
+          brand?: string
+          created_at?: string
+          granted_by?: string | null
+          user_id?: string
         }
         Relationships: []
       }
