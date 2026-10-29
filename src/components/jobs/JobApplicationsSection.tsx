@@ -146,7 +146,7 @@ export function JobApplicationsSection({ jobId }: { jobId: string }) {
   );
 
   return (
-    <section className="card-soft mt-8 p-6">
+    <section id="candidaturas" className="card-soft mt-8 p-6 scroll-mt-20">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Candidaturas ({active.length} ativas)</div>

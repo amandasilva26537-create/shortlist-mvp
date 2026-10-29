@@ -91,7 +91,7 @@ export function JobPostingSection({ job }: { job: any }) {
   const pending = dirty || !approved;
 
   return (
-    <section className="card-elevated mt-8 p-6 md:p-8">
+    <section id="divulgacao" className="card-elevated mt-8 scroll-mt-20 p-6 md:p-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="text-xs font-semibold uppercase tracking-widest text-primary">Divulgação da vaga</div>
