@@ -1349,6 +1349,27 @@ export type Database = {
         }
         Relationships: []
       }
+      public_submission_log: {
+        Row: {
+          created_at: string
+          id: number
+          ip_hash: string
+          job_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          ip_hash: string
+          job_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          ip_hash?: string
+          job_id?: string | null
+        }
+        Relationships: []
+      }
       retention_policies: {
         Row: {
           action_after: string
