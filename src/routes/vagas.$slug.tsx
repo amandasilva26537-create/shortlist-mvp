@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getPublicPosting } from "@/lib/db/postings.functions";
 import { buildJobPostingJsonLd, employmentLines, jsonLdScript, isSafeApplyUrl } from "@/lib/job-posting";
 import { Link } from "@tanstack/react-router";
+import { ApplyForm } from "@/components/jobs/ApplyForm";
 import { CareersHeader, EmployerBrand } from "@/components/jobs/CareersChrome";
 import { Button } from "@/components/ui/button";
 
@@ -63,10 +64,9 @@ function PublicJobPage() {
               <span key={t as string} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium">{t}</span>
             ))}
           </div>
+          <a href="#candidatar" className="mt-5 inline-block"><Button>Candidatar-se</Button></a>
           {apply && (
-            <a href={apply} target="_blank" rel="noopener noreferrer nofollow" className="mt-5 inline-block">
-              <Button>Candidatar-se</Button>
-            </a>
+            <a href={apply} target="_blank" rel="noopener noreferrer nofollow" className="ml-3 text-xs text-muted-foreground underline">ou candidate-se pelo link da empresa</a>
           )}
         </div>
       </div>
@@ -100,6 +100,7 @@ function PublicJobPage() {
           </section>
         )}
         <List title="Benefícios" items={c.benefits} />
+        <ApplyForm slug={slug} />
         <EmployerBrand />
       </main>
     </div>
