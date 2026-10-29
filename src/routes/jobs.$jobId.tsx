@@ -5,6 +5,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { getJob } from "@/lib/db/jobs.functions";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles, Pencil } from "lucide-react";
+import { JobApplicationsSection } from "@/components/jobs/JobApplicationsSection";
 import { JobPostingSection } from "@/components/jobs/JobPostingSection";
 
 export const Route = createFileRoute("/jobs/$jobId")({
@@ -77,6 +78,7 @@ function JobDetail() {
         </div>
 
         <JobPostingSection job={j} />
+        <JobApplicationsSection jobId={j.id} />
       </div>
     </AppShell>
   );
