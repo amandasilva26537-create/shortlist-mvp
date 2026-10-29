@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   public: {
     Tables: {
@@ -535,6 +535,65 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      job_postings: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approved_snapshot: Json | null
+          company_authorized: string
+          created_at: string
+          created_by: string | null
+          draft: Json
+          id: string
+          is_published: boolean
+          job_id: string
+          published_at: string | null
+          slug: string
+          unpublished_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_snapshot?: Json | null
+          company_authorized?: string
+          created_at?: string
+          created_by?: string | null
+          draft?: Json
+          id?: string
+          is_published?: boolean
+          job_id: string
+          published_at?: string | null
+          slug: string
+          unpublished_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_snapshot?: Json | null
+          company_authorized?: string
+          created_at?: string
+          created_by?: string | null
+          draft?: Json
+          id?: string
+          is_published?: boolean
+          job_id?: string
+          published_at?: string | null
+          slug?: string
+          unpublished_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_postings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_stage_history: {
         Row: {
