@@ -1,5 +1,7 @@
 # Plano de independência do Lovable
 
+> **ATUALIZAÇÃO (29/10, noite) — caminho recomendado hoje:** a documentação oficial do Lovable informa que o projeto tem **backup diário (guarda cerca de 14 dias)** e **exportação completa do banco** (arquivo PostgreSQL, com estrutura, dados, usuários e hashes de senha; não inclui arquivos do storage). Fontes: https://docs.lovable.dev/features/database-backups. Uma fonte de terceiros (https://axonbuild.com/blog/lovable-export-database/) afirma que o Lovable **não entrega a chave de serviço nem a connection string** ao dono do projeto. Se isso se confirmar, o script `backup.mjs` (que exige a chave de serviço) só poderá ser usado após migrar para um Supabase da sua própria conta. Até lá: (1) exportar o banco pelo painel do Lovable (More → Database → Manage → Settings) a cada semana; (2) baixar os arquivos em Cloud → Storage; (3) guardar tudo em 2 lugares, criptografado. Isso também resolve a pendência da seção 3 (estrutura do banco).
+
 Objetivo: se o Lovable tiver problema ou deixar de existir, você continua com **seus dados** e consegue **colocar o sistema de pé em outro lugar**.
 
 ## 1. Mapa de dependências
