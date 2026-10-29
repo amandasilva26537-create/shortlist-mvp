@@ -27,6 +27,32 @@ function clientIp(): string {
   } catch { return "unknown"; }
 }
 
+let bucketReady = false;
+/** Garante o bucket privado (criado pelo backend; sem políticas públicas). */
+async function ensureBucket(sb: any) {
+  if (bucketReady) return;
+  const { data } = await sb.storage.getBucket(BUCKET);
+  if (!data) {
+    const { error } = await sb.storage.createBucket(BUCKET, {
+      public: false, fileSizeLimit: 10 * 1024 * 1024,
+      allowedMimeTypes: ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+    });
+    if (error && !/already exists|duplicate/i.test(error.message)) throw new Error("Falha ao preparar o armazenamento.");
+  }
+  bucketReady = true;
+}
+
+/** Finalidades de tratamento exigidas pelos consentimentos (idempotente). */
+async function ensurePurposes(sb: any) {
+  await sb.from("data_processing_purposes").upsert([
+    { code: "selection_process", name: "Processo seletivo", description: "Avaliar o candidato para a vaga à qual se candidatou.", requires_consent: false },
+    { code: "talent_pool", name: "Banco de talentos", description: "Manter dados após o fim do processo para futuras oportunidades.", requires_consent: true },
+    { code: "client_sharing", name: "Compartilhamento com a empresa contratante", description: "Enviar perfil/análise do candidato à empresa cliente via shortlist.", requires_consent: true },
+    { code: "ai_analysis", name: "Análise assistida por IA", description: "Enviar dados do candidato a provedores de IA para estruturar perfil e análise.", requires_consent: true },
+    { code: "international_transfer", name: "Transferência internacional", description: "Tratamento por prestadores localizados fora do Brasil.", requires_consent: true },
+  ], { onConflict: "code", ignoreDuplicates: true });
+}
+
 /**
  * Candidatura pública. Sem login: valida tudo no servidor, grava o currículo em bucket privado
  * e registra os consentimentos. Nunca devolve dados internos.
@@ -87,6 +113,7 @@ export const submitPublicApplication = createServerFn({ method: "POST" })
       }
 
       // 6) currículo em bucket privado (caminho gerado pelo sistema)
+      await ensureBucket(sb);
       const path = buildResumeStoragePath(app.brand, candidateId!, check.kind);
       const up = await sb.storage.from(BUCKET).upload(path, bytes, { contentType: check.mime, upsert: false });
       if (up.error) throw new Error("Falha ao guardar o currículo.");
@@ -98,6 +125,7 @@ export const submitPublicApplication = createServerFn({ method: "POST" })
       if (rErr) { await sb.storage.from(BUCKET).remove([path]); throw new Error(rErr.message); }
 
       // 7) consentimentos (prova imutável)
+      await ensurePurposes(sb);
       const emailHash = await sha256Text(data.email);
       const consents = buildConsentRows(data).map((c) => ({
         candidate_id: candidateId, subject_email_hash: emailHash, purpose_code: c.purpose_code, granted: true,
