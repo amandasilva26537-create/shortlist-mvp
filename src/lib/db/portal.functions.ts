@@ -29,14 +29,19 @@ export const getPortalShortlist = createServerFn({ method: "GET" })
   .inputValidator((v: unknown) => z.object({ token: z.string().min(16) }).parse(v))
   .handler(async ({ data }) => {
     const supabase = publicClient(data.token);
-    const { data: sl, error } = await supabase
+    const { data: slRow, error } = await supabase
       .from("shortlists")
-      .select("*, clients(name, logo_url, brand), jobs(*)")
+      // Apenas o necessário para o cliente: nada de notas, transcrição, texto colado ou
+      // estrutura interna da vaga (ai_structure), nem o dono interno da shortlist.
+      .select(
+        "id, job_id, client_id, brand, title, message, number, published_at, send_date, status, share_token, responsible, clients(name, logo_url, brand), jobs(id, title, tracking_token)",
+      )
       .eq("share_token", data.token)
       .eq("status", "sent")
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!sl) return null;
+    if (!slRow) return null;
+    const sl = slRow as any;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: links }, { data: feedback }] = await Promise.all([
       supabaseAdmin
