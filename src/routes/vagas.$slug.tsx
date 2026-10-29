@@ -2,13 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getPublicPosting } from "@/lib/db/postings.functions";
-import { brandName, buildJobPostingJsonLd, companyDisplay, employmentLines, jsonLdScript, isSafeApplyUrl } from "@/lib/job-posting";
-import { PortalWordmark } from "@/components/shortlist/PortusBrand";
+import { buildJobPostingJsonLd, employmentLines, jsonLdScript, isSafeApplyUrl } from "@/lib/job-posting";
+import { Link } from "@tanstack/react-router";
+import { CareersHeader, EmployerBrand } from "@/components/jobs/CareersChrome";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/vagas/$slug")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Vaga" }, { name: "robots", content: "index, follow" }] }),
+  head: () => ({ meta: [{ title: "Vaga · Página de Carreiras Moove Talent" }, { name: "robots", content: "index, follow" }] }),
   component: PublicJobPage,
 });
 
@@ -34,10 +35,10 @@ function PublicJobPage() {
   const fn = useServerFn(getPublicPosting);
   const { data, isLoading } = useQuery({ queryKey: ["public-posting", slug], queryFn: () => fn({ data: { slug } }) });
 
-  if (isLoading) return <div className="portus-theme grid min-h-screen place-items-center text-sm text-muted-foreground">Carregando…</div>;
+  if (isLoading) return <div className="moove-theme grid min-h-screen place-items-center text-sm text-muted-foreground">Carregando…</div>;
   if (!data)
     return (
-      <div className="portus-theme grid min-h-screen place-items-center px-6 text-center text-sm text-muted-foreground">
+      <div className="moove-theme grid min-h-screen place-items-center px-6 text-center text-sm text-muted-foreground">
         Esta vaga não está mais disponível.
       </div>
     );
@@ -48,20 +49,14 @@ function PublicJobPage() {
   const ld = buildJobPostingJsonLd(s, { url, datePosted: data.published_at.slice(0, 10) });
   const emp = employmentLines(s);
   const apply = isSafeApplyUrl(c.apply_url) ? c.apply_url : null;
-  const theme = s.company.brand === "moove" ? "moove-theme" : "portus-theme";
 
   return (
-    <div className={`${theme} min-h-screen pb-16`}>
+    <div className="moove-theme min-h-screen pb-16">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3 md:px-6">
-          <PortalWordmark brand={s.company.brand} />
-          <span className="text-xs text-muted-foreground">{brandName(s.company.brand)} · Vagas</span>
-        </div>
-      </header>
+      <CareersHeader />
       <div className="border-b border-border" style={{ background: "var(--portal-header-gradient)" }}>
         <div className="mx-auto max-w-3xl px-4 py-8 md:px-6">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--portal-strong)" }}>{companyDisplay(s)}</div>
+          <Link to="/vagas" className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--portal-strong)" }}>← Moove Talent · Todas as vagas</Link>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">{c.title}</h1>
           <div className="mt-3 flex flex-wrap gap-2">
             {[s.employment.location, s.employment.work_model, s.employment.contract_type].filter(Boolean).map((t) => (
@@ -76,6 +71,11 @@ function PublicJobPage() {
         </div>
       </div>
       <main className="mx-auto max-w-3xl px-4 md:px-6">
+        {c.skills.length > 0 && (
+          <div className="mt-6 flex flex-wrap gap-1.5" aria-label="Competências">
+            {c.skills.map((k) => <span key={k} className="rounded-full border border-border px-2.5 py-0.5 text-[11px] text-muted-foreground">{k}</span>)}
+          </div>
+        )}
         {c.intro && <p className="mt-8 whitespace-pre-wrap text-sm leading-relaxed">{c.intro}</p>}
         {c.company_intro && (
           <section className="mt-8">
@@ -85,7 +85,6 @@ function PublicJobPage() {
         )}
         <List title="Responsabilidades" items={c.responsibilities} />
         <List title="Requisitos obrigatórios" items={c.requirements} />
-        <List title="Competências" items={c.skills} />
         <List title="Diferenciais" items={c.differentials} />
         {emp.length > 0 && (
           <section className="mt-8">
@@ -101,6 +100,7 @@ function PublicJobPage() {
           </section>
         )}
         <List title="Benefícios" items={c.benefits} />
+        <EmployerBrand />
       </main>
     </div>
   );

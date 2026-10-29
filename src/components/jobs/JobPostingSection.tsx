@@ -54,7 +54,7 @@ export function JobPostingSection({ job }: { job: any }) {
   const err = (e: any) => toast.error(e?.message ?? "Erro");
 
   const gen = useMutation({
-    mutationFn: () => genFn({ data: { job_id: jobId, company_authorized: authorized, benefits: c?.benefits ?? [], show_company_name: !!c?.show_company_name } }),
+    mutationFn: () => genFn({ data: { job_id: jobId, company_authorized: authorized, benefits: c?.benefits ?? [] } }),
     onSuccess: (r) => { patch({ intro: r.intro, company_intro: r.company_intro }); setWarnings(r.warnings); toast.success("Texto gerado. Revise antes de aprovar."); },
     onError: err,
   });
@@ -113,16 +113,13 @@ export function JobPostingSection({ job }: { job: any }) {
 
       <div className="mt-6 space-y-5">
         <div>
-          <Label className="text-xs">Informações da empresa autorizadas para divulgação</Label>
+          <Label className="text-xs">Informações da empresa contratante autorizadas para divulgação</Label>
           <Textarea rows={3} value={authorized} onChange={(e) => { setAuthorized(e.target.value); setDirty(true); }}
             placeholder="Ex.: descreva o que a empresa autoriza divulgar sobre o negócio. A IA não usa nada além disso e do segmento cadastrado." />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="flex items-center justify-between rounded-lg border border-border p-3 text-sm">
-            <span>Divulgar o nome da empresa <span className="block text-[11px] text-muted-foreground">Desligado = vaga confidencial</span></span>
-            <Switch checked={c.show_company_name} onCheckedChange={(v) => patch({ show_company_name: v })} />
-          </label>
+          <div className="rounded-lg border border-border p-3 text-sm">Divulgada como <b>Moove Talent</b><span className="block text-[11px] text-muted-foreground">O nome do cliente nunca é publicado</span></div>
           <label className="flex items-center justify-between rounded-lg border border-border p-3 text-sm">
             <span>Divulgar a remuneração <span className="block text-[11px] text-muted-foreground">{salary ? `Cadastrada: ${salary}` : "Sem remuneração cadastrada"}</span></span>
             <Switch checked={c.show_salary && !!salary} disabled={!salary} onCheckedChange={(v) => patch({ show_salary: v })} />

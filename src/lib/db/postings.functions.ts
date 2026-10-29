@@ -55,7 +55,7 @@ export const getPosting = createServerFn({ method: "GET" })
       published_at: (row?.published_at as string | null) ?? null,
       /** O cadastro da vaga mudou desde a aprovação — vale revisar o texto. */
       source_changed: !!snap && snap.source_hash !== hash,
-      sources: { has_salary: src.salary_min != null || src.salary_max != null, company_name: src.company.name, brand: src.company.brand },
+      sources: { has_salary: src.salary_min != null || src.salary_max != null, company_name: src.company.name, brand: "moove" as const },
     };
   });
 
@@ -88,7 +88,7 @@ export const generatePostingText = createServerFn({ method: "POST" })
       requisitos_obrigatorios: src.must_have, diferenciais: [...src.nice_to_have, ...src.differentials],
       competencias: [...src.hard_skills, ...src.tools, ...src.soft_skills],
       segmento_da_empresa: src.company.segment,
-      nome_da_empresa: data.show_company_name ? src.company.name : "(NÃO divulgar o nome)",
+      nome_da_empresa: "(NÃO divulgar o nome da empresa contratante; a vaga é divulgada pela Moove Talent)",
     };
     const wrapped = wrapUntrusted("DADOS_DA_VAGA", JSON.stringify(facts, null, 2), { maxChars: 12000 });
     const authorized = wrapUntrusted("INFORMACOES_AUTORIZADAS_DA_EMPRESA", data.company_authorized || "(nenhuma informação autorizada)", { maxChars: 4000 });
@@ -101,7 +101,7 @@ REGRAS OBRIGATÓRIAS:
 - NÃO invente benefícios, salários, números, anos de experiência, tamanho da empresa, prêmios, clientes ou requisitos.
 - NÃO cite remuneração nem benefícios (eles são exibidos separadamente pelo sistema).
 - Se não houver informação suficiente sobre a empresa, escreva uma apresentação curta e genérica usando só o segmento; não preencha lacunas.
-- Não use o nome da empresa se estiver marcado como "NÃO divulgar".
+- Nunca cite o nome da empresa contratante. Descreva-a de forma anônima (ex.: "empresa do segmento X").
 
 Retorne APENAS um JSON válido: {"intro": "<2 a 4 frases sobre a oportunidade>", "company_intro": "<1 a 3 frases sobre a empresa e o modelo de negócio, apenas com informações autorizadas>"}
 
@@ -208,3 +208,16 @@ export const getPublicPosting = createServerFn({ method: "GET" })
   });
 
 export { EMPTY_CONTENT };
+
+/** Lista pública da Página de Carreiras: só versões aprovadas de divulgações publicadas. */
+export const listPublicPostings = createServerFn({ method: "GET" }).handler(async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: rows } = await (supabaseAdmin as any)
+    .from("job_postings").select("slug, approved_snapshot, published_at")
+    .eq("is_published", true).not("approved_snapshot", "is", null)
+    .order("published_at", { ascending: false }).limit(200);
+  return ((rows ?? []) as any[]).map((r) => {
+    const s = r.approved_snapshot as ApprovedSnapshot;
+    return { slug: r.slug as string, title: s.content.title, location: s.employment.location, work_model: s.employment.work_model, contract_type: s.employment.contract_type, area: s.employment.area, skills: s.content.skills.slice(0, 4) };
+  });
+});
