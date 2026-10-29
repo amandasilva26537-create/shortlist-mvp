@@ -149,7 +149,7 @@ export const listJobApplications = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: apps, error } = await sb.from("applications")
-      .select("id, candidate_id, stage, status, source, applied_at, candidates(full_name, email, phone, linkedin_url, city), candidate_resumes(id, original_filename, size_bytes, scan_flags, deleted_at)")
+      .select("id, candidate_id, stage, status, rejection_reason, source, applied_at, candidates(full_name, email, phone, linkedin_url, city), candidate_resumes(id, original_filename, size_bytes, scan_flags, deleted_at)")
       .eq("job_id", data.job_id).order("applied_at", { ascending: false });
     if (error) return { missing: isMissing(error.message), items: [] as any[] };
     const ids = [...new Set((apps ?? []).map((a: any) => a.candidate_id))] as string[];
@@ -159,7 +159,7 @@ export const listJobApplications = createServerFn({ method: "GET" })
       for (const c of cr ?? []) if (c.granted && !c.revoked_at) (consents[c.candidate_id] ??= []).push(c.purpose_code);
     }
     const items = (apps ?? []).map((a: any) => ({
-      id: a.id, candidate_id: a.candidate_id, stage: a.stage, status: a.status, source: a.source, applied_at: a.applied_at,
+      id: a.id, candidate_id: a.candidate_id, stage: a.stage, status: a.status, rejection_reason: a.rejection_reason ?? null, source: a.source, applied_at: a.applied_at,
       candidate: a.candidates, consents: consents[a.candidate_id] ?? [],
       resumes: (a.candidate_resumes ?? []).filter((r: any) => !r.deleted_at).map((r: any) => ({ id: r.id, name: r.original_filename, size: r.size_bytes, flags: r.scan_flags ?? [] })),
     }));
@@ -178,4 +178,32 @@ export const getResumeDownloadUrl = createServerFn({ method: "POST" })
     if (error || !signed?.signedUrl) throw new Error("Não foi possível gerar o link.");
     await logAccess(sb, { actorUserId: context.userId, action: "download_resume", entityType: "candidate_resume", entityId: r.id, candidateId: r.candidate_id, brand: r.brand });
     return { url: signed.signedUrl as string };
+  });
+
+const STAGES = ["applied", "screening", "interview", "tests", "shortlisted", "client_interview", "offer", "hired"] as const;
+
+/** Move a candidatura no funil / reprova / retoma. O histórico é gravado por gatilho no banco. */
+export const updateApplication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) =>
+    z.object({
+      application_id: z.string().uuid(),
+      stage: z.enum(STAGES).optional(),
+      status: z.enum(["active", "rejected", "withdrawn"]).optional(),
+      rejection_reason: z.string().trim().max(500).nullable().optional(),
+    }).refine((d) => d.stage || d.status, "Nada para atualizar.").parse(v),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const patch: Record<string, unknown> = { last_changed_by: context.userId };
+    if (data.stage) { patch.stage = data.stage; patch.status = data.stage === "hired" ? "hired" : "active"; patch.rejection_reason = null; }
+    if (data.status) {
+      patch.status = data.status;
+      patch.rejection_reason = data.status === "rejected" ? data.rejection_reason?.trim() || null : null;
+    }
+    const { data: row, error } = await sb.from("applications").update(patch).eq("id", data.application_id).select("id, candidate_id, brand").maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("Candidatura não encontrada.");
+    await logAccess(sb, { actorUserId: context.userId, action: "update", entityType: "application", entityId: row.id, candidateId: row.candidate_id, brand: row.brand, metadata: { stage: data.stage ?? null, status: data.status ?? null } });
+    return { ok: true };
   });
