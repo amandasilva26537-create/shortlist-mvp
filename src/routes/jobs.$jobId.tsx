@@ -5,6 +5,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { getJob } from "@/lib/db/jobs.functions";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles, Pencil } from "lucide-react";
+import { JobPostingSection } from "@/components/jobs/JobPostingSection";
 
 export const Route = createFileRoute("/jobs/$jobId")({
   head: () => ({ meta: [{ title: "Vaga · Moove List" }] }),
@@ -74,6 +75,8 @@ function JobDetail() {
           <SectionList title="Responsabilidades" items={ais.responsibilities ?? []} />
           <SectionList title="Resultados esperados" items={ais.expected_results ?? []} />
         </div>
+
+        <JobPostingSection job={j} />
       </div>
     </AppShell>
   );
