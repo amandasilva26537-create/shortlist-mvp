@@ -159,3 +159,35 @@ export const setMemberAdmin = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+/** Recrutadores oficiais (cadastrados em Equipe, ativos) — usado para escolher o recrutador da vaga. Qualquer usuário autenticado. */
+export const listRecruiters = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roles } = await supabaseAdmin.from("user_roles").select("user_id").in("role", ["recruiter", "admin"] as any);
+    const ids = [...new Set((roles ?? []).map((r: any) => r.user_id))];
+    if (!ids.length) return [] as { id: string; full_name: string }[];
+    const { data, error } = await supabaseAdmin.from("profiles").select("id, full_name, status").in("id", ids).order("full_name");
+    if (error) throw new Error(error.message);
+    return (data ?? []).filter((p: any) => p.full_name && p.status !== "inactive").map((p: any) => ({ id: p.id as string, full_name: p.full_name as string }));
+  });
+
+/** Exclui o cadastro de um membro da Equipe. As vagas dele ficam "sem recrutador"; nenhuma vaga/shortlist é apagada. */
+export const deleteMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => z.object({ id: z.string().uuid() }).parse(v))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId, (context as any).roles);
+    if (data.id === context.userId) throw new Error("Você não pode excluir o seu próprio cadastro.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // libera as vagas atribuídas (ignora se a coluna ainda não existe)
+    await (supabaseAdmin.from("jobs") as any).update({ recruiter_id: null }).eq("recruiter_id", data.id);
+    const { error: authErr } = await (supabaseAdmin.auth as any).admin.deleteUser(data.id);
+    if (authErr) {
+      throw new Error("Não foi possível excluir: este membro tem registros vinculados (vagas, shortlists). Use “Desativar” para tirá-lo da equipe sem perder o histórico.");
+    }
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.id);
+    await supabaseAdmin.from("profiles").delete().eq("id", data.id);
+    return { ok: true };
+  });

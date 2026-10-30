@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Shield, ShieldOff, Power, PowerOff } from "lucide-react";
+import { UserPlus, Shield, ShieldOff, Power, PowerOff, Pencil, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   listTeamMembers,
@@ -16,6 +17,7 @@ import {
   updateMember,
   setMemberAdmin,
   getMyAccess,
+  deleteMember,
 } from "@/lib/db/team.functions";
 
 export const Route = createFileRoute("/team")({
@@ -30,6 +32,9 @@ function TeamPage() {
   const inviteFn = useServerFn(inviteRecruiter);
   const updateFn = useServerFn(updateMember);
   const adminFn = useServerFn(setMemberAdmin);
+  const deleteFn = useServerFn(deleteMember);
+  const [editing, setEditing] = useState<any>(null);
+  const [removing, setRemoving] = useState<any>(null);
 
   const access = useQuery({ queryKey: ["my-access"], queryFn: () => accessFn() });
   const { data: members, isLoading } = useQuery({
@@ -59,6 +64,30 @@ function TeamPage() {
       qc.invalidateQueries({ queryKey: ["team-members"] });
     },
     onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar"),
+  });
+
+  const saveEdit = useMutation({
+    mutationFn: (input: any) => updateFn({ data: input }),
+    onSuccess: () => {
+      toast.success("Cadastro atualizado.");
+      setEditing(null);
+      qc.invalidateQueries({ queryKey: ["team-members"] });
+      qc.invalidateQueries({ queryKey: ["recruiters"] });
+      qc.invalidateQueries({ queryKey: ["indicators"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar"),
+  });
+
+  const remove = useMutation({
+    mutationFn: (input: any) => deleteFn({ data: input }),
+    onSuccess: () => {
+      toast.success("Cadastro excluído. As vagas dele ficaram sem recrutador.");
+      setRemoving(null);
+      qc.invalidateQueries({ queryKey: ["team-members"] });
+      qc.invalidateQueries({ queryKey: ["recruiters"] });
+      qc.invalidateQueries({ queryKey: ["indicators"] });
+    },
+    onError: (e: any) => { setRemoving(null); toast.error(e.message ?? "Erro ao excluir"); },
   });
 
   const promote = useMutation({
@@ -183,6 +212,12 @@ function TeamPage() {
                   >
                     {m.status === "active" ? <><PowerOff className="mr-1.5 h-4 w-4" />Desativar</> : <><Power className="mr-1.5 h-4 w-4" />Ativar</>}
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setEditing({ id: m.id, full_name: m.full_name ?? "", role_title: m.role_title ?? "", email: m.email })}>
+                    <Pencil className="mr-1.5 h-4 w-4" />Editar
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setRemoving(m)} disabled={isMe} title={isMe ? "Você não pode excluir o seu próprio cadastro" : ""}>
+                    <Trash2 className="mr-1.5 h-4 w-4" />Excluir
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -198,6 +233,39 @@ function TeamPage() {
           })}
         </div>
       </div>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar profissional</DialogTitle></DialogHeader>
+          {editing && (
+            <div className="space-y-3">
+              <div><Label>Nome</Label><Input value={editing.full_name} onChange={(e) => setEditing({ ...editing, full_name: e.target.value })} /></div>
+              <div><Label>E-mail</Label><Input value={editing.email ?? ""} disabled /></div>
+              <div><Label>Cargo (opcional)</Label><Input value={editing.role_title} onChange={(e) => setEditing({ ...editing, role_title: e.target.value })} /></div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button disabled={saveEdit.isPending || !editing?.full_name?.trim()} onClick={() => saveEdit.mutate({ id: editing.id, full_name: editing.full_name.trim(), role_title: editing.role_title.trim() || null })}>
+              {saveEdit.isPending ? "Salvando…" : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!removing} onOpenChange={(o) => !o && setRemoving(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir {removing?.full_name || removing?.email}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O cadastro e o acesso serão removidos. As vagas dessa pessoa ficam “sem recrutador” e os indicadores deixam de atribuí-las a ela. Para manter o histórico, prefira “Desativar”. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => remove.mutate({ id: removing.id })}>Excluir cadastro</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }

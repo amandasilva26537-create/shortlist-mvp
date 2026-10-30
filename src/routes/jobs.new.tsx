@@ -13,6 +13,7 @@ import { uploadFileViaServer } from "@/lib/upload";
 import { Sparkles, Loader2, Wand2, Paperclip, X, Plus, Trash2 } from "lucide-react";
 import { listClients } from "@/lib/db/clients.functions";
 import { upsertJob, getJob, updateJobStatus } from "@/lib/db/jobs.functions";
+import { listRecruiters } from "@/lib/db/team.functions";
 import { ProcessTrackingEditor } from "@/components/jobs/ProcessTrackingEditor";
 import { JOB_STATUSES, normalizeJobStatus, type JobStatus } from "@/lib/job-status";
 import { structureJob, refineJobSection } from "@/lib/ai/ai.functions";
@@ -38,6 +39,8 @@ function NewJob() {
   const refineFn = useServerFn(refineJobSection);
   const getJobFn = useServerFn(getJob);
   const statusFn = useServerFn(updateJobStatus);
+  const recruitersFn = useServerFn(listRecruiters);
+  const { data: recruiters = [] } = useQuery({ queryKey: ["recruiters"], queryFn: () => recruitersFn() });
   const editId = search.edit;
   const isEdit = !!editId;
 
@@ -58,6 +61,12 @@ function NewJob() {
     salary_min: "",
     salary_max: "",
     manager_name: "",
+    recruiter_id: "",
+    opened_on: "",
+    sl1_date: "",
+    sl2_date: "",
+    sl3_date: "",
+    closed_on: "",
   });
   const [jobStatus, setJobStatus] = useState<JobStatus>("open");
   const [documents, setDocuments] = useState<DocRef[]>([]);
@@ -81,6 +90,12 @@ function NewJob() {
       salary_min: j.salary_min ?? "",
       salary_max: j.salary_max ?? "",
       manager_name: j.manager_name ?? "",
+      recruiter_id: j.recruiter_id ?? "",
+      opened_on: j.opened_on ?? "",
+      sl1_date: j.sl1_date ?? "",
+      sl2_date: j.sl2_date ?? "",
+      sl3_date: j.sl3_date ?? "",
+      closed_on: j.closed_on ?? "",
     });
     setDocuments(Array.isArray(j.documents) ? j.documents : []);
     setPastedText(j.pasted_text ?? "");
@@ -133,6 +148,10 @@ function NewJob() {
       ai_structure: structure,
       status: jobStatus,
     };
+    // campos novos só são enviados quando o banco já os tem (vaga existente com as colunas) ou quando preenchidos
+    const recKeys = ["recruiter_id", "opened_on", "sl1_date", "sl2_date", "sl3_date", "closed_on"];
+    const dbHasCols = !!existingJob && "recruiter_id" in (existingJob as any);
+    if (dbHasCols || recKeys.some((k) => basic[k])) for (const k of recKeys) payload[k] = basic[k] || null;
     const row: any = await saveFn({ data: payload });
     setJobId(row.id);
     return row.id as string;
@@ -221,6 +240,26 @@ function NewJob() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="sm:col-span-2 rounded-xl border border-border p-4">
+              <div className="mb-3 text-sm font-semibold">Recrutamento e prazos <span className="font-normal text-muted-foreground">(usados nos Indicadores)</span></div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2"><Label>Recrutador responsável</Label>
+                  <Select value={basic.recruiter_id || "none"} onValueChange={(v) => setBasic((p: any) => ({ ...p, recruiter_id: v === "none" ? "" : v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione quem está cadastrado em Equipe" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem recrutador</SelectItem>
+                      {(recruiters as any[]).map((r) => <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <div className="mt-1 text-xs text-muted-foreground">Só aparecem os recrutadores ativos cadastrados em Equipe.</div>
+                </div>
+                <div><Label>Data de abertura da vaga</Label><Input type="date" value={basic.opened_on} onChange={setB("opened_on")} /></div>
+                <div><Label>Data de encerramento da vaga</Label><Input type="date" value={basic.closed_on} onChange={setB("closed_on")} /></div>
+                <div><Label>Entrega da SL 1</Label><Input type="date" value={basic.sl1_date} onChange={setB("sl1_date")} /></div>
+                <div><Label>Entrega da SL 2</Label><Input type="date" value={basic.sl2_date} onChange={setB("sl2_date")} /></div>
+                <div><Label>Entrega da SL 3</Label><Input type="date" value={basic.sl3_date} onChange={setB("sl3_date")} /></div>
+              </div>
             </div>
             <div><Label>Área</Label><Input value={basic.area} onChange={setB("area")} /></div>
             <div><Label>Cidade</Label><Input value={basic.location} onChange={setB("location")} /></div>

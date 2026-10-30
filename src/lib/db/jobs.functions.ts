@@ -27,6 +27,12 @@ const JobInput = z.object({
   soft_skills: z.array(z.string()).optional(),
   radar_competencies: z.any().nullable().optional(),
   status: z.string().optional(),
+  recruiter_id: z.string().uuid().nullable().optional(),
+  opened_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  sl1_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  sl2_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  sl3_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  closed_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
 });
 
 export const listJobs = createServerFn({ method: "GET" })
@@ -57,7 +63,7 @@ export const upsertJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => JobInput.parse(v))
   .handler(async ({ data, context }) => {
-    const payload = { ...data, created_by: context.userId };
+    const payload = { ...data, created_by: context.userId } as any;
     const query = data.id
       ? context.supabase.from("jobs").update(payload).eq("id", data.id).select("*").single()
       : context.supabase.from("jobs").insert(payload).select("*").single();
