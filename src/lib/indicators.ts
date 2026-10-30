@@ -3,19 +3,23 @@
  * Só usa dados REGISTRADOS. Quando falta dado, devolve null ("Sem dados"); nunca estima.
  *
  * Fontes e regras
- * - Abertura da vaga: jobs.created_at. Fechamento real: último registro da etapa "closed" (Vaga encerrada) no histórico do processo,
- *   somente quando a vaga está com status "Fechada". A data prevista de entrega da shortlist NÃO é prazo de fechamento.
+ * - Abertura da vaga: data informada no cadastro (opened_on) ou, se não houver, jobs.created_at. Fechamento real: data de encerramento
+ *   informada (closed_on) ou, se não houver, último registro da etapa "closed" no histórico; somente com status "Fechada". A data prevista de entrega da shortlist NÃO é prazo de fechamento.
  * - Shortlist enviada: tem published_at e não é rascunho. Contada uma vez por id; ordenada pela data real de envio.
  * - Contratação: candidato com status "contratado" em shortlist da vaga OU candidatura (ATS) com status "hired"; 1 por (vaga, candidato).
- * - Recrutador responsável: responsável informado na shortlist enviada mais recente; senão, o dono dessa shortlist (perfil);
- *   senão, quem criou a vaga; senão "Sem responsável".
+ * - Recrutador responsável: somente quem está cadastrado em Equipe e foi escolhido na vaga; senão "Sem recrutador".
+ * - Datas de entrega SL 1/2/3 informadas na vaga substituem a data do n-ésimo envio ou contam como envio registrado manualmente.
  */
 
 export type Brand = "moove" | "portus";
 export const normBrand = (b: unknown): Brand => (String(b ?? "").toLowerCase().startsWith("moove") ? "moove" : "portus");
 const norm = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
 
-export interface JobRow { id: string; title: string; status: string | null; created_at: string; client_id: string; created_by: string | null }
+export interface JobRow {
+  id: string; title: string; status: string | null; created_at: string; client_id: string; created_by: string | null;
+  /** Cadastro da vaga (Equipe): recrutador oficial e datas informadas (YYYY-MM-DD) */
+  recruiter_id?: string | null; opened_on?: string | null; sl1_date?: string | null; sl2_date?: string | null; sl3_date?: string | null; closed_on?: string | null;
+}
 export interface ClientRow { id: string; name: string; brand: string | null }
 export interface ShortlistRow { id: string; job_id: string; status: string; published_at: string | null; created_at: string; responsible: string | null; owner_id: string | null }
 export interface LinkRow { shortlist_id: string; candidate_id: string; status: string }
@@ -25,12 +29,14 @@ export interface Dataset {
   jobs: JobRow[]; clients: ClientRow[]; shortlists: ShortlistRow[]; hiredLinks: LinkRow[]; hiredApps: HiredApp[];
   /** job_id → datas (ISO) em que a etapa "Vaga encerrada" foi registrada */
   closedStageDates: Record<string, string[]>;
-  /** user_id → nome */
-  people: Record<string, string>;
+  /** user_id → nome, SOMENTE de quem está cadastrado em Equipe (recrutadores oficiais) */
+  team: Record<string, string>;
 }
 export interface Filters { brands: Brand[]; brand?: Brand | "all"; from?: string | null; to?: string | null; clientId?: string | null; recruiter?: string | null }
 
-const NO_RECRUITER = "Sem responsável";
+const NO_RECRUITER = "Sem recrutador";
+const dayOf = (iso: string) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10));
+const manual = (d: string | null | undefined) => (d && /^\d{4}-\d{2}-\d{2}/.test(d) ? `${d.slice(0, 10)}T12:00:00Z` : null);
 const jobStatus = (s: unknown): "open" | "closed" | "paused" | "cancelled" => (s === "paused" || s === "cancelled" || s === "closed" ? s : "open");
 const t = (iso: string | null | undefined) => (iso ? new Date(iso).getTime() : NaN);
 const DAY = 86_400_000;
@@ -70,11 +76,20 @@ export function computeJobs(d: Dataset): JobComputed[] {
     if (!c) return [];
     const status = jobStatus(j.status);
     const sent = sentByJob.get(j.id) ?? [];
-    const last = [...sent].reverse().find((s) => s.responsible?.trim());
-    const label = last?.responsible?.trim() || (sent.length && sent[sent.length - 1]!.owner_id ? d.people[sent[sent.length - 1]!.owner_id!] : "") || (j.created_by ? d.people[j.created_by] : "") || NO_RECRUITER;
-    const dates = (d.closedStageDates[j.id] ?? []).filter((x) => !isNaN(t(x))).sort();
-    const closedAt = status === "closed" && dates.length ? dates[dates.length - 1]! : null;
-    const days = closedAt && t(closedAt) >= t(j.created_at) ? Math.round((t(closedAt) - t(j.created_at)) / DAY) : null;
+    // recrutador = pessoa cadastrada em Equipe e escolhida na vaga; nunca texto livre
+    const rid = j.recruiter_id && d.team[j.recruiter_id] ? j.recruiter_id : null;
+    const label = rid ? d.team[rid]! : NO_RECRUITER;
+    // datas informadas no cadastro têm prioridade sobre as automáticas
+    const openedAt = manual(j.opened_on) ?? j.created_at;
+    const stageDates = (d.closedStageDates[j.id] ?? []).filter((x) => !isNaN(t(x))).sort();
+    const closedAt = status === "closed" ? (manual(j.closed_on) ?? (stageDates.length ? stageDates[stageDates.length - 1]! : null)) : null;
+    const days = closedAt && dayOf(closedAt) >= dayOf(openedAt) ? Math.round((dayOf(closedAt) - dayOf(openedAt)) / DAY) : null;
+    // shortlists enviadas: as registradas pelo sistema; a data informada (SL 1/2/3) substitui a da n-ésima e, se o sistema
+    // não tem aquele envio, ela conta como envio registrado manualmente
+    const informed = [manual(j.sl1_date), manual(j.sl2_date), manual(j.sl3_date)];
+    const sentAll: { id: string; at: string }[] = sent.map((s, i) => ({ id: s.id, at: informed[i] ?? s.published_at! }));
+    informed.forEach((at, i) => { if (at && i >= sent.length) sentAll.push({ id: `manual-${j.id}-${i + 1}`, at }); });
+    sentAll.sort((a, b) => t(a.at) - t(b.at));
     const hm = hiredBy.get(j.id) ?? new Map<string, string[]>();
     const candidates = new Set<string>([...hm.keys(), ...(hiredApps.get(j.id) ?? [])]);
     // shortlist de fechamento: a mais antiga (por envio) que contém candidato contratado
@@ -90,8 +105,8 @@ export function computeJobs(d: Dataset): JobComputed[] {
     const hiredSent = sent.find((s) => [...hm.values()].flat().includes(s.id));
     const hireDate = closedAt ?? hiredSent?.published_at ?? null;
     return [{
-      id: j.id, title: j.title, clientId: c.id, client: c.name, brand: normBrand(c.brand), status, recruiter: label, recruiterKey: norm(label),
-      openedAt: j.created_at, closedAt, daysToClose: days, sent: sent.map((s) => ({ id: s.id, at: s.published_at! })), hires: candidates.size, closedOn, hireDate,
+      id: j.id, title: j.title, clientId: c.id, client: c.name, brand: normBrand(c.brand), status, recruiter: label, recruiterKey: rid ?? "sem-recrutador",
+      openedAt, closedAt, daysToClose: days, sent: sentAll, hires: candidates.size, closedOn, hireDate,
     }];
   });
 }

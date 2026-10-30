@@ -49,20 +49,24 @@ export const getIndicators = createServerFn({ method: "GET" })
     const { brands, isAdmin } = await allowedBrands(sb, context.userId, (context as any).roles);
     if (!brands.length) return { noAccess: true as const, isAdmin };
 
-    const [jobs, clients, shortlists, hiredLinks, hiredApps, closedStage, profiles] = await Promise.all([
-      fetchAll(() => sb.from("jobs").select("id, title, status, created_at, client_id, created_by").order("id")),
+    const [jobs, clients, shortlists, hiredLinks, hiredApps, closedStage, profiles, roleRows] = await Promise.all([
+      // colunas novas (recrutador/datas) podem ainda não existir no banco: usa só as antigas até a migração ser aplicada
+      fetchAll(() => sb.from("jobs").select("id, title, status, created_at, client_id, created_by, recruiter_id, opened_on, sl1_date, sl2_date, sl3_date, closed_on").order("id"))
+        .catch(() => fetchAll(() => sb.from("jobs").select("id, title, status, created_at, client_id, created_by").order("id"))),
       fetchAll(() => sb.from("clients").select("id, name, brand").order("id")),
       fetchAll(() => sb.from("shortlists").select("id, job_id, status, published_at, created_at, responsible, owner_id").order("id")),
       fetchAll(() => sb.from("shortlist_candidates").select("shortlist_id, candidate_id, status").eq("status", "contratado").order("shortlist_id")),
       fetchAll(() => sb.from("applications").select("job_id, candidate_id").eq("status", "hired").order("id"), true),
       fetchAll(() => sb.from("job_stage_history").select("job_id, created_at").eq("stage", "closed").order("id"), true),
-      fetchAll(() => sb.from("profiles").select("id, full_name").order("id")),
+      fetchAll(() => sb.from("profiles").select("id, full_name, status").order("id")),
+      fetchAll(() => sb.from("user_roles").select("user_id, role").in("role", ["recruiter", "admin"]).order("user_id")),
     ]);
     const closedStageDates: Record<string, string[]> = {};
     for (const r of closedStage) (closedStageDates[r.job_id] ??= []).push(r.created_at);
-    const people: Record<string, string> = {};
-    for (const p of profiles) if (p.full_name) people[p.id] = p.full_name;
-    const ds: Dataset = { jobs, clients, shortlists, hiredLinks, hiredApps, closedStageDates, people };
+    const inTeam = new Set(roleRows.map((r: any) => r.user_id));
+    const team: Record<string, string> = {};
+    for (const p of profiles) if (p.full_name && inTeam.has(p.id)) team[p.id] = p.full_name;
+    const ds: Dataset = { jobs, clients, shortlists, hiredLinks, hiredApps, closedStageDates, team };
 
     const brand = data.brand !== "all" && !brands.includes(data.brand) ? null : data.brand;
     if (brand === null) return { noAccess: true as const, isAdmin };

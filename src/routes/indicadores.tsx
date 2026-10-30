@@ -143,7 +143,7 @@ function IndicadoresPage() {
                     <KpiCard label="Contratações concluídas" value={ok.stats.hires} icon={Handshake} />
                   </div>
                   <ul className="space-y-1 text-[11px] text-muted-foreground">
-                    <li>Tempo médio: da abertura da vaga até o fechamento registrado (etapa “Vaga encerrada”), em dias corridos{ok.stats.closed > 0 ? ` — calculado em ${ok.stats.avgDaysBase} de ${ok.stats.closed} vagas fechadas` : ""}. Vagas fechadas sem essa data não entram na média.</li>
+                    <li>Tempo médio: da data de abertura até a data de encerramento da vaga (informadas no cadastro; se faltarem, usa a criação da vaga e a etapa “Vaga encerrada”), em dias corridos{ok.stats.closed > 0 ? ` — calculado em ${ok.stats.avgDaysBase} de ${ok.stats.closed} vagas fechadas` : ""}. Vagas fechadas sem essa data não entram na média.</li>
                     {ok.stats.closedUndated > 0 && <li>{ok.stats.closedUndated} vaga(s) fechada(s) não têm data de fechamento registrada.</li>}
                     <li>“Fechadas no prazo” fica em breve: ainda não existe um prazo de fechamento cadastrado na vaga (a previsão de entrega da shortlist não é usada para isso).</li>
                     <li>Contratações: candidatos marcados como “Contratado” nas shortlists ou nas candidaturas, contados uma vez por vaga.</li>
@@ -194,7 +194,7 @@ function IndicadoresPage() {
                   <div className="card-soft">
                     <div className="border-b border-border p-5">
                       <h2 className="text-base font-semibold">Desempenho dos recrutadores</h2>
-                      <p className="text-xs text-muted-foreground">Responsável pela vaga = responsável informado na shortlist enviada mais recente; se não houver, o dono dessa shortlist; se também não houver, quem criou a vaga. Clique em uma linha para ver as vagas.</p>
+                      <p className="text-xs text-muted-foreground">Recrutador = pessoa cadastrada em Equipe e escolhida no cadastro da vaga. Vagas sem recrutador aparecem em “Sem recrutador”. Clique em uma linha para ver as vagas.</p>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full min-w-[860px] text-sm">
