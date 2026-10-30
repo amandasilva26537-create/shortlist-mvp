@@ -63,12 +63,24 @@ export const upsertJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => JobInput.parse(v))
   .handler(async ({ data, context }) => {
-    const payload = { ...data, created_by: context.userId } as any;
-    const query = data.id
-      ? context.supabase.from("jobs").update(payload).eq("id", data.id).select("*").single()
-      : context.supabase.from("jobs").insert(payload).select("*").single();
-    const { data: row, error } = await query;
+    const NEW = ["recruiter_id", "opened_on", "sl1_date", "sl2_date", "sl3_date", "closed_on"];
+    const run = (payload: any) => {
+      const q = data.id
+        ? context.supabase.from("jobs").update(payload).eq("id", data.id).select("*").single()
+        : context.supabase.from("jobs").insert(payload).select("*").single();
+      return q;
+    };
+    let payload: any = { ...data, created_by: context.userId };
+    let { data: row, error } = await run(payload);
+    let skipped = false;
+    // banco ainda sem as colunas novas (migração pendente): salva a vaga sem elas, sem perder o resto
+    if (error && /schema cache|does not exist|Could not find/i.test(error.message) && NEW.some((k) => error!.message.includes(k))) {
+      payload = Object.fromEntries(Object.entries(payload).filter(([k]) => !NEW.includes(k)));
+      skipped = NEW.some((k) => (data as any)[k]);
+      ({ data: row, error } = await run(payload));
+    }
     if (error) throw new Error(error.message);
+    if (skipped) (row as any)._skippedRecruitFields = true;
     return row;
   });
 
