@@ -153,6 +153,7 @@ function NewJob() {
     const dbHasCols = !!existingJob && "recruiter_id" in (existingJob as any);
     if (dbHasCols || recKeys.some((k) => basic[k])) for (const k of recKeys) payload[k] = basic[k] || null;
     const row: any = await saveFn({ data: payload });
+    if (row?._skippedRecruitFields) toast.warning("Vaga salva, mas recrutador e datas ainda não foram gravados: falta aplicar a migração no banco.");
     setJobId(row.id);
     return row.id as string;
   };
