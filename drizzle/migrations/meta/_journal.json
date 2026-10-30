@@ -43,6 +43,13 @@
       "when": 1793318868245,
       "tag": "0005_job_interview_scripts",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793364504215,
+      "tag": "0006_job_recruiter_dates",
+      "breakpoints": true
     }
   ]
 }
