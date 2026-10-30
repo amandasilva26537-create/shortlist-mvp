@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, Briefcase, ListChecks, GitCompare, Tag as TagIcon, Users2, UserPlus, Inbox, Megaphone,
-  Globe, Radar, Contact, Library, MessagesSquare, Settings, type LucideIcon,
+  Globe, Radar, BarChart3, Contact, Library, MessagesSquare, Settings, type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem { to: string; label: string; icon: LucideIcon; exact?: boolean; soon?: boolean; adminOnly?: boolean }
@@ -22,6 +22,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: "/candidaturas", label: "Candidaturas", icon: Inbox },
       { to: "/shortlists", label: "Shortlists", icon: ListChecks },
       { to: "/acompanhamento", label: "Acompanhamento de Vagas", icon: Radar, exact: true },
+      { to: "/indicadores", label: "Indicadores", icon: BarChart3 },
     ],
   },
   {

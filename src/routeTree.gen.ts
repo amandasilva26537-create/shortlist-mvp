@@ -16,6 +16,7 @@ import { Route as CarreirasRouteImport } from './routes/carreiras'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as DivulgacaoRouteImport } from './routes/divulgacao'
 import { Route as FeedbacksRouteImport } from './routes/feedbacks'
+import { Route as IndicadoresRouteImport } from './routes/indicadores'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TagsRouteImport } from './routes/tags'
@@ -82,6 +83,11 @@ const DivulgacaoRoute = DivulgacaoRouteImport.update({
 const FeedbacksRoute = FeedbacksRouteImport.update({
   id: '/feedbacks',
   path: '/feedbacks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndicadoresRoute = IndicadoresRouteImport.update({
+  id: '/indicadores',
+  path: '/indicadores',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -257,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/compare': typeof CompareRoute
   '/divulgacao': typeof DivulgacaoRoute
   '/feedbacks': typeof FeedbacksRoute
+  '/indicadores': typeof IndicadoresRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tags': typeof TagsRoute
@@ -298,6 +305,7 @@ export interface FileRoutesByTo {
   '/compare': typeof CompareRoute
   '/divulgacao': typeof DivulgacaoRoute
   '/feedbacks': typeof FeedbacksRoute
+  '/indicadores': typeof IndicadoresRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tags': typeof TagsRoute
@@ -338,6 +346,7 @@ export interface FileRoutesById {
   '/compare': typeof CompareRoute
   '/divulgacao': typeof DivulgacaoRoute
   '/feedbacks': typeof FeedbacksRoute
+  '/indicadores': typeof IndicadoresRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tags': typeof TagsRoute
@@ -381,6 +390,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/divulgacao'
     | '/feedbacks'
+    | '/indicadores'
     | '/reset-password'
     | '/sitemap.xml'
     | '/tags'
@@ -422,6 +432,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/divulgacao'
     | '/feedbacks'
+    | '/indicadores'
     | '/reset-password'
     | '/sitemap.xml'
     | '/tags'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/divulgacao'
     | '/feedbacks'
+    | '/indicadores'
     | '/reset-password'
     | '/sitemap.xml'
     | '/tags'
@@ -503,6 +515,7 @@ export interface RootRouteChildren {
   CompareRoute: typeof CompareRoute
   DivulgacaoRoute: typeof DivulgacaoRoute
   FeedbacksRoute: typeof FeedbacksRoute
+  IndicadoresRoute: typeof IndicadoresRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TagsRoute: typeof TagsRoute
@@ -578,6 +591,13 @@ declare module '@tanstack/react-router' {
       path: '/feedbacks'
       fullPath: '/feedbacks'
       preLoaderRoute: typeof FeedbacksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/indicadores': {
+      id: '/indicadores'
+      path: '/indicadores'
+      fullPath: '/indicadores'
+      preLoaderRoute: typeof IndicadoresRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -853,6 +873,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompareRoute: CompareRoute,
   DivulgacaoRoute: DivulgacaoRoute,
   FeedbacksRoute: FeedbacksRoute,
+  IndicadoresRoute: IndicadoresRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TagsRoute: TagsRoute,
