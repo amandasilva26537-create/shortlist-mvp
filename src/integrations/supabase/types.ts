@@ -1139,6 +1139,47 @@ export type Database = {
         }
         Relationships: []
       }
+      job_interview_scripts: {
+        Row: {
+          content: Json
+          duration_min: number
+          generated_at: string | null
+          generated_by_ai: boolean
+          job_id: string
+          kind: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content?: Json
+          duration_min?: number
+          generated_at?: string | null
+          generated_by_ai?: boolean
+          job_id: string
+          kind?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content?: Json
+          duration_min?: number
+          generated_at?: string | null
+          generated_by_ai?: boolean
+          job_id?: string
+          kind?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_interview_scripts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_match_settings: {
         Row: {
           job_id: string
