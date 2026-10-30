@@ -1312,6 +1312,7 @@ export type Database = {
           area: string | null
           briefing_url: string | null
           client_id: string
+          closed_on: string | null
           contract_type: string | null
           created_at: string
           created_by: string | null
@@ -1324,14 +1325,19 @@ export type Database = {
           meeting_transcript: string | null
           must_have: string[] | null
           nice_to_have: string[] | null
+          opened_on: string | null
           pasted_text: string | null
           process_stage: string | null
           radar_competencies: Json | null
+          recruiter_id: string | null
           recruiter_notes: string | null
           salary_max: number | null
           salary_min: number | null
           seniority: string | null
           shortlist_due_date: string | null
+          sl1_date: string | null
+          sl2_date: string | null
+          sl3_date: string | null
           soft_skills: string[] | null
           status: string
           title: string
@@ -1344,6 +1350,7 @@ export type Database = {
           area?: string | null
           briefing_url?: string | null
           client_id: string
+          closed_on?: string | null
           contract_type?: string | null
           created_at?: string
           created_by?: string | null
@@ -1356,14 +1363,19 @@ export type Database = {
           meeting_transcript?: string | null
           must_have?: string[] | null
           nice_to_have?: string[] | null
+          opened_on?: string | null
           pasted_text?: string | null
           process_stage?: string | null
           radar_competencies?: Json | null
+          recruiter_id?: string | null
           recruiter_notes?: string | null
           salary_max?: number | null
           salary_min?: number | null
           seniority?: string | null
           shortlist_due_date?: string | null
+          sl1_date?: string | null
+          sl2_date?: string | null
+          sl3_date?: string | null
           soft_skills?: string[] | null
           status?: string
           title: string
@@ -1376,6 +1388,7 @@ export type Database = {
           area?: string | null
           briefing_url?: string | null
           client_id?: string
+          closed_on?: string | null
           contract_type?: string | null
           created_at?: string
           created_by?: string | null
@@ -1388,14 +1401,19 @@ export type Database = {
           meeting_transcript?: string | null
           must_have?: string[] | null
           nice_to_have?: string[] | null
+          opened_on?: string | null
           pasted_text?: string | null
           process_stage?: string | null
           radar_competencies?: Json | null
+          recruiter_id?: string | null
           recruiter_notes?: string | null
           salary_max?: number | null
           salary_min?: number | null
           seniority?: string | null
           shortlist_due_date?: string | null
+          sl1_date?: string | null
+          sl2_date?: string | null
+          sl3_date?: string | null
           soft_skills?: string[] | null
           status?: string
           title?: string
@@ -1409,6 +1427,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_recruiter_id_fkey"
+            columns: ["recruiter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
