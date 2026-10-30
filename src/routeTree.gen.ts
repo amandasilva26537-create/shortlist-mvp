@@ -32,12 +32,14 @@ import { Route as JobsIndexRouteImport } from './routes/jobs.index'
 import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
 import { Route as JobsNewRouteImport } from './routes/jobs.new'
 import { Route as PdfCandidateIdRouteImport } from './routes/pdf.$candidateId'
+import { Route as RoteirosIndexRouteImport } from './routes/roteiros.index'
 import { Route as STokenRouteImport } from './routes/s.$token'
 import { Route as ShortlistsIndexRouteImport } from './routes/shortlists.index'
 import { Route as ShortlistsShortlistIdRouteImport } from './routes/shortlists.$shortlistId'
 import { Route as ShortlistsNewRouteImport } from './routes/shortlists.new'
 import { Route as VagasIndexRouteImport } from './routes/vagas.index'
 import { Route as VagasSlugRouteImport } from './routes/vagas.$slug'
+import { Route as RoteirosJobIdPdfRouteImport } from './routes/roteiros.$jobId.pdf'
 import { Route as STokenIndexRouteImport } from './routes/s.$token.index'
 import { Route as STokenCompareRouteImport } from './routes/s.$token.compare'
 import { Route as ShortlistsShortlistIdIndexRouteImport } from './routes/shortlists.$shortlistId.index'
@@ -162,6 +164,11 @@ const PdfCandidateIdRoute = PdfCandidateIdRouteImport.update({
   path: '/pdf/$candidateId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoteirosIndexRoute = RoteirosIndexRouteImport.update({
+  id: '/roteiros/',
+  path: '/roteiros/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const STokenRoute = STokenRouteImport.update({
   id: '/s/$token',
   path: '/s/$token',
@@ -190,6 +197,11 @@ const VagasIndexRoute = VagasIndexRouteImport.update({
 const VagasSlugRoute = VagasSlugRouteImport.update({
   id: '/vagas/$slug',
   path: '/vagas/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoteirosJobIdPdfRoute = RoteirosJobIdPdfRouteImport.update({
+  id: '/roteiros/$jobId/pdf',
+  path: '/roteiros/$jobId/pdf',
   getParentRoute: () => rootRouteImport,
 } as any)
 const STokenIndexRoute = STokenIndexRouteImport.update({
@@ -265,8 +277,10 @@ export interface FileRoutesByFullPath {
   '/candidates/': typeof CandidatesIndexRoute
   '/clients/': typeof ClientsIndexRoute
   '/jobs/': typeof JobsIndexRoute
+  '/roteiros/': typeof RoteirosIndexRoute
   '/shortlists/': typeof ShortlistsIndexRoute
   '/vagas/': typeof VagasIndexRoute
+  '/roteiros/$jobId/pdf': typeof RoteirosJobIdPdfRoute
   '/s/$token/compare': typeof STokenCompareRoute
   '/s/$token/': typeof STokenIndexRoute
   '/shortlists/$shortlistId/': typeof ShortlistsShortlistIdIndexRoute
@@ -302,8 +316,10 @@ export interface FileRoutesByTo {
   '/candidates': typeof CandidatesIndexRoute
   '/clients': typeof ClientsIndexRoute
   '/jobs': typeof JobsIndexRoute
+  '/roteiros': typeof RoteirosIndexRoute
   '/shortlists': typeof ShortlistsIndexRoute
   '/vagas': typeof VagasIndexRoute
+  '/roteiros/$jobId/pdf': typeof RoteirosJobIdPdfRoute
   '/s/$token/compare': typeof STokenCompareRoute
   '/s/$token': typeof STokenIndexRoute
   '/shortlists/$shortlistId': typeof ShortlistsShortlistIdIndexRoute
@@ -342,8 +358,10 @@ export interface FileRoutesById {
   '/candidates/': typeof CandidatesIndexRoute
   '/clients/': typeof ClientsIndexRoute
   '/jobs/': typeof JobsIndexRoute
+  '/roteiros/': typeof RoteirosIndexRoute
   '/shortlists/': typeof ShortlistsIndexRoute
   '/vagas/': typeof VagasIndexRoute
+  '/roteiros/$jobId/pdf': typeof RoteirosJobIdPdfRoute
   '/s/$token/compare': typeof STokenCompareRoute
   '/s/$token/': typeof STokenIndexRoute
   '/shortlists/$shortlistId/': typeof ShortlistsShortlistIdIndexRoute
@@ -383,8 +401,10 @@ export interface FileRouteTypes {
     | '/candidates/'
     | '/clients/'
     | '/jobs/'
+    | '/roteiros/'
     | '/shortlists/'
     | '/vagas/'
+    | '/roteiros/$jobId/pdf'
     | '/s/$token/compare'
     | '/s/$token/'
     | '/shortlists/$shortlistId/'
@@ -420,8 +440,10 @@ export interface FileRouteTypes {
     | '/candidates'
     | '/clients'
     | '/jobs'
+    | '/roteiros'
     | '/shortlists'
     | '/vagas'
+    | '/roteiros/$jobId/pdf'
     | '/s/$token/compare'
     | '/s/$token'
     | '/shortlists/$shortlistId'
@@ -459,8 +481,10 @@ export interface FileRouteTypes {
     | '/candidates/'
     | '/clients/'
     | '/jobs/'
+    | '/roteiros/'
     | '/shortlists/'
     | '/vagas/'
+    | '/roteiros/$jobId/pdf'
     | '/s/$token/compare'
     | '/s/$token/'
     | '/shortlists/$shortlistId/'
@@ -499,8 +523,10 @@ export interface RootRouteChildren {
   CandidatesIndexRoute: typeof CandidatesIndexRoute
   ClientsIndexRoute: typeof ClientsIndexRoute
   JobsIndexRoute: typeof JobsIndexRoute
+  RoteirosIndexRoute: typeof RoteirosIndexRoute
   ShortlistsIndexRoute: typeof ShortlistsIndexRoute
   VagasIndexRoute: typeof VagasIndexRoute
+  RoteirosJobIdPdfRoute: typeof RoteirosJobIdPdfRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -666,6 +692,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PdfCandidateIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/roteiros/': {
+      id: '/roteiros/'
+      path: '/roteiros'
+      fullPath: '/roteiros/'
+      preLoaderRoute: typeof RoteirosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/s/$token': {
       id: '/s/$token'
       path: '/s/$token'
@@ -706,6 +739,13 @@ declare module '@tanstack/react-router' {
       path: '/vagas/$slug'
       fullPath: '/vagas/$slug'
       preLoaderRoute: typeof VagasSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roteiros/$jobId/pdf': {
+      id: '/roteiros/$jobId/pdf'
+      path: '/roteiros/$jobId/pdf'
+      fullPath: '/roteiros/$jobId/pdf'
+      preLoaderRoute: typeof RoteirosJobIdPdfRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/s/$token/': {
@@ -833,8 +873,10 @@ const rootRouteChildren: RootRouteChildren = {
   CandidatesIndexRoute: CandidatesIndexRoute,
   ClientsIndexRoute: ClientsIndexRoute,
   JobsIndexRoute: JobsIndexRoute,
+  RoteirosIndexRoute: RoteirosIndexRoute,
   ShortlistsIndexRoute: ShortlistsIndexRoute,
   VagasIndexRoute: VagasIndexRoute,
+  RoteirosJobIdPdfRoute: RoteirosJobIdPdfRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

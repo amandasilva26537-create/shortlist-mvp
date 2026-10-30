@@ -35,7 +35,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Ferramentas",
     items: [
-      { to: "/roteiros", label: "Roteiros de Entrevista", icon: MessagesSquare, soon: true },
+      { to: "/roteiros", label: "Roteiros de Entrevista", icon: MessagesSquare },
       { to: "/compare", label: "Comparar Candidatos", icon: GitCompare },
       { to: "/tags", label: "Etiquetas", icon: TagIcon },
     ],
