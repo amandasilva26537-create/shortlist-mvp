@@ -20,7 +20,7 @@ const toBase64 = (f: File) =>
 export function ApplyForm({ slug }: { slug: string }) {
   const fn = useServerFn(submitPublicApplication);
   const [f, setF] = useState({ full_name: "", email: "", phone: "", linkedin_url: "", city: "", website: "" });
-  const [c, setC] = useState({ selection: false, pool: false, client: false, ai: false });
+  const [c, setC] = useState({ selection: false, client: false, ai: false });
   const [file, setFile] = useState<File | null>(null);
   const [err, setErr] = useState("");
 
@@ -29,7 +29,7 @@ export function ApplyForm({ slug }: { slug: string }) {
       if (!file) throw new Error("Anexe seu currículo em PDF ou DOCX.");
       if (file.size > APPLY_MAX_FILE_BYTES) throw new Error("O arquivo passa de 5 MB.");
       if (!c.selection) throw new Error("É necessário aceitar o tratamento dos dados para se candidatar.");
-      return fn({ data: { slug, ...f, consent_selection: true as const, consent_talent_pool: c.pool, consent_client_sharing: c.client, consent_ai: c.ai,
+      return fn({ data: { slug, ...f, consent_selection: true as const, consent_talent_pool: false, consent_client_sharing: c.client, consent_ai: c.ai,
         file: { name: file.name, mime: file.type, base64: await toBase64(file) } } });
     },
     onError: (e: any) => setErr(e?.message ?? "Não foi possível enviar."),
@@ -37,17 +37,18 @@ export function ApplyForm({ slug }: { slug: string }) {
 
   if (m.isSuccess)
     return (
-      <section id="candidatar" className="mt-12 rounded-2xl border border-border bg-card p-8 text-center">
-        <CheckCircle2 className="mx-auto h-8 w-8" style={{ color: "var(--portal-strong)" }} />
-        <h2 className="mt-3 text-lg font-semibold">Candidatura recebida!</h2>
+      <section id="candidatar" className="mt-12 scroll-mt-6 rounded-3xl border-[1.5px] bg-white p-8 text-center" style={{ borderColor: "#EFE6FB" }}>
+        <CheckCircle2 className="mx-auto h-8 w-8" style={{ color: "#7612D6" }} />
+        <h2 className="mt-3 text-lg font-semibold" style={{ fontFamily: "Poppins, sans-serif" }}>Candidatura recebida!</h2>
         <p className="mt-1 text-sm text-muted-foreground">Obrigado pelo interesse. Nossa equipe vai analisar seu perfil e entrar em contato se avançarmos.</p>
       </section>
     );
 
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
   return (
-    <section id="candidatar" className="mt-12 rounded-2xl border border-border bg-card p-6 md:p-8">
-      <h2 className="text-xl font-semibold tracking-tight">Candidate-se a esta vaga</h2>
+    <section id="candidatar" className="mt-12 scroll-mt-6 rounded-3xl border-[1.5px] bg-white p-6 md:p-8" style={{ borderColor: "#EFE6FB" }}>
+      <span className="mb-4 block h-1 w-12 rounded bg-[#7612D6]" />
+      <h2 className="text-2xl font-semibold tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>Candidate-se a esta vaga</h2>
       <form className="mt-5 space-y-4" onSubmit={(e) => { e.preventDefault(); setErr(""); m.mutate(); }}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div><Label className="text-xs">Nome completo *</Label><Input required value={f.full_name} onChange={set("full_name")} autoComplete="name" /></div>
@@ -65,16 +66,15 @@ export function ApplyForm({ slug }: { slug: string }) {
           <label>Site<input tabIndex={-1} autoComplete="off" value={f.website} onChange={set("website")} /></label>
         </div>
 
-        <div className="space-y-2 rounded-lg bg-secondary/40 p-4 text-xs">
+        <div className="space-y-2 rounded-2xl p-4 text-xs" style={{ background: "#EFE6FB66" }}>
           <label className="flex items-start gap-2"><Checkbox checked={c.selection} onCheckedChange={(v) => setC({ ...c, selection: v === true })} className="mt-0.5" /><span>{CONSENT_TEXT.selection_process} <b>(obrigatório)</b></span></label>
-          <label className="flex items-start gap-2"><Checkbox checked={c.pool} onCheckedChange={(v) => setC({ ...c, pool: v === true })} className="mt-0.5" /><span>{CONSENT_TEXT.talent_pool}</span></label>
           <label className="flex items-start gap-2"><Checkbox checked={c.client} onCheckedChange={(v) => setC({ ...c, client: v === true })} className="mt-0.5" /><span>{CONSENT_TEXT.client_sharing}</span></label>
           <label className="flex items-start gap-2"><Checkbox checked={c.ai} onCheckedChange={(v) => setC({ ...c, ai: v === true })} className="mt-0.5" /><span>{CONSENT_TEXT.ai_analysis}</span></label>
           <p className="pt-1 text-muted-foreground">Você pode pedir acesso, correção ou exclusão dos seus dados, ou revogar o consentimento, a qualquer momento, pelo contato da Moove Talent.</p>
         </div>
 
         {err && <p className="text-sm text-destructive" role="alert">{err}</p>}
-        <Button type="submit" disabled={m.isPending}>{m.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}Enviar candidatura</Button>
+        <Button type="submit" disabled={m.isPending} className="h-11 rounded-full bg-[#7612D6] px-7 text-white hover:-translate-y-0.5 hover:bg-[#7612D6] transition-transform" style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}>{m.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}Enviar candidatura</Button>
       </form>
     </section>
   );
