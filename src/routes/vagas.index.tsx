@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listPublicPostings } from "@/lib/db/postings.functions";
+import { MooveInfinity as InfinityMark, MooveTalentLogo } from "@/components/jobs/CareersChrome";
 
 export const Route = createFileRoute("/vagas/")({
   ssr: false,
@@ -22,20 +23,6 @@ const modelOf = (w: string | null): Filter | null => {
   return n.startsWith("remot") ? "Remoto" : n.startsWith("hibrid") ? "Híbrido" : n.startsWith("presenc") ? "Presencial" : null;
 };
 
-function InfinityMark({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <svg viewBox="0 0 200 100" className={className} style={style} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round">
-      <path d="M100 50C80 15 20 15 20 50s60 35 80 0 60-35 80 0-60 35-80 0Z" />
-    </svg>
-  );
-}
-const Logo = () => (
-  <span className="mv-logo" aria-label="Moove Talent">
-    <span className="mv-logo-word">m<InfinityMark className="mv-logo-inf" />ve</span>
-    <span className="mv-logo-bar" />
-    <span className="mv-logo-talent">TALENT</span>
-  </span>
-);
 const IgIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" /></svg>);
 const InIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.5 3A1.9 1.9 0 1 0 4.5 6.8 1.9 1.9 0 0 0 4.5 3ZM3 8.5h3V21H3V8.5Zm5.5 0h2.9v1.7h.1c.4-.8 1.4-1.9 3.2-1.9 3.4 0 4 2.2 4 5.2V21h-3v-6.7c0-1.6 0-3.6-2.2-3.600s-2.5 1.700-2.500 3.5V21h-3V8.5Z" /></svg>);
 
@@ -51,7 +38,7 @@ function CareersPage() {
 
       <header className="mv-header">
         <div className="mv-wrap mv-header-in">
-          <Link to="/vagas" aria-label="Página de Carreiras Moove Talent"><Logo /></Link>
+          <Link to="/vagas" aria-label="Página de Carreiras Moove Talent"><MooveTalentLogo /></Link>
           <a href="#vagas" className="mv-btn mv-btn-white">Ver vagas</a>
         </div>
       </header>
@@ -166,11 +153,6 @@ const CSS = `
 .mv-pill-lime{background:var(--lima);color:var(--noite)}
 .mv-header{background:var(--noite);position:relative;z-index:3}
 .mv-header-in{display:flex;align-items:center;justify-content:space-between;min-height:76px}
-.mv-logo{display:inline-flex;align-items:center;gap:14px;color:#fff;min-height:44px}
-.mv-logo-word{font-family:Poppins,sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;display:inline-flex;align-items:center}
-.mv-logo-inf{width:34px;height:auto;color:var(--roxo);margin:0 -1px}
-.mv-logo-bar{width:1px;height:26px;background:rgba(255,255,255,.35)}
-.mv-logo-talent{font-family:Poppins,sans-serif;font-weight:500;font-size:12px;letter-spacing:.32em}
 .mv-hero{background:var(--noite);position:relative;overflow:hidden;padding:96px 0 120px}
 .mv-blob{position:absolute;border-radius:50%;filter:blur(110px);pointer-events:none}
 .mv-blob-a{width:520px;height:520px;background:var(--roxo);opacity:.55;top:-180px;left:-160px;animation:mvFloatA 16s ease-in-out infinite}
@@ -228,6 +210,5 @@ const CSS = `
 @keyframes mvAurora{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 @media (max-width:900px){.mv-grid{grid-template-columns:repeat(2,1fr)}.mv-commit-grid{grid-template-columns:1fr;gap:32px}}
 @media (max-width:640px){.mv-wrap{padding:0 20px}.mv-hero{padding:64px 0 80px}.mv-h1{font-size:40px}.mv-sub{font-size:18px}.mv-h2{font-size:32px}.mv-grid{grid-template-columns:1fr}
-  .mv-hero-inf{width:480px;right:-220px}.mv-final{padding:48px 24px;border-radius:28px}.mv-final-h{font-size:32px}.mv-logo-word{font-size:24px}.mv-logo-talent{letter-spacing:.2em}}
-@media (prefers-reduced-motion:reduce){.mv-page *{animation:none!important;transition:none!important}.mv-up{opacity:1}.mv-page{scroll-behavior:auto}}
+  .mv-hero-inf{width:480px;right:-220px}.mv-final{padding:48px 24px;border-radius:28px}.mv-final-h{font-size:32px}@media (prefers-reduced-motion:reduce){.mv-page *{animation:none!important;transition:none!important}.mv-up{opacity:1}.mv-page{scroll-behavior:auto}}
 `;

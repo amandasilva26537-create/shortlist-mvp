@@ -95,12 +95,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Dashboard · Moove List" },
       { name: "twitter:description", content: "A Moove List transforma shortlists em experiências premium de decisão. Consultorias entregam currículos, nós entregamos inteligência." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b2c3856c-8c84-4d82-a737-d0bc2265e672/id-preview-661eac3e--88066f3b-55d3-44f4-bc10-f763647102a8.lovable.app-1783805422053.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b2c3856c-8c84-4d82-a737-d0bc2265e672/id-preview-661eac3e--88066f3b-55d3-44f4-bc10-f763647102a8.lovable.app-1783805422053.png" },
+      { property: "og:image", content: "https://elite-candidate-insight.lovable.app/brand/moove-og.png" },
+      { name: "twitter:image", content: "https://elite-candidate-insight.lovable.app/brand/moove-og.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "shortcut icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
