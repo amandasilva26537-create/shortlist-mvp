@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-access";
 import { z } from "zod";
+import { latestPerCandidate } from "@/lib/evaluation-scope";
 
 const ShortlistInput = z.object({
   id: z.string().uuid().optional(),
@@ -280,12 +281,14 @@ export const upsertEvaluation = createServerFn({ method: "POST" })
   .inputValidator((v: unknown) => EvaluationPatch.parse(v))
   .handler(async ({ data, context }) => {
     const { candidate_id, job_id, ...rest } = data;
-    const { data: existing } = await context.supabase
+    const { data: existingRows } = await context.supabase
       .from("candidate_job_evaluations")
       .select("id")
       .eq("candidate_id", candidate_id)
       .eq("job_id", job_id)
-      .maybeSingle();
+      .order("updated_at", { ascending: false })
+      .limit(1);
+    const existing = existingRows?.[0];
     if (existing) {
       const { data: row, error } = await context.supabase
         .from("candidate_job_evaluations")
@@ -328,7 +331,7 @@ export const listEvaluationsForShortlist = createServerFn({ method: "GET" })
       .in("candidate_id", cids)
       .eq("job_id", sl.job_id);
     if (error) throw new Error(error.message);
-    return evals ?? [];
+    return latestPerCandidate(evals ?? [], sl.job_id);
   });
 
 // ============ Feedbacks de clientes por candidato (uso interno) ============

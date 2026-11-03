@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { patchCandidate } from "@/lib/db/candidates.functions";
 import { upsertEvaluation } from "@/lib/db/shortlists.functions";
+import { evaluationForJob } from "@/lib/evaluation-scope";
 import { toast } from "sonner";
 
 interface Props {
@@ -26,7 +27,7 @@ const num = (v: string) => {
 
 export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, shortlistId }: Props) {
   const c = candidate;
-  const ev = evaluation;
+  const ev = evaluationForJob(evaluation, jobId);
   const salary = salaryLabel(c);
   const cityLabel =
     c.city && c.state && !String(c.city).toLowerCase().includes(String(c.state).toLowerCase())
@@ -189,9 +190,9 @@ export function CandidateFlashcard({ candidate, evaluation, readOnly, jobId, sho
               <h2 className="text-xl font-semibold tracking-tight md:text-2xl">
                 {c.full_name}
               </h2>
-              {keywordHeadline(ev?.job_headline || c.headline) && (
+              {keywordHeadline(ev?.job_headline) && (
                 <p className="mt-1 text-[13px] font-medium tracking-wide text-primary">
-                  {keywordHeadline(ev?.job_headline || c.headline)}
+                  {keywordHeadline(ev?.job_headline)}
                 </p>
               )}
 

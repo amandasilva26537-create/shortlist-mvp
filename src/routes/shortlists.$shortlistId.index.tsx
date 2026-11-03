@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DownloadPdfMenu } from "@/components/pdf/DownloadPdfMenu";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ function ShortlistDetail() {
     queryKey: ["shortlist", shortlistId],
     queryFn: () => getFn({ data: { id: shortlistId } }),
   });
-  const { data: evaluations = [] } = useQuery({
+  const { data: evaluations = [], isFetched: evalsFetched } = useQuery({
     queryKey: ["shortlist-evaluations", shortlistId],
     queryFn: () => evalsFn({ data: { shortlist_id: shortlistId } }),
     enabled: !!data,
@@ -80,10 +80,11 @@ function ShortlistDetail() {
    * Nunca sobrescreve análises de shortlists anteriores: só regera quando a análise
    * pertence a esta shortlist (ou a nenhuma) e está em um padrão antigo.
    */
-  const analyzeAll = async () => {
+  const analyzeAll = async (force = false) => {
     setBatchBusy(true);
     try {
       const missing = (data.candidates as any[]).filter((c) => {
+        if (force) return true;
         const ev: any = evaluations.find((e: any) => e.candidate_id === c.candidate_id);
         if (!ev || typeof ev.overall_match !== "number") return true;
         const outdated = (ev.prompt_version ?? 0) < SUMMARY_PROMPT_VERSION;
@@ -103,6 +104,37 @@ function ShortlistDetail() {
     } catch (e: any) { toast.error(e.message); }
     finally { setBatchBusy(false); }
   };
+
+  /**
+   * Avaliação individual por vaga: todo candidato desta shortlist precisa ter análise DESTA vaga.
+   * Quem ainda não tem (candidato recém-adicionado, ou que veio de outra vaga) é analisado automaticamente,
+   * do zero, só com os requisitos desta vaga. Nunca sobrescreve análise existente nem mexe em outras vagas.
+   */
+  const autoTried = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!data || !evalsFetched || batchBusy) return;
+    const jobId = (data as any).job_id as string;
+    const missing = ((data as any).candidates as any[] ?? []).filter(
+      (c) => !(evaluations as any[]).some((e) => e.candidate_id === c.candidate_id && e.job_id === jobId) && !autoTried.current.has(`${shortlistId}:${c.candidate_id}`),
+    );
+    if (!missing.length) return;
+    missing.forEach((c) => autoTried.current.add(`${shortlistId}:${c.candidate_id}`));
+    (async () => {
+      setBatchBusy(true);
+      let done = 0;
+      for (const c of missing) {
+        try {
+          await evaluateFn({ data: { candidate_id: c.candidate_id, job_id: jobId, shortlist_id: shortlistId } });
+          done += 1;
+        } catch (e: any) { toast.error(`Não foi possível analisar ${c.candidates?.full_name ?? "um candidato"} para esta vaga: ${e?.message ?? "erro"}`); }
+      }
+      if (done) {
+        await qc.invalidateQueries({ queryKey: ["shortlist-evaluations", shortlistId] });
+        toast.success(`Análise desta vaga gerada para ${done} candidato(s)`);
+      }
+      setBatchBusy(false);
+    })();
+  }, [data, evaluations, evalsFetched, batchBusy, shortlistId]);
 
   /** Retira o candidato apenas desta shortlist — o cadastro permanece no sistema. */
   const removeFromShortlist = async (candidateId: string, name?: string) => {
@@ -139,9 +171,19 @@ function ShortlistDetail() {
               existingIds={candidateIds}
               onAdded={refreshCandidates}
             />
-            <Button variant="outline" onClick={analyzeAll} disabled={batchBusy}>
+            <Button variant="outline" onClick={() => analyzeAll()} disabled={batchBusy}>
               {batchBusy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Wand2 className="mr-1.5 h-4 w-4" />}
               Analisar todos
+            </Button>
+            <Button
+              variant="outline"
+              disabled={batchBusy}
+              title="Recalcula a análise de todos os candidatos considerando só esta vaga"
+              onClick={() => {
+                if (confirm("Refazer a análise de TODOS os candidatos desta shortlist, considerando apenas os requisitos desta vaga? Textos e notas editados à mão nesta vaga serão substituídos. Análises de outras vagas não são alteradas.")) analyzeAll(true);
+              }}
+            >
+              Refazer análises
             </Button>
             {!isSent && <Button onClick={doPublish}><Send className="mr-1.5 h-4 w-4" /> Publicar</Button>}
             {isSent && (
