@@ -71,4 +71,12 @@ assert.ok(JSON.parse(s).description.includes("&lt;img"));
 const sl = P.slugify("Gerente de RH Sênior – Operações!", "k3f9x2ab");
 assert.equal(sl, "gerente-de-rh-senior-operacoes-k3f9x2ab"); assert.ok(P.isValidSlug(sl));
 assert.equal(P.isValidSlug("../etc/passwd"), false); assert.equal(P.isValidSlug("A_b"), false);
+// página pública reflete o cadastro atual da vaga
+const snapLive: any = { content: { ...P.EMPTY_CONTENT, title: "Assistente de RH", show_salary: false }, employment: { area: "RH", seniority: null, location: null, work_model: "Remoto", contract_type: "PJ", salary_min: null, salary_max: null }, company: {}, source_hash: "h" };
+const live = P.applyLiveJob(snapLive, { title: "Analista de RH", area: "Pessoas", seniority: "Pleno", location: null, work_model: "Híbrido", contract_type: "PJ", salary_min: 3500, salary_max: 4500, status: "open" });
+assert.equal(live.content.title, "Analista de RH"); assert.equal(live.employment.work_model, "Híbrido"); assert.equal(live.employment.seniority, "Pleno");
+assert.equal(live.employment.salary_min, null); // salário só se a divulgação autorizou
+assert.equal(P.applyLiveJob({ ...snapLive, content: { ...snapLive.content, show_salary: true } }, { title: "X", area: null, seniority: null, location: null, work_model: null, contract_type: null, salary_min: 1, salary_max: 2, status: "open" }).employment.salary_max, 2);
+assert.equal(P.applyLiveJob(snapLive, { title: "  ", area: null, seniority: null, location: null, work_model: null, contract_type: null, salary_min: null, salary_max: null, status: "open" }).content.title, "Assistente de RH");
+assert.ok(P.isJobLive("open") && P.isJobLive(null)); assert.ok(!P.isJobLive("closed") && !P.isJobLive("paused") && !P.isJobLive("cancelled"));
 console.log("DIVULGAÇÃO: TODOS OS TESTES OK");

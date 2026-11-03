@@ -3,7 +3,7 @@ import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-
 import { z } from "zod";
 import {
   EMPTY_CONTENT, allowedTextFor, buildSnapshot, collectSources, contentToCheckText, defaultContent,
-  findUnsupportedClaims, hashSources, isValidSlug, normalizeContent, slugify,
+  findUnsupportedClaims, hashSources, isValidSlug, normalizeContent, slugify, applyLiveJob, isJobLive,
   type ApprovedSnapshot, type PostingContent,
 } from "@/lib/job-posting";
 
@@ -29,6 +29,8 @@ async function audit(supabase: any, userId: string, action: string, jobId: strin
     await supabase.from("activities").insert({ action, actor_id: userId, entity_type: "job_posting", entity_id: jobId, metadata } as any);
   } catch { /* auditoria é best-effort */ }
 }
+
+const LIVE_COLS = "id, title, area, seniority, location, work_model, contract_type, salary_min, salary_max, status";
 
 const ContentSchema = z.any().transform((v) => normalizeContent(v));
 
@@ -195,29 +197,39 @@ export const setPostingPublished = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Página pública: só devolve a versão aprovada de divulgações publicadas. Nada interno. */
+/** Página pública: versão aprovada dos textos + cadastro ATUAL da vaga. Vaga pausada/cancelada/fechada não aparece. Nada interno. */
 export const getPublicPosting = createServerFn({ method: "GET" })
   .inputValidator((v: unknown) => z.object({ slug: z.string().max(80).refine(isValidSlug) }).parse(v))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row } = await (supabaseAdmin as any)
-      .from("job_postings").select("slug, approved_snapshot, published_at")
+    const sb = supabaseAdmin as any;
+    const { data: row } = await sb
+      .from("job_postings").select("slug, job_id, approved_snapshot, published_at")
       .eq("slug", data.slug).eq("is_published", true).maybeSingle();
     if (!row?.approved_snapshot) return null;
-    return { snapshot: row.approved_snapshot as ApprovedSnapshot, published_at: row.published_at as string };
+    const { data: job } = await sb.from("jobs").select(LIVE_COLS).eq("id", row.job_id).maybeSingle();
+    if (!job || !isJobLive(job.status)) return null;
+    return { snapshot: applyLiveJob(row.approved_snapshot as ApprovedSnapshot, job), published_at: row.published_at as string };
   });
 
 export { EMPTY_CONTENT };
 
-/** Lista pública da Página de Carreiras: só versões aprovadas de divulgações publicadas. */
+/** Lista pública da Página de Carreiras: textos aprovados + cadastro atual da vaga, só vagas ativas. */
 export const listPublicPostings = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: rows } = await (supabaseAdmin as any)
-    .from("job_postings").select("slug, approved_snapshot, published_at")
+  const sb = supabaseAdmin as any;
+  const { data: rows } = await sb
+    .from("job_postings").select("slug, job_id, approved_snapshot, published_at")
     .eq("is_published", true).not("approved_snapshot", "is", null)
     .order("published_at", { ascending: false }).limit(200);
-  return ((rows ?? []) as any[]).map((r) => {
-    const s = r.approved_snapshot as ApprovedSnapshot;
-    return { slug: r.slug as string, title: s.content.title, location: s.employment.location, work_model: s.employment.work_model, contract_type: s.employment.contract_type, area: s.employment.area, skills: s.content.skills.slice(0, 4) };
+  const list = (rows ?? []) as any[];
+  const ids = [...new Set(list.map((r) => r.job_id).filter(Boolean))];
+  const { data: jobs } = ids.length ? await sb.from("jobs").select(LIVE_COLS).in("id", ids) : { data: [] };
+  const byId = new Map(((jobs ?? []) as any[]).map((j) => [j.id, j]));
+  return list.flatMap((r) => {
+    const job = byId.get(r.job_id);
+    if (!job || !isJobLive(job.status)) return [];
+    const s = applyLiveJob(r.approved_snapshot as ApprovedSnapshot, job);
+    return [{ slug: r.slug as string, title: s.content.title, location: s.employment.location, work_model: s.employment.work_model, contract_type: s.employment.contract_type, area: s.employment.area, skills: s.content.skills.slice(0, 4) }];
   });
 });
