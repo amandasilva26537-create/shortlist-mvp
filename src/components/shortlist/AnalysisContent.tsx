@@ -25,6 +25,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { upsertEvaluation } from "@/lib/db/shortlists.functions";
 import { evaluateCandidateForJob } from "@/lib/ai/ai.functions";
+import { evaluationForJob } from "@/lib/evaluation-scope";
 import { buildCandidateSummary } from "@/lib/candidate-summary";
 import { EditableBlock, linesToObjects, objectsToLines } from "@/components/candidate/EditableField";
 import { toast } from "sonner";
@@ -74,7 +75,8 @@ function computeOverallMatch(scores: Record<string, number | null | undefined>):
   return Math.round(Math.max(0, Math.min(10, avg)) * 10);
 }
 
-export function AnalysisContent({ candidate, jobId, shortlistId, evaluation, readOnly }: Props) {
+export function AnalysisContent({ candidate, jobId, shortlistId, evaluation: rawEvaluation, readOnly }: Props) {
+  const evaluation = evaluationForJob(rawEvaluation, jobId);
   const qc = useQueryClient();
   const evalFn = useServerFn(evaluateCandidateForJob);
   const saveFn = useServerFn(upsertEvaluation);

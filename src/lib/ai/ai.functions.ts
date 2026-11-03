@@ -546,6 +546,8 @@ Pergunta central a responder: "Considerando especificamente ESTA vaga, quais exp
 
 Use SOMENTE informações realmente presentes no material fornecido. Se algo não estiver disponível, retorne "" ou [] ou marque status "unknown".
 
+AVALIAÇÃO EXCLUSIVA DESTA VAGA: o material do candidato abaixo contém apenas FATOS (trajetória, formação, idiomas, competências, entrevista, anotações). Ele não traz resumos, headlines, pontuações nem pareceres escritos para outras vagas, e você NÃO deve presumir nem reaproveitar nenhuma conclusão de outro processo seletivo. Refaça toda a análise do zero, considerando exclusivamente os requisitos, competências e critérios da vaga abaixo.
+
 ${EXECUTIVE_WRITING_STYLE}
 
 ${genderInstruction(cAny.gender, cAny.full_name)}
@@ -572,21 +574,14 @@ Cargo atual: ${cAny.current_position ?? ""} · ${cAny.current_company ?? ""}
 Cidade/Modelo: ${cAny.city ?? ""} / ${cAny.work_model ?? ""}
 Pretensão: ${cAny.salary_expectation ?? ""}
 DISC: ${cAny.disc_profile ?? ""} — ${JSON.stringify(cAny.disc_scores ?? {})}
-Headline: ${cAny.headline ?? ""}
-Mini bio: ${cAny.mini_bio ?? ""}
-Bio completa: ${cAny.full_bio ?? ""}
-Resumo executivo: ${JSON.stringify(cAny.executive_summary ?? [])}
-Especialidades: ${JSON.stringify(cAny.specialties ?? [])}
-Resultados: ${JSON.stringify(cAny.main_results ?? [])}
-Conquistas: ${JSON.stringify(cAny.achievements ?? [])}
+Resultados registrados: ${JSON.stringify(cAny.main_results ?? [])}
+Conquistas registradas: ${JSON.stringify(cAny.achievements ?? [])}
 Trajetória: ${JSON.stringify(cAny.trajectory ?? [])}
 Competências: ${JSON.stringify(cAny.competencies ?? {})}
 Formação: ${JSON.stringify(cAny.education ?? [])}
 Idiomas: ${JSON.stringify(cAny.languages ?? [])}
 Momento profissional: ${JSON.stringify(cAny.professional_moment ?? {})}
 Motivadores: ${JSON.stringify(cAny.motivators ?? [])}
-Pontos fortes: ${JSON.stringify(cAny.strengths ?? [])}
-Case principal (currículo): ${JSON.stringify(cAny.main_case ?? {})}
 Formação complementar/cursos: ${JSON.stringify(cAny.courses ?? [])}
 Informações adicionais do processo: ${JSON.stringify(cAny.additional_info ?? {})}
 DISC (material bruto): ${cAny.disc_raw ?? ""}
@@ -757,21 +752,26 @@ Regras de PONTUAÇÃO (obrigatórias — siga com rigor):
       shortlist_id: data.shortlist_id ?? null,
     };
 
-    const { data: existing } = await context.supabase
+    // uma avaliação por (candidato, vaga): se houver duplicadas antigas, atualiza a mais recente
+    const { data: existingRows } = await context.supabase
       .from("candidate_job_evaluations")
       .select("id")
       .eq("candidate_id", data.candidate_id)
       .eq("job_id", data.job_id)
-      .maybeSingle();
+      .order("updated_at", { ascending: false })
+      .limit(1);
+    const existing = existingRows?.[0];
 
     if (existing) {
-      await context.supabase.from("candidate_job_evaluations").update(patch).eq("id", existing.id);
+      const { error: uErr } = await context.supabase.from("candidate_job_evaluations").update(patch).eq("id", existing.id);
+      if (uErr) throw new Error(uErr.message);
     } else {
-      await context.supabase.from("candidate_job_evaluations").insert({
+      const { error: iErr } = await context.supabase.from("candidate_job_evaluations").insert({
         candidate_id: data.candidate_id,
         job_id: data.job_id,
         ...patch,
       });
+      if (iErr) throw new Error(iErr.message);
     }
     return output;
   });

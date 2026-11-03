@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { latestPerCandidate } from "@/lib/evaluation-scope";
 
 function publicClient(shareToken: string) {
   const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
@@ -79,7 +80,7 @@ export const getPortalShortlist = createServerFn({ method: "GET" })
     return {
       shortlist: sl,
       candidates: links ?? [],
-      evaluations: evals ?? [],
+      evaluations: latestPerCandidate((evals ?? []) as any[], sl.job_id),
       documents: docs ?? [],
       feedback: feedback ?? [],
       test_results: testResults ?? [],
@@ -125,7 +126,8 @@ export const getPortalCandidate = createServerFn({ method: "GET" })
         .select("*")
         .eq("candidate_id", data.candidate_id)
         .eq("job_id", sl.job_id)
-        .maybeSingle(),
+        .order("updated_at", { ascending: false })
+        .limit(1),
       supabaseAdmin
         .from("candidate_test_results")
         .select("id, candidate_id, job_id, title, format, url, content")
@@ -134,7 +136,7 @@ export const getPortalCandidate = createServerFn({ method: "GET" })
     ]);
     return {
       candidate: { ...(candidate as any), documents: docs ?? [] },
-      evaluation: evaluation ?? null,
+      evaluation: (evaluation as any[] | null)?.[0] ?? null,
       shortlist_id: sl.id,
       test_results: testResults ?? [],
     };
