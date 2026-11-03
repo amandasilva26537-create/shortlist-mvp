@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { submitPublicApplication } from "@/lib/db/applications.functions";
-import { APPLY_MAX_FILE_BYTES, CONSENT_TEXT } from "@/lib/application-intake";
+import { APPLY_MAX_FILE_BYTES, CONSENT_COMBINED } from "@/lib/application-intake";
 
 const toBase64 = (f: File) =>
   new Promise<string>((res, rej) => {
@@ -20,7 +20,7 @@ const toBase64 = (f: File) =>
 export function ApplyForm({ slug }: { slug: string }) {
   const fn = useServerFn(submitPublicApplication);
   const [f, setF] = useState({ full_name: "", email: "", phone: "", linkedin_url: "", city: "", website: "" });
-  const [c, setC] = useState({ selection: false, client: false, ai: false });
+  const [accepted, setAccepted] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [err, setErr] = useState("");
 
@@ -28,8 +28,8 @@ export function ApplyForm({ slug }: { slug: string }) {
     mutationFn: async () => {
       if (!file) throw new Error("Anexe seu currículo em PDF ou DOCX.");
       if (file.size > APPLY_MAX_FILE_BYTES) throw new Error("O arquivo passa de 5 MB.");
-      if (!c.selection) throw new Error("É necessário aceitar o tratamento dos dados para se candidatar.");
-      return fn({ data: { slug, ...f, consent_selection: true as const, consent_talent_pool: false, consent_client_sharing: c.client, consent_ai: c.ai,
+      if (!accepted) throw new Error("É necessário aceitar o tratamento dos dados para se candidatar.");
+      return fn({ data: { slug, ...f, consent_selection: true as const, consent_talent_pool: false, consent_client_sharing: true, consent_ai: true,
         file: { name: file.name, mime: file.type, base64: await toBase64(file) } } });
     },
     onError: (e: any) => setErr(e?.message ?? "Não foi possível enviar."),
@@ -67,9 +67,7 @@ export function ApplyForm({ slug }: { slug: string }) {
         </div>
 
         <div className="space-y-2 rounded-2xl p-4 text-xs" style={{ background: "#EFE6FB66" }}>
-          <label className="flex items-start gap-2"><Checkbox checked={c.selection} onCheckedChange={(v) => setC({ ...c, selection: v === true })} className="mt-0.5" /><span>{CONSENT_TEXT.selection_process} <b>(obrigatório)</b></span></label>
-          <label className="flex items-start gap-2"><Checkbox checked={c.client} onCheckedChange={(v) => setC({ ...c, client: v === true })} className="mt-0.5" /><span>{CONSENT_TEXT.client_sharing}</span></label>
-          <label className="flex items-start gap-2"><Checkbox checked={c.ai} onCheckedChange={(v) => setC({ ...c, ai: v === true })} className="mt-0.5" /><span>{CONSENT_TEXT.ai_analysis}</span></label>
+          <label className="flex items-start gap-2"><Checkbox checked={accepted} onCheckedChange={(v) => setAccepted(v === true)} className="mt-0.5" /><span>{CONSENT_COMBINED} <b>(obrigatório)</b></span></label>
           <p className="pt-1 text-muted-foreground">Você pode pedir acesso, correção ou exclusão dos seus dados, ou revogar o consentimento, a qualquer momento, pelo contato da Moove Talent.</p>
         </div>
 

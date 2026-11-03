@@ -192,6 +192,32 @@ export function buildSnapshot(src: PostingSources, content: PostingContent, sour
   };
 }
 
+/** Dados do cadastro da vaga que a página pública mostra sempre atualizados. */
+export interface LiveJob {
+  title: string | null; area: string | null; seniority: string | null; location: string | null; work_model: string | null;
+  contract_type: string | null; salary_min: number | null; salary_max: number | null; status: string | null;
+}
+/** Vaga ativa = aberta. Pausada, cancelada ou fechada sai da página pública. */
+export const isJobLive = (status: unknown): boolean => !(status === "paused" || status === "cancelled" || status === "closed");
+
+/**
+ * Aplica o cadastro ATUAL da vaga sobre a versão aprovada: título, área, nível, local, modelo, contrato e remuneração
+ * refletem qualquer alteração feita na vaga. Os textos da divulgação continuam sendo os aprovados.
+ * A remuneração só aparece se a divulgação autorizou (show_salary).
+ */
+export function applyLiveJob(s: ApprovedSnapshot, j: LiveJob): ApprovedSnapshot {
+  const t = (v: string | null) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  const show = s.content.show_salary;
+  return {
+    ...s,
+    content: { ...s.content, title: t(j.title) ?? s.content.title },
+    employment: {
+      area: t(j.area), seniority: t(j.seniority), location: t(j.location), work_model: t(j.work_model), contract_type: t(j.contract_type),
+      salary_min: show ? j.salary_min : null, salary_max: show ? j.salary_max : null,
+    },
+  };
+}
+
 /** Linhas "Modelo de contratação, trabalho e remuneração" montadas só com dados cadastrados. */
 export function employmentLines(s: ApprovedSnapshot): { label: string; value: string }[] {
   const e = s.employment;

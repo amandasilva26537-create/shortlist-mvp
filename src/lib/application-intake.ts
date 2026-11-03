@@ -1,8 +1,12 @@
 /** Candidatura pela Página de Carreiras — regras puras (validação, consentimento, hash). */
 import { z } from "zod";
 
-export const POLICY_VERSION = "2026-10-v1";
+export const POLICY_VERSION = "2026-11-v1";
 export const APPLY_MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+/** Único aviso/aceite mostrado ao candidato (obrigatório): cobre processo seletivo, envio à empresa contratante e análise com IA. */
+export const CONSENT_COMBINED =
+  "Li e concordo com o tratamento dos meus dados pessoais (nome, contato e currículo), conforme a LGPD, para participar deste processo seletivo, incluindo o envio do meu perfil à empresa contratante da vaga e a análise do meu currículo com apoio de inteligência artificial, que pode envolver prestadores localizados fora do Brasil.";
 
 export const CONSENT_TEXT = {
   selection_process:
@@ -70,12 +74,13 @@ export interface ConsentRow { purpose_code: string; granted: boolean; text: stri
 
 /** Finalidades registradas: a obrigatória sempre; as opcionais só quando marcadas. */
 export function buildConsentRows(f: Pick<ApplicationForm, "consent_talent_pool" | "consent_client_sharing" | "consent_ai">): ConsentRow[] {
-  const rows: ConsentRow[] = [{ purpose_code: "selection_process", granted: true, text: CONSENT_TEXT.selection_process }];
+  // o texto registrado é exatamente o que o candidato viu e aceitou (aceite único)
+  const rows: ConsentRow[] = [{ purpose_code: "selection_process", granted: true, text: CONSENT_COMBINED }];
   if (f.consent_talent_pool) rows.push({ purpose_code: "talent_pool", granted: true, text: CONSENT_TEXT.talent_pool });
-  if (f.consent_client_sharing) rows.push({ purpose_code: "client_sharing", granted: true, text: CONSENT_TEXT.client_sharing });
+  if (f.consent_client_sharing) rows.push({ purpose_code: "client_sharing", granted: true, text: CONSENT_COMBINED });
   if (f.consent_ai) {
-    rows.push({ purpose_code: "ai_analysis", granted: true, text: CONSENT_TEXT.ai_analysis });
-    rows.push({ purpose_code: "international_transfer", granted: true, text: CONSENT_TEXT.ai_analysis });
+    rows.push({ purpose_code: "ai_analysis", granted: true, text: CONSENT_COMBINED });
+    rows.push({ purpose_code: "international_transfer", granted: true, text: CONSENT_COMBINED });
   }
   return rows;
 }
