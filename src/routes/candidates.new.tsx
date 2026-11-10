@@ -50,6 +50,7 @@ import {
   deleteCandidateTestResult,
 } from "@/lib/db/candidates.functions";
 import { generateCandidateProfile, refineText } from "@/lib/ai/ai.functions";
+import { validateContact, contactErrorMessage } from "@/lib/candidate-contact";
 import { listSkillSuggestions } from "@/lib/db/tags.functions";
 import { listJobs } from "@/lib/db/jobs.functions";
 
@@ -418,7 +419,16 @@ function NewCandidate() {
     }
   };
 
+  const [contactErr, setContactErr] = useState<{ email?: string; phone?: string }>({});
   const save = async (status?: string) => {
+    // telefone e e-mail são obrigatórios para salvar o cadastro
+    const err = validateContact({ email: f.email, phone: f.phone });
+    setContactErr(err);
+    if (err.email || err.phone) {
+      toast.error(contactErrorMessage(err));
+      document.getElementById("candidate-contact")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     const id = await ensureSaved(status ? { status } : {});
     if (!id) return;
     provisionalRef.current = false;
@@ -586,13 +596,15 @@ function NewCandidate() {
               <div className="text-xs text-muted-foreground">
                 Visível apenas para recrutador e admin. Nunca aparece para o cliente.
               </div>
-              <div>
-                <Label>Telefone</Label>
-                <Input value={f.phone} onChange={set("phone")} />
+              <div id="candidate-contact">
+                <Label>Telefone <span className="text-destructive">*</span></Label>
+                <Input value={f.phone} onChange={(e) => { set("phone")(e); setContactErr((p) => ({ ...p, phone: undefined })); }} inputMode="tel" placeholder="+55 11 91234-5678" aria-invalid={!!contactErr.phone} className={contactErr.phone ? "border-destructive" : ""} />
+                {contactErr.phone && <p className="mt-1 text-xs text-destructive">{contactErr.phone}</p>}
               </div>
               <div>
-                <Label>E-mail</Label>
-                <Input type="email" value={f.email} onChange={set("email")} />
+                <Label>E-mail <span className="text-destructive">*</span></Label>
+                <Input type="email" value={f.email} onChange={(e) => { set("email")(e); setContactErr((p) => ({ ...p, email: undefined })); }} placeholder="nome@email.com" aria-invalid={!!contactErr.email} className={contactErr.email ? "border-destructive" : ""} />
+                {contactErr.email && <p className="mt-1 text-xs text-destructive">{contactErr.email}</p>}
               </div>
               <div>
                 <Label>Parecer do recrutador</Label>
