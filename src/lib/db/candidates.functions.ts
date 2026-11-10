@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { openAccess as requireSupabaseAuth } from "@/integrations/supabase/open-access";
 import { z } from "zod";
 import { CandidateInput } from "./candidates.schema";
+import { validateContact, contactErrorMessage, PROVISIONAL_STATUSES } from "@/lib/candidate-contact";
 
 export const listCandidates = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -56,6 +57,11 @@ export const upsertCandidate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => CandidateInput.parse(v))
   .handler(async ({ data, context }) => {
+    // salvamento final (status ativo ou qualquer fora do fluxo provisório): telefone e e-mail obrigatórios
+    if (data.status && !PROVISIONAL_STATUSES.has(data.status)) {
+      const err = validateContact({ email: data.email, phone: data.phone });
+      if (err.email || err.phone) throw new Error(contactErrorMessage(err));
+    }
     const payload: any = { ...data };
     if (!data.id) payload.created_by = context.userId;
     const query = data.id
@@ -338,6 +344,11 @@ export const patchCandidate = createServerFn({ method: "POST" })
       if (key in data.patch) patch[key] = data.patch[key];
     }
     if (Object.keys(patch).length === 0) throw new Error("Nenhum campo editável informado.");
+    // edições nunca podem apagar nem invalidar o contato obrigatório
+    if ("email" in patch || "phone" in patch) {
+      const err = validateContact({ email: "email" in patch ? patch.email : "ok@ok.com", phone: "phone" in patch ? patch.phone : "11999999999" });
+      if (err.email || err.phone) throw new Error(contactErrorMessage(err));
+    }
     const { data: row, error } = await context.supabase
       .from("candidates")
       .update(patch as any)
